@@ -1,0 +1,2865 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Palier">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Perte de poids et remise en forme, une marche à la fois. Hors ligne, données locales.">
+<title>Palier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232C3AE0'/%3E%3Cpath d='M12 50h13V37h13V24h13V12' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  /* Clair — papier blanc, encre noire, un seul accent. */
+  --fond:#ffffff; --fond2:#fafafa; --carte:#ffffff;
+  --trait:#e6e6e9; --trait2:#f1f1f4;
+  --texte:#000000; --gris:#71717a; --gris2:#a1a1aa;
+  --acc:#0F6E4A; --accF:rgba(15,110,74,.08); --accB:rgba(15,110,74,.35); --surAcc:#ffffff;
+  --ok:#0B6B45;   --okF:rgba(11,107,69,.09);
+  --att:#B3701E;  --attF:rgba(179,112,30,.10);
+  --dang:#B32424; --dangF:rgba(179,36,36,.08);
+  --voile:rgba(255,255,255,.88);
+  --ombre:0 1px 2px rgba(0,0,0,.04), 0 8px 28px rgba(0,0,0,.06);
+  --r:12px;
+  --tab:calc(58px + env(safe-area-inset-bottom));
+}
+html[data-theme="sombre"]{
+  --fond:#0d0d10; --fond2:#141418; --carte:#141418;
+  --trait:#26262d; --trait2:#1c1c22;
+  --texte:#f6f6f7; --gris:#9a9aa4; --gris2:#6d6d78;
+  --accF:rgba(255,255,255,.06); --accB:rgba(255,255,255,.22); --surAcc:#ffffff;
+  --ok:#4ADE9B;   --okF:rgba(74,222,155,.10);
+  --att:#F0B45C;  --attF:rgba(240,180,92,.12);
+  --dang:#FF7B72; --dangF:rgba(255,123,114,.10);
+  --voile:rgba(13,13,16,.88);
+  --ombre:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--fond);color:var(--texte);
+  font-family:"Inter Tight",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;padding:0}
+a{color:var(--acc)}
+h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.02em}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:-.015em}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.c-ok{color:var(--ok)} .c-att{color:var(--att)} .c-dang{color:var(--dang)} .c-gris{color:var(--gris)}
+.hide{display:none!important}
+
+/* ---------------- ossature ---------------- */
+.wrap{max-width:640px;margin:0 auto;padding:0 18px calc(var(--tab) + 28px);position:relative;z-index:1}
+header.top{position:sticky;top:0;z-index:30;background:var(--voile);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--trait);padding-top:env(safe-area-inset-top)}
+.top-in{max-width:640px;margin:0 auto;padding:11px 18px;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:17px;letter-spacing:-.03em}
+.brand svg{display:block;border-radius:7px}
+.top-sp{flex:1}
+.ver{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--gris);
+  border:1px solid var(--trait);border-radius:7px;padding:3px 7px;background:var(--fond2)}
+.ver.neuf{color:var(--acc);border-color:var(--accB);background:var(--accF)}
+.iconbtn{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;
+  border:1px solid var(--trait);color:var(--texte);background:var(--carte)}
+.iconbtn:active{background:var(--fond2)}
+.iconbtn.pri{background:var(--acc);border-color:var(--acc);color:var(--surAcc)}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--voile);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--trait);padding-bottom:env(safe-area-inset-bottom)}
+.tabs-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--gris);font-size:9.5px;letter-spacing:-.01em;border-top:2px solid transparent;margin-top:-1px}
+.tab span{white-space:nowrap}
+.tab.on{color:var(--texte);border-top-color:var(--acc)}
+.tab.on svg{color:var(--acc)}
+
+/* ---------------- le grand chiffre, élément signature ---------------- */
+.total{padding:26px 0 20px;border-bottom:1px solid var(--trait)}
+.total-lbl{font-size:13.5px;color:var(--gris)}
+.total-val{font-size:clamp(40px,13vw,54px);font-weight:600;letter-spacing:-.045em;
+  line-height:1.05;margin:6px 0 0;display:block}
+.total-val .u{font-size:.42em;font-weight:500;color:var(--gris);letter-spacing:-.02em;margin-left:5px}
+.total-sub{font-size:13px;color:var(--gris);margin-top:12px;display:flex;gap:14px;flex-wrap:wrap}
+.total-sub b{font-weight:500;color:var(--texte)}
+
+/* ---------------- jauges ---------------- */
+.bud{margin-top:14px}
+.bud-l{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--gris)}
+.bud-l .r{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.bud-b{height:6px;border-radius:4px;background:var(--trait2);overflow:hidden;margin-top:7px;position:relative}
+.bud-b i{display:block;height:100%;background:var(--gris2);transition:width .25s}
+.bud-b i.ok{background:var(--ok)} .bud-b i.att{background:var(--att)} .bud-b i.dang{background:var(--dang)}
+.bud-b i.acc{background:var(--acc)}
+.bud-nul{margin-top:12px;font-size:13px;color:var(--gris2)}
+.bud-nul button{color:var(--acc);text-decoration:underline;text-underline-offset:3px}
+.barre{height:6px;border-radius:4px;background:var(--trait2);overflow:hidden;margin-top:7px}
+.barre i{display:block;height:100%;background:var(--acc)}
+
+/* ---------------- sections et listes ---------------- */
+.sect{margin:22px 0 8px;display:flex;align-items:center;gap:10px}
+.sect h2{font-size:15px;font-weight:600}
+.sect .cnt{font-size:12.5px;color:var(--gris2)}
+.sect .sp{flex:1}
+.sect .lien{font-size:12.5px;color:var(--acc)}
+.ops{border-top:1px solid var(--trait2)}
+.op{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;
+  padding:11px 2px;border-bottom:1px solid var(--trait2)}
+.op-ic{width:30px;height:30px;flex:0 0 30px;border-radius:8px;display:grid;place-items:center;
+  background:var(--accF);color:var(--acc);margin-top:1px}
+.op-mid{flex:1;min-width:0}
+.op-lib{display:block;font-size:14.5px;letter-spacing:-.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op-met{display:block;font-size:11.5px;color:var(--gris2);margin-top:2px;
+  font-family:"IBM Plex Mono",monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op-mt{font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:500;white-space:nowrap;padding-top:2px}
+.jour{font-size:11.5px;color:var(--gris2);padding:14px 2px 5px;font-family:"IBM Plex Mono",monospace;
+  border-bottom:1px solid var(--trait2);display:flex;gap:10px}
+.jour .sp{flex:1}
+.vide{padding:34px 4px;color:var(--gris);font-size:14px;text-align:center;border-bottom:1px solid var(--trait2)}
+.vide b{display:block;color:var(--texte);font-weight:500;margin-bottom:5px;font-size:15px}
+.badge{display:inline-block;font-size:10px;border:1px solid var(--trait);color:var(--gris2);
+  border-radius:5px;padding:0 4px;margin-left:6px;vertical-align:1px;font-family:"IBM Plex Mono",monospace}
+.badge.acc{color:var(--acc);border-color:var(--accB);border-style:dashed}
+.avert{border:1px solid var(--attF);background:var(--attF);color:var(--att);
+  border-radius:10px;padding:11px 12px;font-size:13px;margin:12px 0;line-height:1.5}
+.avert.d{border-color:var(--dangF);background:var(--dangF);color:var(--dang)}
+.avert b{font-weight:600}
+
+/* ---------------- séances (agenda) ---------------- */
+.sem{font-size:11.5px;color:var(--gris2);padding:16px 2px 6px;font-family:"IBM Plex Mono",monospace;
+  border-bottom:1px solid var(--trait2);display:flex;gap:10px;align-items:baseline}
+.sem .sp{flex:1}
+.sem.now{color:var(--acc)}
+.sea{display:flex;gap:11px;align-items:center;width:100%;text-align:left;
+  padding:12px 2px;border-bottom:1px solid var(--trait2)}
+.sea-d{width:38px;height:38px;flex:0 0 38px;border-radius:10px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;background:var(--fond2);border:1px solid var(--trait2);
+  font-family:"IBM Plex Mono",monospace;line-height:1.05;color:var(--gris)}
+.sea-d .j{font-size:14px;font-weight:500;color:var(--texte)}
+.sea-d .m{font-size:9px;text-transform:uppercase}
+.sea-d.fait{background:var(--okF);border-color:transparent;color:var(--ok)}
+.sea-d.fait .j{color:var(--ok)}
+.sea-d.now{background:var(--accF);border-color:var(--accB);color:var(--acc)}
+.sea-d.now .j{color:var(--acc)}
+.sea-d.rate{opacity:.55;border-style:dashed}
+.sea-mid{flex:1;min-width:0}
+.sea-n{display:block;font-size:14.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sea-s{display:block;font-size:11.5px;color:var(--gris2);margin-top:2px;font-family:"IBM Plex Mono",monospace}
+.sea-go{color:var(--gris2);flex:0 0 auto;display:grid;place-items:center}
+.sea.off{opacity:.6}
+
+/* ---------------- exercices ---------------- */
+.exo{display:flex;gap:11px;align-items:center;width:100%;text-align:left;
+  padding:10px 2px;border-bottom:1px solid var(--trait2)}
+.exo-f{width:56px;height:40px;flex:0 0 56px;border-radius:9px;background:var(--fond2);
+  border:1px solid var(--trait2);display:grid;place-items:center;overflow:hidden;color:var(--texte)}
+.exo-f svg{display:block;width:100%;height:100%}
+.exo-mid{flex:1;min-width:0}
+.exo-n{display:block;font-size:14.5px;letter-spacing:-.01em}
+.exo-s{display:block;font-size:11.5px;color:var(--gris2);margin-top:2px;font-family:"IBM Plex Mono",monospace}
+.chk{width:26px;height:26px;flex:0 0 26px;border-radius:50%;border:1.5px solid var(--trait);
+  display:grid;place-items:center;color:transparent}
+.chk.on{background:var(--acc);border-color:var(--acc);color:var(--surAcc)}
+.exo.done .exo-n{color:var(--gris2);text-decoration:line-through}
+.figbig{width:100%;max-width:340px;margin:0 auto;aspect-ratio:5/3;border:1px solid var(--trait);
+  border-radius:var(--r);background:var(--fond2);display:grid;place-items:center;color:var(--texte)}
+.figbig svg{width:92%;height:92%;display:block}
+.muscles{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.mus{font-size:11.5px;padding:4px 9px;border-radius:999px;border:1px solid var(--trait);color:var(--gris)}
+.mus.p{color:var(--acc);border-color:var(--accB);background:var(--accF)}
+.conseils{margin:14px 0 0;padding-left:17px}
+.conseils li{font-size:13.5px;line-height:1.55;margin-bottom:5px;color:var(--gris)}
+.conseils li::marker{color:var(--acc)}
+.repere{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--gris)}
+.repere b{color:var(--texte);font-weight:500}
+
+/* ---------------- programmes ---------------- */
+.prog{display:block;width:100%;text-align:left;border:1px solid var(--trait);border-radius:var(--r);
+  padding:14px;margin:10px 0;background:var(--carte)}
+.prog.on{border-color:var(--acc);background:var(--accF)}
+.prog-n{font-weight:600;letter-spacing:-.02em;font-size:15.5px}
+.prog-d{font-size:13px;color:var(--gris);margin-top:4px;line-height:1.5}
+.prog-m{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px;font-size:11.5px;color:var(--gris2);
+  font-family:"IBM Plex Mono",monospace}
+.prog-m span{border:1px solid var(--trait);border-radius:6px;padding:2px 6px}
+
+/* ---------------- statistiques ---------------- */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.stat{border:1px solid var(--trait);border-radius:var(--r);padding:12px;background:var(--carte)}
+.stat .v{font-size:22px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat .l{font-size:12px;color:var(--gris);margin-top:2px}
+.graph{border:1px solid var(--trait);border-radius:var(--r);padding:12px 10px 8px;margin:12px 0;background:var(--carte)}
+.graph-t{font-size:12.5px;color:var(--gris);margin-bottom:8px;padding:0 2px;display:flex;gap:8px}
+.graph-t .sp{flex:1}
+.graph svg{display:block;width:100%;height:auto}
+.gx{font-size:9px;fill:var(--gris2);font-family:"IBM Plex Mono",monospace}
+
+/* ---------------- chips et boutons ---------------- */
+.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;font-size:12.5px;padding:6px 11px;border-radius:999px;
+  border:1px solid var(--trait);color:var(--gris);background:var(--carte)}
+.chip.on{color:var(--surAcc);background:var(--acc);border-color:var(--acc)}
+html[data-theme="sombre"] .chip.on{color:#0d0d10;background:var(--texte);border-color:var(--texte)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 15px;border-radius:10px;border:1px solid var(--trait);background:var(--carte);
+  font-size:14px;font-weight:500;letter-spacing:-.01em}
+.btn:active{background:var(--fond2)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--surAcc)}
+.btn.dang{color:var(--dang);border-color:var(--dangF)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btns{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
+.btns.grow>*{flex:1}
+.pas{display:flex;gap:9px;align-items:center;margin:12px 0}
+.pas button{width:42px;height:42px;border-radius:11px;border:1px solid var(--trait);
+  display:grid;place-items:center;background:var(--carte)}
+.pas .v{flex:1;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:16px;font-weight:500}
+
+/* ---------------- panneau et modale ---------------- */
+#sheet:empty,#modal:empty{display:none}
+.sheet{position:fixed;inset:0;z-index:51;background:var(--fond);overflow:auto;overscroll-behavior:contain;
+  animation:mte .22s cubic-bezier(.22,.7,.3,1)}
+@keyframes mte{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-in{max-width:640px;margin:0 auto;padding:0 18px 40px}
+.sheet-top{position:sticky;top:0;z-index:5;background:var(--voile);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--trait);
+  padding:calc(env(safe-area-inset-top) + 9px) 18px 9px;display:flex;align-items:center;gap:10px}
+.sheet-top .t{font-weight:600;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet-top .sp{flex:1}
+.mdl-bg{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.34);
+  display:flex;align-items:flex-end;justify-content:center;padding:0}
+@media(min-width:560px){.mdl-bg{align-items:center;padding:20px}}
+.mdl{background:var(--fond);width:100%;max-width:460px;border-radius:16px 16px 0 0;
+  box-shadow:var(--ombre);max-height:92vh;overflow:auto;overscroll-behavior:contain;
+  padding:18px 18px calc(18px + env(safe-area-inset-bottom));animation:mte .2s cubic-bezier(.22,.7,.3,1)}
+@media(min-width:560px){.mdl{border-radius:16px}}
+.mdl h3{font-size:17px;margin-bottom:2px}
+.mdl .sous{font-size:13px;color:var(--gris);margin-bottom:14px}
+.champ{margin:12px 0}
+.champ>label{display:block;font-size:12.5px;color:var(--gris);margin-bottom:5px}
+.duo{display:flex;gap:9px}
+.duo>*{flex:1}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--trait);
+  background:var(--carte);color:var(--texte);font-size:15px;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.5 6 8.5l4-4' fill='none' stroke='%2371717a' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:transparent}
+textarea{resize:vertical;min-height:44px;line-height:1.45;font-family:inherit}
+.mt-in{display:flex;align-items:center;gap:9px}
+.mt-in input{font-size:26px;font-weight:600;letter-spacing:-.03em;padding:12px;
+  font-variant-numeric:tabular-nums;text-align:right}
+.mt-eur{font-size:20px;color:var(--gris);font-weight:500;flex:0 0 auto}
+.raccourcis{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.raccourcis button{font-size:12.5px;padding:6px 10px;border-radius:8px;border:1px solid var(--trait);
+  color:var(--gris);background:var(--carte);font-family:"IBM Plex Mono",monospace}
+.aide{font-size:12px;color:var(--gris2);margin-top:6px;line-height:1.5}
+.bascule{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--trait);
+  border-radius:10px;margin:12px 0;text-align:left;width:100%}
+.bascule .l{flex:1;min-width:0;font-size:13.5px}
+.bascule .d{display:block;font-size:12px;color:var(--gris);margin-top:2px}
+.bascule .k{width:40px;height:24px;border-radius:999px;background:var(--trait);flex:0 0 40px;position:relative;transition:background .18s}
+.bascule .k::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+  background:var(--fond);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s}
+.bascule.on .k{background:var(--acc)}
+.bascule.on .k::after{transform:translateX(16px)}
+.jsem{display:flex;gap:6px;flex-wrap:wrap}
+.jsem button{flex:1;min-width:38px;padding:9px 0;border-radius:9px;border:1px solid var(--trait);
+  font-size:12.5px;color:var(--gris);background:var(--carte);text-align:center}
+.jsem button.on{background:var(--acc);border-color:var(--acc);color:var(--surAcc)}
+html[data-theme="sombre"] .jsem button.on{background:var(--texte);border-color:var(--texte);color:#0d0d10}
+
+/* ---------------- réglages ---------------- */
+.bloc{border:1px solid var(--trait);border-radius:var(--r);margin:12px 0;overflow:hidden;background:var(--carte)}
+.bloc-h{padding:13px 14px;font-weight:500;font-size:14.5px;border-bottom:1px solid var(--trait2);
+  display:flex;align-items:center;gap:9px}
+.bloc-b{padding:14px}
+.lig{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--trait2)}
+.lig:first-child{border-top:0;padding-top:0}
+.lig .l{flex:1;min-width:0;font-size:14px}
+.lig .d{font-size:12px;color:var(--gris);margin-top:2px}
+.seg{display:inline-flex;border:1px solid var(--trait);border-radius:9px;overflow:hidden}
+.seg button{padding:7px 11px;font-size:13px;color:var(--gris);border-right:1px solid var(--trait)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--acc);color:var(--surAcc)}
+html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
+.pastilles{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.past{width:28px;height:28px;border-radius:50%;border:2px solid transparent;position:relative}
+.past.on{box-shadow:0 0 0 2px var(--fond),0 0 0 4px var(--texte)}
+.apercu{display:flex;align-items:center;gap:10px;margin-top:16px}
+.jrn{border-top:1px solid var(--trait2);padding:12px 0}
+.jrn:first-of-type{border-top:0}
+.jrn-h{display:flex;align-items:baseline;gap:9px}
+.jrn-v{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500}
+.jrn-d{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--gris2)}
+.jrn-t{font-size:13px;color:var(--gris);margin-left:auto}
+.jrn ul{margin:7px 0 0;padding-left:17px}
+.jrn li{font-size:13px;line-height:1.55;margin-bottom:3px;color:var(--gris)}
+.jrn li::marker{color:var(--acc)}
+
+/* ---------------- toast ---------------- */
+.toast{position:fixed;left:50%;transform:translate(-50%,90px);bottom:calc(var(--tab) + 14px);z-index:70;
+  background:var(--texte);color:var(--fond);border-radius:11px;padding:11px 14px;font-size:13.5px;
+  display:flex;align-items:center;gap:14px;max-width:calc(100% - 28px);box-shadow:var(--ombre);
+  opacity:0;pointer-events:none;transition:transform .22s cubic-bezier(.22,.7,.3,1),opacity .22s}
+.toast.on{transform:translate(-50%,0);opacity:1}
+.toast.agir{pointer-events:auto}
+.toast-act{color:var(--fond);font-weight:600;text-decoration:underline;text-underline-offset:3px;flex:0 0 auto}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="var(--acc)"/>
+        <path d="M12 50h13V37h13V24h13V12" fill="none" stroke="var(--surAcc)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Palier
+    </div>
+    <button class="ver" id="ver-chip" data-act="journal-ouvrir" title="Voir les nouveautés"></button>
+    <div class="top-sp"></div>
+    <button class="iconbtn pri" id="btn-plus" data-act="plus" aria-label="Ajouter" title="Ajouter">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap" id="view"></main>
+
+<nav class="tabs"><div class="tabs-in" id="tabs"></div></nav>
+
+<div id="sheet"></div>
+<div id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Palier — perdre du poids et se remettre en forme, une marche à la fois.
+   Un seul fichier, aucune dépendance, stockage local (IndexedDB).
+   ============================================================ */
+
+const VERSION = "1.0.0";
+const SCHEMA  = 1;
+const JOURNAL = [
+  { v:"1.0.0", d:"2026-09-05", t:"Première version", l:[
+    "Un objectif de poids se pose en quatre chiffres : le poids de départ, le poids visé, le nombre de mois, et le profil qui sert au calcul de la dépense quotidienne.",
+    "Chaque jour reçoit son plafond de calories. Ce qu'on mange se note repas par repas ; ce qui manque ou ce qui dépasse est réparti sur les jours restants, sans jamais descendre sous un plancher de sécurité.",
+    "Un programme de sport se choisit dans une liste : toutes les séances sont créées d'un coup, posées sur les jours de la semaine choisis, avec une progression des séries et des répétitions au fil des semaines.",
+    "Une séance s'ouvre pour voir chaque exercice : le dessin, la description, les muscles travaillés, les séries, les répétitions, le repos et les conseils.",
+    "Un exercice qui ne convient pas se remplace par un autre travaillant les mêmes muscles — et le remplacement vaut pour toutes les séances du programme.",
+    "Le bilan réunit la courbe de poids, les calories jour après jour, l'assiduité et la projection de la date d'objectif.",
+    "Thème clair ou sombre, couleur d'accent au choix, export et import JSON, installation sur l'écran d'accueil."
+  ]}
+];
+
+/* ---------- thème et accent, lus avant tout rendu ---------- */
+const LSTHEME = "palier.theme";
+const LSACC   = "palier.accent";
+const THEMES  = [["clair","Clair"],["sombre","Sombre"],["auto","Système"]];
+const ACCENTS = [
+  ["#0F6E4A","Forêt"], ["#2C3AE0","Encre"], ["#0E7490","Océan"],
+  ["#B3541E","Cuivre"], ["#7A3FA8","Prune"], ["#B32455","Grenat"], ["#3F4756","Graphite"]
+];
+const media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+function litLS(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function ecritLS(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function themeActuel(){ return litLS(LSTHEME) || "clair"; }
+function accentActuel(){ return litLS(LSACC) || ACCENTS[0][0]; }
+
+function hexRGBA(h,a){
+  const n = parseInt(h.slice(1),16);
+  return "rgba(" + ((n>>16)&255) + "," + ((n>>8)&255) + "," + (n&255) + "," + a + ")";
+}
+/* Luminance relative : un accent clair réclame du texte noir par-dessus. */
+function surAccent(h){
+  const n = parseInt(h.slice(1),16);
+  const l = (0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255)) / 255;
+  return l > .62 ? "#000000" : "#ffffff";
+}
+function appliquerAccent(h){
+  const r = document.documentElement.style;
+  r.setProperty("--acc", h);
+  r.setProperty("--accF", hexRGBA(h,.08));
+  r.setProperty("--accB", hexRGBA(h,.35));
+  r.setProperty("--surAcc", surAccent(h));
+}
+function appliquerTheme(t){
+  const sombre = t === "auto" ? !!(media && media.matches) : t === "sombre";
+  document.documentElement.setAttribute("data-theme", sombre ? "sombre" : "clair");
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute("content", sombre ? "#0d0d10" : "#ffffff");
+}
+appliquerTheme(themeActuel());
+appliquerAccent(accentActuel());
+if(media && media.addEventListener)
+  media.addEventListener("change", () => { if(themeActuel() === "auto") appliquerTheme("auto"); });
+
+/* ---------- utilitaires ---------- */
+const $ = s => document.querySelector(s);
+const p2 = n => String(n).padStart(2,"0");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+  ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+const todayISO = () => { const d = new Date(); return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate()); };
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+/* ---------- poids ----------
+   Tout est stocké en grammes entiers : additionner des flottants finit
+   toujours par produire une moyenne à 0,0000004 près. */
+function grammes(txt){
+  if(typeof txt === "number") return Math.round(txt*1000);
+  const s = String(txt||"").replace(/\s|\u00a0|\u202f/g,"").replace(",",".").replace(/[^0-9.]/g,"");
+  const v = parseFloat(s);
+  return isNaN(v) ? 0 : Math.round(v*1000);
+}
+function kg(g, dec){
+  const d = dec == null ? 1 : dec;
+  return ((g||0)/1000).toFixed(d).replace(".", ",");
+}
+function kgSigne(g){
+  const s = g > 0 ? "+" : (g < 0 ? "−" : "");
+  return s + kg(Math.abs(g));
+}
+const kcal = n => Math.round(n||0).toLocaleString("fr-FR");
+
+/* ---------- dates ---------- */
+const MOIS = ["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"];
+const MOIS_LONG = ["janvier","février","mars","avril","mai","juin","juillet","août",
+                   "septembre","octobre","novembre","décembre"];
+const JOURS = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+const JOURS_C = ["D","L","M","M","J","V","S"];
+const JOURS_A = ["dim","lun","mar","mer","jeu","ven","sam"];
+
+function dObj(iso){ return new Date(iso + "T12:00:00"); }
+function isoDe(d){ return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate()); }
+function plusJours(iso, n){ const d = dObj(iso); d.setDate(d.getDate() + n); return isoDe(d); }
+function ecart(a, b){ return Math.round((dObj(b) - dObj(a)) / 86400000); }
+function frDate(iso, avecAn){
+  if(!iso) return "—";
+  const d = dObj(iso);
+  if(isNaN(d)) return iso;
+  const an = (avecAn || d.getFullYear() !== new Date().getFullYear()) ? " " + d.getFullYear() : "";
+  return d.getDate() + " " + MOIS[d.getMonth()] + an;
+}
+function relDate(iso){
+  const j = ecart(todayISO(), iso);
+  if(j === 0) return "aujourd'hui";
+  if(j === 1) return "demain";
+  if(j === -1) return "hier";
+  if(j > 1 && j < 7) return JOURS[dObj(iso).getDay()] + " " + frDate(iso);
+  return frDate(iso);
+}
+/* Ajoute des mois en gardant le jour, ramené au dernier jour du mois quand il
+   n'existe pas : le 31 janvier devient le 28 février, pas le 3 mars. */
+function plusMois(iso, n){
+  const d = dObj(iso);
+  const jour = d.getDate();
+  const cible = new Date(d.getFullYear(), d.getMonth() + n, 1);
+  const dernier = new Date(cible.getFullYear(), cible.getMonth()+1, 0).getDate();
+  cible.setDate(Math.min(jour, dernier));
+  return isoDe(cible);
+}
+const cap = s => String(s||"").charAt(0).toUpperCase() + String(s||"").slice(1);
+function quand(ts){
+  if(!ts) return "—";
+  const d = new Date(ts);
+  return frDate(isoDe(d), true) + " " + p2(d.getHours()) + ":" + p2(d.getMinutes());
+}
+/* Le lundi de la semaine d'une date : l'agenda se lit en semaines, pas en jours. */
+function lundiDe(iso){
+  const d = dObj(iso);
+  const j = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - j);
+  return isoDe(d);
+}
+function duree(sec){
+  const m = Math.round(sec/60);
+  if(m < 60) return m + " min";
+  return Math.floor(m/60) + " h " + (m%60 ? p2(m%60) : "");
+}
+
+function toast(msg, action){
+  const t = $("#toast");
+  t.innerHTML = '<span>' + esc(msg) + '</span>' +
+    (action ? '<button class="toast-act" data-act="' + action + '">Annuler</button>' : "");
+  t.classList.toggle("agir", !!action);
+  t.classList.add("on");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("on","agir"), action ? 7000 : 2400);
+}
+function fermerToast(){ const t = $("#toast"); if(t) t.classList.remove("on","agir"); clearTimeout(toast._t); }
+let corbeille = null;
+
+const ICONES = {
+  home:'<path d="M4 11.2 12 4l8 7.2M6.5 9.6V20h11V9.6"/>',
+  balance:'<path d="M12 4v3"/><circle cx="12" cy="8.6" r="1.6"/><path d="M5 20.5h14a1 1 0 0 0 1-1.1L18.6 9.5H5.4L4 19.4a1 1 0 0 0 1 1.1z"/>',
+  halt:'<path d="M4 9v6M7 7.5v9M17 7.5v9M20 9v6M7 12h10"/>',
+  courbe:'<path d="M4 19V5M4 19h16"/><path d="M7 15.5l3.5-4 3 2.5L20 7.5"/>',
+  cog:'<circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2 5.6 5.6"/>',
+  moins:'<path d="M5.5 12h13"/>',
+  plus:'<path d="M12 5.5v13M5.5 12h13"/>',
+  fleche:'<path d="M15 5l-7 7 7 7"/>',
+  chev:'<path d="M9 5l7 7-7 7"/>',
+  croix:'<path d="M6 6l12 12M18 6 6 18"/>',
+  check:'<path d="M4.5 12.5 9.5 17.5 19.5 6.5"/>',
+  crayon:'<path d="M4 20h4L19 9a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5 4 20z"/>',
+  horloge:'<circle cx="12" cy="12" r="8.2"/><path d="M12 7.5V12l3 1.8"/>',
+  cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+  cible:'<circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.6"/>',
+  echange:'<path d="M17 3.5 20.5 7 17 10.5"/><path d="M3.5 13v-2a4 4 0 0 1 4-4h13"/><path d="M7 20.5 3.5 17 7 13.5"/><path d="M20.5 11v2a4 4 0 0 1-4 4h-13"/>',
+  assiette:'<circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4"/>',
+  goutte:'<path d="M12 3.5c3.4 4 6 6.6 6 9.6a6 6 0 0 1-12 0c0-3 2.6-5.6 6-9.6z"/>',
+  feu:'<path d="M12 3.5c3.5 4 5.5 6.2 5.5 9.2a5.5 5.5 0 0 1-11 0c0-1.6.6-2.9 1.7-4.2.3 1.6 1.1 2.4 2 2.6-.4-3 .6-5.6 1.8-7.6z"/>',
+  info:'<circle cx="12" cy="12" r="8.2"/><path d="M12 11v5.2M12 7.9v.1"/>'
+};
+/* Le sigle : trois marches qui montent. Il se peint avec les variables du
+   thème, donc il suit l'accent sans être redessiné, et son trait bascule au
+   noir quand l'accent est trop clair. */
+function icoSVG(t){
+  return '<svg width="' + t + '" height="' + t + '" viewBox="0 0 64 64" aria-hidden="true" style="display:block">' +
+    '<rect width="64" height="64" rx="14" fill="var(--acc)"/>' +
+    '<path d="M12 50h13V37h13V24h13V12" fill="none" stroke="var(--surAcc)" ' +
+    'stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function svg(n, t, sw){
+  return '<svg width="'+(t||20)+'" height="'+(t||20)+'" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="'+(sw||1.8)+'" stroke-linecap="round" stroke-linejoin="round" ' +
+    'aria-hidden="true">' + (ICONES[n]||"") + '</svg>';
+}
+
+/* ============================================================
+   LES DESSINS D'EXERCICES
+   Des silhouettes au trait, dessinées ici plutôt que chargées : une image
+   distante manquerait dès que le téléphone perd le réseau, et l'application
+   tient dans un seul fichier. Chaque dessin partage la même grammaire —
+   une tête, un tronc, quatre membres, un sol — pour qu'on reconnaisse la
+   position d'un coup d'œil.
+   ============================================================ */
+const SOL = '<path d="M6 55h88" stroke-width="2" opacity=".28"/>';
+const FIGS = {
+  pompe: '<circle cx="20" cy="27" r="5"/><path d="M25 29 62 36 84 46"/><path d="M25 29 22 47M62 36 60 47"/><path d="M84 46 92 50"/>' + SOL,
+  pompeG: '<circle cx="22" cy="28" r="5"/><path d="M27 30 60 39"/><path d="M27 30 24 47M60 39 62 48 82 50"/>' + SOL,
+  pompeInc:'<circle cx="18" cy="20" r="5"/><path d="M23 23 58 36 84 47"/><path d="M23 23 20 38M58 36 56 48"/><path d="M84 47 92 50"/><path d="M12 38h16" stroke-width="2"/>' + SOL,
+  planche:'<circle cx="20" cy="30" r="5"/><path d="M25 32 84 44"/><path d="M25 32 24 46M84 44 92 50"/>' + SOL,
+  plancheLat:'<circle cx="20" cy="24" r="5"/><path d="M25 27 82 47"/><path d="M25 27 26 46M27 34 40 20"/><path d="M82 47 92 50"/>' + SOL,
+  squat:'<circle cx="42" cy="12" r="5"/><path d="M42 17v14"/><path d="M42 31 60 34 58 50"/><path d="M42 31 44 47"/><path d="M42 20 66 17"/>' + SOL,
+  chaise:'<circle cx="40" cy="14" r="5"/><path d="M40 19v13"/><path d="M40 32h18v18"/><path d="M40 22h20"/><path d="M32 8v44" stroke-width="2" opacity=".4"/>' + SOL,
+  fente:'<circle cx="46" cy="11" r="5"/><path d="M46 16v16"/><path d="M46 32 32 41 34 51"/><path d="M46 32 62 38 62 51"/>' + SOL,
+  montee:'<circle cx="38" cy="12" r="5"/><path d="M38 17v15"/><path d="M38 32 56 34v14"/><path d="M38 32 34 50"/><path d="M50 48h30v6" stroke-width="2"/>' + SOL,
+  pont:'<circle cx="18" cy="42" r="5"/><path d="M23 42 44 30 62 44"/><path d="M62 44 78 50"/><path d="M23 42 20 50"/>' + SOL,
+  souleve:'<circle cx="42" cy="12" r="5"/><path d="M42 17 44 30"/><path d="M44 30 44 48"/><path d="M42 20 40 36"/><path d="M28 36h28" stroke-width="3.6"/><path d="M26 32v8M58 32v8" stroke-width="3.6"/>' + SOL,
+  superman:'<circle cx="24" cy="34" r="5"/><path d="M29 37 66 41"/><path d="M29 36 14 29M66 41 84 34"/>' + SOL,
+  rowing:'<circle cx="34" cy="18" r="5"/><path d="M38 21 58 27"/><path d="M38 22 34 34 36 48"/><path d="M58 27 60 40"/><path d="M52 40h16" stroke-width="3.6"/>' + SOL,
+  traction:'<path d="M14 10h72" stroke-width="3"/><circle cx="50" cy="24" r="5"/><path d="M50 29v16"/><path d="M50 45 44 52M50 45 57 52"/><path d="M40 11 47 21M60 11 53 21"/>',
+  tractionAus:'<path d="M12 22h76" stroke-width="3"/><circle cx="34" cy="30" r="5"/><path d="M39 32 78 42"/><path d="M39 31 34 23M78 42 90 48"/>' + SOL,
+  dips:'<path d="M18 24h16M66 24h16" stroke-width="3"/><circle cx="50" cy="20" r="5"/><path d="M50 25v14"/><path d="M50 39 42 50M50 39 58 50"/><path d="M44 22 48 30M56 22 52 30"/>' + SOL,
+  developpe:'<circle cx="40" cy="14" r="5"/><path d="M40 19v18"/><path d="M40 37 34 51M40 37 48 51"/><path d="M40 22 28 12M40 22 52 12"/><path d="M22 12h12M46 12h12" stroke-width="3.6"/>' + SOL,
+  elevation:'<circle cx="46" cy="14" r="5"/><path d="M46 19v18"/><path d="M46 37 40 51M46 37 53 51"/><path d="M46 23 26 22M46 23 66 22"/><path d="M20 18v8M72 18v8" stroke-width="3.6"/>' + SOL,
+  curl:'<circle cx="44" cy="13" r="5"/><path d="M44 18v19"/><path d="M44 37 38 51M44 37 51 51"/><path d="M44 22 34 30 40 34"/><path d="M36 30v0"/><path d="M36 32h10" stroke-width="3.6"/>' + SOL,
+  crunch:'<circle cx="30" cy="32" r="5"/><path d="M35 34 56 40"/><path d="M56 40 68 30 80 44"/><path d="M35 33 44 27"/>' + SOL,
+  jambes:'<circle cx="18" cy="44" r="5"/><path d="M23 45h34"/><path d="M57 45 70 24"/><path d="M57 45 68 26"/>' + SOL,
+  twist:'<circle cx="34" cy="28" r="5"/><path d="M36 33 46 44 68 48"/><path d="M36 32 54 34"/><path d="M46 44 66 40"/>' + SOL,
+  mountain:'<circle cx="20" cy="28" r="5"/><path d="M25 30 66 40"/><path d="M25 30 23 46M66 40 84 50M52 38 50 50"/>' + SOL,
+  burpee:'<circle cx="22" cy="30" r="5"/><path d="M27 32 60 40"/><path d="M27 32 25 47M60 40 78 48"/><path d="M70 18 78 10M82 18 90 10" opacity=".5"/>' + SOL,
+  jumping:'<circle cx="50" cy="12" r="5"/><path d="M50 17v16"/><path d="M50 20 30 10M50 20 70 10"/><path d="M50 33 38 50M50 33 62 50"/>' + SOL,
+  course:'<circle cx="44" cy="12" r="5"/><path d="M44 17 40 32"/><path d="M40 32 54 42 54 51"/><path d="M40 32 26 42 22 40"/><path d="M43 20 58 26M43 21 30 20"/>' + SOL,
+  marche:'<circle cx="44" cy="12" r="5"/><path d="M44 17v16"/><path d="M44 33 34 51M44 33 56 51"/><path d="M44 21 36 32M44 21 52 30"/>' + SOL,
+  corde:'<circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 44 48M50 33 56 48"/><path d="M50 22 34 26M50 22 66 26"/><path d="M34 26C18 34 20 52 50 52s32-18 16-26" opacity=".55"/>',
+  genoux:'<circle cx="44" cy="12" r="5"/><path d="M44 17v14"/><path d="M44 31 56 30 54 42"/><path d="M44 31 42 51"/><path d="M44 20 32 24M44 20 56 16"/>' + SOL,
+  velo:'<circle cx="24" cy="44" r="9" stroke-width="2.4"/><circle cx="72" cy="44" r="9" stroke-width="2.4"/><path d="M24 44 44 44 58 28 72 44M44 44 52 28h10"/><circle cx="60" cy="18" r="5"/>',
+  mollets:'<circle cx="46" cy="12" r="5"/><path d="M46 17v18"/><path d="M46 35 40 48 42 51M46 35 52 48 50 51"/><path d="M34 40h24" stroke-width="2" opacity=".35"/>' + SOL,
+  etirement:'<circle cx="26" cy="34" r="5"/><path d="M31 36 62 44"/><path d="M62 44 76 34"/><path d="M31 36 52 30"/>' + SOL,
+  chat:'<circle cx="20" cy="30" r="5"/><path d="M25 32C40 22 56 22 70 32"/><path d="M25 33 24 48M70 32 74 48"/>' + SOL,
+  gainDyn:'<circle cx="20" cy="30" r="5"/><path d="M25 32 82 42"/><path d="M25 32 24 46M82 42 92 50"/><path d="M46 36 44 22" opacity=".55"/>' + SOL
+};
+function figSVG(id, cls){
+  const d = FIGS[id] || FIGS.marche;
+  return '<svg viewBox="0 0 100 60" fill="none" stroke="currentColor" stroke-width="3" ' +
+    'stroke-linecap="round" stroke-linejoin="round" class="' + (cls||"") + '" aria-hidden="true">' + d + '</svg>';
+}
+
+/* ============================================================
+   LA BIBLIOTHÈQUE D'EXERCICES
+   Chaque exercice porte son muscle principal, ses muscles secondaires, son
+   schéma de mouvement et le matériel qu'il réclame. Le schéma est ce qui
+   permet de proposer un remplacement honnête : on ne remplace pas une
+   poussée par un étirement sous prétexte qu'ils touchent la même épaule.
+   mat : 0 rien du tout · 1 haltères ou élastiques · 2 salle de sport
+   ============================================================ */
+const GROUPES = { pecs:"Pectoraux", dos:"Dos", epaules:"Épaules", bras:"Bras",
+  jambes:"Jambes", fessiers:"Fessiers", abdos:"Abdos", mollets:"Mollets",
+  cardio:"Cardio", mobilite:"Mobilité" };
+const PATS = { pouh:"Poussée horizontale", pouv:"Poussée verticale", tirh:"Tirage horizontal",
+  tirv:"Tirage vertical", squat:"Flexion de jambes", charn:"Charnière de hanche",
+  fente:"Fente", gain:"Gainage", abdo:"Flexion du tronc", mollet:"Mollets",
+  cardio:"Cardio", mob:"Mobilité" };
+const MATOS = ["Sans matériel", "Haltères ou élastique", "Salle de sport"];
+
+const EXOS = {
+  /* ---- poussée horizontale ---- */
+  pompes:{ n:"Pompes", g:"pecs", g2:["bras","abdos"], pat:"pouh", mat:0, fig:"pompe",
+    d:"Mains au sol un peu plus larges que les épaules, corps aligné de la tête aux talons. On descend jusqu'à frôler le sol, on repousse.",
+    c:["Serre les fessiers et le ventre : le bassin ne doit pas s'affaisser.","Coudes à environ 45° du buste, pas écartés en croix.","Descends lentement, remonte franchement."] },
+  pompesG:{ n:"Pompes sur les genoux", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompeG",
+    d:"Même mouvement que les pompes, mais en appui sur les genoux. Le buste reste aligné avec les cuisses.",
+    c:["Avance les mains pour garder l'alignement épaules-hanches-genoux.","Un tapis ou une serviette sous les genoux évite l'inconfort.","Quand 15 répétitions passent bien, essaie les pompes inclinées."] },
+  pompesMur:{ n:"Pompes au mur", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompeInc",
+    d:"Debout face à un mur, mains à hauteur d'épaules. On plie les bras jusqu'à approcher le nez du mur, on repousse.",
+    c:["Plus tu recules les pieds, plus c'est dur.","Le corps reste une planche : pas de cassure aux hanches."] },
+  pompesInc:{ n:"Pompes inclinées", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompeInc",
+    d:"Mains sur une table, un plan de travail ou le rebord d'un canapé. L'inclinaison allège la charge sur les bras.",
+    c:["Un support plus bas rend l'exercice plus difficile.","Garde les coudes près du corps."] },
+  pompesDia:{ n:"Pompes diamant", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompe",
+    d:"Mains jointes sous la poitrine, pouces et index formant un triangle. Le travail se déplace sur les triceps.",
+    c:["Coudes serrés le long du buste.","Version genoux si le format complet est trop dur."] },
+  pompesDec:{ n:"Pompes déclinées", g:"pecs", g2:["epaules","bras"], pat:"pouh", mat:0, fig:"pompe",
+    d:"Pieds surélevés sur une chaise, mains au sol. Le haut des pectoraux et les épaules prennent le relais.",
+    c:["Plus les pieds sont hauts, plus l'épaule travaille.","Ne creuse pas le bas du dos."] },
+  dipsBanc:{ n:"Dips sur chaise", g:"bras", g2:["pecs","epaules"], pat:"pouh", mat:0, fig:"dips",
+    d:"Assis au bord d'une chaise, mains de part et d'autre des hanches, fesses dans le vide. On descend en pliant les coudes, on remonte.",
+    c:["Coudes vers l'arrière, pas vers l'extérieur.","Jambes tendues pour durcir, pliées pour alléger.","Descends jusqu'à 90° au coude, pas plus bas."] },
+  devHalt:{ n:"Développé couché haltères", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:1, fig:"developpe",
+    d:"Allongé sur un banc ou au sol, un haltère dans chaque main. On pousse vers le plafond jusqu'à tendre les bras sans les verrouiller.",
+    c:["Omoplates serrées, poitrine ouverte.","Au sol, l'amplitude est limitée : c'est normal et plus sûr pour l'épaule."] },
+  ecarte:{ n:"Écarté avec haltères", g:"pecs", g2:["epaules"], pat:"pouh", mat:1, fig:"elevation",
+    d:"Allongé, bras légèrement fléchis, on ouvre les bras en arc de cercle puis on les ramène au-dessus de la poitrine.",
+    c:["Charge légère : c'est un exercice d'étirement, pas de force.","Les coudes gardent le même angle du début à la fin."] },
+  devBarre:{ n:"Développé couché", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:2, fig:"developpe",
+    d:"Sur le banc, barre descendue au milieu de la poitrine puis repoussée. L'exercice de référence pour les pectoraux.",
+    c:["Pieds au sol, dos stable, omoplates serrées.","Un pareur ou les sécurités du rack quand tu charges lourd."] },
+
+  /* ---- poussée verticale ---- */
+  pompesPiq:{ n:"Pompes piquées", g:"epaules", g2:["bras"], pat:"pouv", mat:0, fig:"pompeInc",
+    d:"En V renversé, fesses hautes, tête entre les mains. On descend le sommet du crâne vers le sol et on repousse.",
+    c:["Plus les pieds sont proches des mains, plus l'épaule est sollicitée.","Regarde entre tes mains, nuque longue."] },
+  elevBouteille:{ n:"Élévations latérales avec bouteilles", g:"epaules", g2:[], pat:"pouv", mat:0, fig:"elevation",
+    d:"Deux bouteilles d'eau en guise d'haltères, bras le long du corps. On lève sur les côtés jusqu'à l'horizontale.",
+    c:["Deux bouteilles d'un litre et demi suffisent largement.","Monte en une seconde, redescends en deux.","Épaules basses, pas de balancement du buste."] },
+  devMil:{ n:"Développé militaire haltères", g:"epaules", g2:["bras"], pat:"pouv", mat:1, fig:"developpe",
+    d:"Debout ou assis, haltères à hauteur d'épaules. On pousse au-dessus de la tête, on redescend contrôlé.",
+    c:["Ventre gainé : le dos ne doit pas partir en arrière.","Ne verrouille pas les coudes en haut."] },
+  elevLat:{ n:"Élévations latérales", g:"epaules", g2:[], pat:"pouv", mat:1, fig:"elevation",
+    d:"Bras le long du corps, on lève les haltères sur les côtés jusqu'à l'horizontale, coudes à peine fléchis.",
+    c:["Léger, toujours : l'épaule se blesse vite ici.","Monte en 1 seconde, descends en 2.","Pas d'élan avec le dos."] },
+  devEpauleM:{ n:"Développé épaules machine", g:"epaules", g2:["bras"], pat:"pouv", mat:2, fig:"developpe",
+    d:"Assis dans la machine, dos calé, on pousse les poignées au-dessus de la tête.",
+    c:["Règle la hauteur du siège : les poignées partent à hauteur d'épaules.","Amplitude complète, sans à-coups."] },
+
+  /* ---- tirage horizontal ---- */
+  rowTable:{ n:"Tirage australien sous table", g:"dos", g2:["bras"], pat:"tirh", mat:0, fig:"tractionAus",
+    d:"Allongé sous une table solide, on attrape le plateau et on tire la poitrine vers le bord.",
+    c:["Plus les pieds sont loin, plus c'est difficile.","Serre les omoplates en fin de tirage.","Vérifie que la table ne bascule pas."] },
+  superman:{ n:"Superman", g:"dos", g2:["fessiers"], pat:"tirh", mat:0, fig:"superman",
+    d:"À plat ventre, bras devant. On soulève simultanément le buste et les jambes, on tient une seconde, on relâche.",
+    c:["Cherche la longueur plutôt que la hauteur.","Nuque dans le prolongement du dos, regard au sol."] },
+  rowHalt:{ n:"Rowing haltère", g:"dos", g2:["bras"], pat:"tirh", mat:1, fig:"rowing",
+    d:"Un genou et une main en appui sur un banc, l'autre main tire l'haltère le long du corps jusqu'à la hanche.",
+    c:["Dos plat, pas de rotation du buste.","Tire avec le coude, pas avec la main."] },
+  rowElast:{ n:"Tirage à l'élastique", g:"dos", g2:["bras"], pat:"tirh", mat:1, fig:"rowing",
+    d:"Élastique fixé à hauteur de taille, on tire les poignées vers le ventre en serrant les omoplates.",
+    c:["Recule pour augmenter la tension.","Épaules basses, loin des oreilles."] },
+  rowMachine:{ n:"Rowing assis machine", g:"dos", g2:["bras"], pat:"tirh", mat:2, fig:"rowing",
+    d:"Assis, poitrine contre le support, on tire la poignée vers le ventre.",
+    c:["Le buste reste immobile : c'est le dos qui travaille.","Retiens la charge au retour."] },
+
+  /* ---- tirage vertical ---- */
+  tractionsAssist:{ n:"Tractions assistées", g:"dos", g2:["bras"], pat:"tirv", mat:1, fig:"traction",
+    d:"Barre fixe avec un gros élastique sous les pieds ou les genoux, qui rend une partie du poids du corps.",
+    c:["Commence menton au-dessus de la barre, même avec beaucoup d'aide.","Descends jusqu'aux bras tendus à chaque répétition."] },
+  tractions:{ n:"Tractions", g:"dos", g2:["bras"], pat:"tirv", mat:2, fig:"traction",
+    d:"Suspendu à la barre, mains en pronation, on tire jusqu'à passer le menton au-dessus.",
+    c:["Épaules basses avant de tirer : on ne part pas d'un dos relâché.","Pas de coup de reins."] },
+  tirageVert:{ n:"Tirage vertical poulie", g:"dos", g2:["bras"], pat:"tirv", mat:2, fig:"traction",
+    d:"Assis, cuisses bloquées, on tire la barre vers le haut de la poitrine.",
+    c:["Léger recul du buste, pas un balancement.","Barre devant la tête, jamais derrière la nuque."] },
+
+  /* ---- flexion de jambes ---- */
+  squat:{ n:"Squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:0, fig:"squat",
+    d:"Pieds largeur d'épaules, on descend en poussant les fesses vers l'arrière jusqu'à ce que les cuisses soient parallèles au sol.",
+    c:["Les genoux suivent la pointe des pieds.","Talons au sol, poitrine haute.","Descends aussi bas que ta mobilité le permet, sans arrondir le bas du dos."] },
+  squatSumo:{ n:"Squat sumo", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, fig:"squat",
+    d:"Pieds très écartés, pointes ouvertes vers l'extérieur. L'intérieur des cuisses et les fessiers travaillent davantage.",
+    c:["Genoux poussés vers l'extérieur pendant toute la descente.","Buste le plus vertical possible."] },
+  chaise:{ n:"Chaise contre le mur", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, fig:"chaise",
+    d:"Dos plaqué au mur, cuisses parallèles au sol, on tient la position.",
+    c:["Genoux à 90°, pas plus fermés.","Respire calmement : ne bloque pas ta respiration.","Le poids reste sur les talons."] },
+  squatSaute:{ n:"Squat sauté", g:"jambes", g2:["cardio","fessiers"], pat:"squat", mat:0, fig:"jumping",
+    d:"Un squat classique suivi d'un saut. On amortit la réception en repartant directement en flexion.",
+    c:["Réception souple, sur l'avant du pied puis le talon.","À éviter si les genoux sont douloureux : garde le squat simple."] },
+  squatBulg:{ n:"Squat bulgare", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, fig:"fente",
+    d:"Pied arrière posé sur une chaise, on descend sur la jambe avant jusqu'à 90° au genou.",
+    c:["Avance suffisamment le pied avant pour que le genou reste au-dessus de la cheville.","Tiens un mur du bout des doigts si l'équilibre manque."] },
+  gobelet:{ n:"Goblet squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:1, fig:"squat",
+    d:"Un haltère tenu verticalement contre la poitrine, on descend en squat. Le contrepoids aide à garder le buste droit.",
+    c:["Coudes à l'intérieur des genoux en bas.","La charge reste collée au sternum."] },
+  presse:{ n:"Presse à cuisses", g:"jambes", g2:["fessiers"], pat:"squat", mat:2, fig:"squat",
+    d:"Assis dans la machine, on pousse le chariot en tendant les jambes sans verrouiller les genoux.",
+    c:["Ne décolle jamais le bas du dos du dossier.","Descends jusqu'à 90° au genou, pas plus."] },
+
+  /* ---- charnière de hanche ---- */
+  pont:{ n:"Pont fessier", g:"fessiers", g2:["jambes","abdos"], pat:"charn", mat:0, fig:"pont",
+    d:"Allongé sur le dos, genoux pliés, pieds à plat. On pousse dans les talons pour décoller le bassin jusqu'à aligner genoux, hanches et épaules.",
+    c:["Serre les fessiers une seconde en haut.","Le bas du dos ne doit pas creuser : c'est le fessier qui monte le bassin.","Une jambe à la fois pour corser."] },
+  hipThrust:{ n:"Hip thrust sur canapé", g:"fessiers", g2:["jambes"], pat:"charn", mat:0, fig:"pont",
+    d:"Haut du dos calé sur un canapé, pieds au sol. On monte le bassin jusqu'à l'horizontale du buste.",
+    c:["Menton légèrement rentré, regard vers les genoux.","Amplitude complète : monte haut, redescends sans poser."] },
+  goodMorning:{ n:"Good morning", g:"fessiers", g2:["dos"], pat:"charn", mat:0, fig:"souleve",
+    d:"Debout, mains sur la nuque, on penche le buste en avant en poussant les fesses vers l'arrière, dos plat, jusqu'à sentir l'arrière des cuisses.",
+    c:["Genoux à peine fléchis, jamais tendus à bloc.","Le dos reste droit du début à la fin : si tu arrondis, tu descends trop bas."] },
+  donkey:{ n:"Kick-back fessier", g:"fessiers", g2:[], pat:"charn", mat:0, fig:"jambes",
+    d:"À quatre pattes, on tend une jambe vers l'arrière en poussant le talon vers le plafond.",
+    c:["Bassin stable : pas de rotation.","Serre le fessier en haut plutôt que de monter plus haut."] },
+  souleveHalt:{ n:"Soulevé de terre jambes semi-tendues", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:1, fig:"souleve",
+    d:"Haltères devant les cuisses, on descend en poussant les hanches vers l'arrière, dos plat, jusqu'à mi-tibia.",
+    c:["Les haltères frôlent les jambes pendant toute la descente.","Le mouvement vient de la hanche, pas du bas du dos.","Charge modérée tant que la technique n'est pas solide."] },
+
+  /* ---- fentes ---- */
+  fentes:{ n:"Fentes avant", g:"jambes", g2:["fessiers"], pat:"fente", mat:0, fig:"fente",
+    d:"Un grand pas en avant, on descend jusqu'à ce que le genou arrière frôle le sol, on repousse pour revenir.",
+    c:["Buste droit, regard devant.","Le genou avant ne dépasse pas la pointe du pied.","Alterne les jambes à chaque répétition."] },
+  fentesArr:{ n:"Fentes arrière", g:"jambes", g2:["fessiers"], pat:"fente", mat:0, fig:"fente",
+    d:"Même mouvement, mais le pas se fait vers l'arrière. Plus doux pour les genoux que la version avant.",
+    c:["Pose la pointe du pied arrière, pas le talon.","Pousse dans le talon avant pour remonter."] },
+  fentesMarch:{ n:"Fentes marchées", g:"jambes", g2:["fessiers","cardio"], pat:"fente", mat:0, fig:"fente",
+    d:"On enchaîne les fentes en avançant, comme une marche exagérée.",
+    c:["Prévois quelques mètres devant toi.","Reste stable une seconde entre chaque pas."] },
+  monteeBanc:{ n:"Montées sur banc", g:"jambes", g2:["fessiers","cardio"], pat:"fente", mat:0, fig:"montee",
+    d:"Face à une chaise ou une marche, on monte un pied puis l'autre, on redescend de la même façon.",
+    c:["Pousse dans la jambe du haut, ne t'aide pas d'un élan du bas.","Une marche à mi-hauteur du tibia suffit pour commencer."] },
+
+  /* ---- gainage ---- */
+  planche:{ n:"Gainage — planche", g:"abdos", g2:["dos","epaules"], pat:"gain", mat:0, fig:"planche",
+    d:"En appui sur les avant-bras et les pointes de pieds, corps parfaitement aligné. On tient.",
+    c:["Coudes sous les épaules.","Rentre le nombril, serre les fessiers.","Mieux vaut 20 secondes parfaites que 60 avec les fesses en l'air."] },
+  plancheLat:{ n:"Gainage latéral", g:"abdos", g2:["dos"], pat:"gain", mat:0, fig:"plancheLat",
+    d:"Sur le côté, en appui sur un avant-bras, hanches décollées. On tient, puis on change de côté.",
+    c:["Coude sous l'épaule.","Le bassin monte haut et ne redescend pas.","Version genoux fléchis pour alléger."] },
+  hollow:{ n:"Hollow body", g:"abdos", g2:[], pat:"gain", mat:0, fig:"crunch",
+    d:"Allongé sur le dos, bas du dos plaqué au sol, épaules et jambes décollées. On tient la position en bateau.",
+    c:["Si le bas du dos décolle, remonte les jambes.","Bras le long du corps pour une version plus facile."] },
+  gainDyn:{ n:"Planche épaule-touchée", g:"abdos", g2:["epaules"], pat:"gain", mat:0, fig:"gainDyn",
+    d:"En position de planche bras tendus, on vient toucher l'épaule opposée avec une main, en alternant.",
+    c:["Écarte les pieds pour plus de stabilité.","Le bassin ne doit pas balancer : c'est là que se fait le travail."] },
+
+  /* ---- flexion du tronc ---- */
+  crunch:{ n:"Crunch", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"crunch",
+    d:"Allongé, genoux pliés, on enroule le haut du dos vers les cuisses sans tirer sur la nuque.",
+    c:["Mains sur les tempes, pas derrière la tête.","Expire en montant.","Amplitude courte : les omoplates décollent, c'est tout."] },
+  releveJambes:{ n:"Relevé de jambes", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"jambes",
+    d:"Allongé, mains sous les fesses, on lève les jambes tendues jusqu'à la verticale puis on redescend sans toucher le sol.",
+    c:["Le bas du dos reste collé au sol : plie les genoux si ce n'est pas le cas.","Descends lentement, c'est la partie utile."] },
+  mountain:{ n:"Mountain climbers", g:"abdos", g2:["cardio","epaules"], pat:"abdo", mat:0, fig:"mountain",
+    d:"En position de planche bras tendus, on ramène alternativement un genou vers la poitrine, en rythme.",
+    c:["Les hanches restent basses.","Accélère seulement quand la position tient."] },
+  twist:{ n:"Russian twist", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"twist",
+    d:"Assis, buste incliné en arrière, pieds décollés ou non, on fait passer les mains d'un côté à l'autre.",
+    c:["La rotation vient du buste, pas seulement des bras.","Pieds au sol si le dos tire."] },
+  bicyclette:{ n:"Crunch bicyclette", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"crunch",
+    d:"Allongé, on amène le coude vers le genou opposé en alternant, jambes en mouvement de pédalage.",
+    c:["Lentement : la vitesse fait perdre tout le travail.","Ne tire pas sur la nuque."] },
+
+  /* ---- mollets ---- */
+  mollets:{ n:"Mollets debout", g:"mollets", g2:[], pat:"mollet", mat:0, fig:"mollets",
+    d:"Debout, on monte sur la pointe des pieds le plus haut possible, on redescend lentement.",
+    c:["Sur une marche, talons dans le vide, l'amplitude double.","Une seconde de pause en haut."] },
+
+  molletsUn:{ n:"Mollets sur une jambe", g:"mollets", g2:[], pat:"mollet", mat:0, fig:"mollets",
+    d:"Sur un pied, on monte sur la pointe le plus haut possible. Tout le poids du corps sur un seul mollet.",
+    c:["Appuie une main au mur pour l'équilibre, pas pour t'aider à monter.","Redescends lentement, c'est la partie qui compte."] },
+
+  /* ---- cardio ---- */
+  marche:{ n:"Marche rapide", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, fig:"marche", type:"temps",
+    d:"Une allure soutenue, où l'on peut encore parler mais plus chanter. Le meilleur point d'entrée quand on repart de loin.",
+    c:["Vise une cadence régulière plutôt qu'un sprint suivi d'un arrêt.","Un terrain vallonné remplace avantageusement la course."] },
+  course:{ n:"Course à pied", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, fig:"course", type:"temps",
+    d:"Course en endurance fondamentale : le rythme où la conversation reste possible.",
+    c:["Alterne 2 minutes de course et 1 minute de marche si le souffle manque.","Pose le pied sous le bassin, pas devant."] },
+  corde:{ n:"Corde à sauter", g:"cardio", g2:["mollets"], pat:"cardio", mat:0, fig:"corde", type:"temps",
+    d:"Petits sauts sur place, la corde passant sous les pieds. Très dense en dépense pour le temps passé.",
+    c:["Sauts bas : deux centimètres suffisent.","Coudes près du corps, ce sont les poignets qui tournent.","Sans corde, imite le mouvement : l'effet cardio reste."] },
+  jumping:{ n:"Jumping jacks", g:"cardio", g2:["epaules"], pat:"cardio", mat:0, fig:"jumping", type:"temps",
+    d:"Saut avec écartement simultané des jambes et des bras. L'échauffement universel.",
+    c:["Réception souple, genoux déverrouillés.","Version sans saut : un pied de côté après l'autre."] },
+  burpees:{ n:"Burpees", g:"cardio", g2:["pecs","jambes"], pat:"cardio", mat:0, fig:"burpee",
+    d:"Debout, on descend en planche, on fait une pompe, on ramène les pieds et on saute. L'exercice le plus complet, et le plus exigeant.",
+    c:["Retire la pompe ou le saut pour alléger, garde le rythme.","Mieux vaut 5 propres que 15 en désordre."] },
+  genoux:{ n:"Montées de genoux", g:"cardio", g2:["abdos"], pat:"cardio", mat:0, fig:"genoux", type:"temps",
+    d:"Sur place, on monte alternativement les genoux à hauteur de hanches, bras actifs.",
+    c:["Buste droit, ne te penche pas en arrière.","Appuis sur l'avant du pied."] },
+  talons:{ n:"Talons-fesses", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, fig:"course", type:"temps",
+    d:"Course sur place en ramenant les talons vers les fesses.",
+    c:["Reste sur l'avant du pied.","Bassin gainé, sans cambrure."] },
+  velo:{ n:"Vélo", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, fig:"velo", type:"temps",
+    d:"Sur route ou sur home-trainer, à une intensité où l'on garde le souffle.",
+    c:["Cadence de pédalage plutôt élevée, braquet modéré.","Excellent choix quand les articulations encaissent mal les impacts."] },
+  rameur:{ n:"Rameur", g:"cardio", g2:["dos","jambes"], pat:"cardio", mat:2, fig:"rowing", type:"temps",
+    d:"L'enchaînement jambes, buste, bras — puis le retour dans l'ordre inverse.",
+    c:["La poussée vient des jambes, pas des bras.","Dos droit, pas d'arrondi en fin de tirage."] },
+
+  /* ---- bras ---- */
+  curl:{ n:"Curl biceps", g:"bras", g2:[], pat:"tirh", mat:1, fig:"curl",
+    d:"Debout, haltères le long du corps, on fléchit les coudes sans bouger les épaules.",
+    c:["Les coudes restent collés au buste.","Pas d'élan du dos : allège plutôt la charge."] },
+
+  /* ---- mobilité ---- */
+  chatVache:{ n:"Chat-vache", g:"mobilite", g2:["dos"], pat:"mob", mat:0, fig:"chat", type:"temps",
+    d:"À quatre pattes, on alterne dos rond et dos creux au rythme de la respiration.",
+    c:["Inspire en creusant, expire en arrondissant.","Mouvement lent, vertèbre par vertèbre."] },
+  etirIsch:{ n:"Étirement ischio-jambiers", g:"mobilite", g2:["jambes"], pat:"mob", mat:0, fig:"etirement", type:"temps",
+    d:"Assis ou debout, une jambe tendue, on penche le buste vers l'avant dos plat jusqu'à sentir l'arrière de la cuisse.",
+    c:["Ça doit tirer, jamais faire mal.","Respire : ne bloque pas le souffle pendant l'étirement."] },
+  etirQuad:{ n:"Étirement quadriceps", g:"mobilite", g2:["jambes"], pat:"mob", mat:0, fig:"marche", type:"temps",
+    d:"Debout, on attrape le pied derrière soi et on rapproche le talon de la fesse, bassin rentré.",
+    c:["Genoux côte à côte.","Appuie-toi à un mur pour l'équilibre."] },
+  rotEp:{ n:"Rotations d'épaules", g:"mobilite", g2:["epaules"], pat:"mob", mat:0, fig:"marche", type:"temps",
+    d:"Grands cercles des bras, en avant puis en arrière, pour réveiller l'articulation avant l'effort.",
+    c:["Amplitude maximale, lentement.","Change de sens à mi-temps."] },
+  respiration:{ n:"Retour au calme", g:"mobilite", g2:[], pat:"mob", mat:0, fig:"etirement", type:"temps",
+    d:"Assis ou allongé, on respire lentement : inspiration par le nez, expiration longue par la bouche.",
+    c:["Compte 4 temps à l'inspiration, 6 à l'expiration.","C'est la partie de la séance où le cœur redescend."] }
+};
+function exo(id){ return EXOS[id] || null; }
+
+/* ============================================================
+   LES PROGRAMMES
+   Un programme, c'est une poignée de séances types et un nombre de semaines.
+   La progression n'est pas écrite séance par séance : elle se calcule à la
+   génération, par paliers de deux semaines — une série de plus, quelques
+   répétitions de plus. C'est ainsi qu'un même modèle tient huit semaines
+   sans devenir trop facile.
+   s : séries · x : répétitions · t : secondes · r : repos en secondes
+   ============================================================ */
+const PROGS = [
+  { id:"douceur", n:"Reprise en douceur", mat:0, sem:6, par:3, min:20, niv:"Grand débutant",
+    d:"Pour repartir de zéro sans se dégoûter : mobilité, marche et renfort léger. Aucun saut, aucune charge.",
+    mod:[
+      { n:"Mobilité & bas du corps", k:150, b:[
+        { e:"rotEp", s:1, t:60 }, { e:"chatVache", s:1, t:60 },
+        { e:"squat", s:2, x:8, r:60 }, { e:"pont", s:2, x:10, r:60 },
+        { e:"mollets", s:2, x:12, r:45 }, { e:"planche", s:2, t:20, r:45 },
+        { e:"etirIsch", s:1, t:45 } ] },
+      { n:"Marche & gainage", k:200, b:[
+        { e:"marche", s:1, t:1200 }, { e:"planche", s:2, t:20, r:45 },
+        { e:"plancheLat", s:2, t:15, r:45 }, { e:"superman", s:2, x:10, r:45 },
+        { e:"etirQuad", s:1, t:45 } ] },
+      { n:"Haut du corps en douceur", k:150, b:[
+        { e:"rotEp", s:1, t:60 }, { e:"pompesMur", s:2, x:10, r:60 },
+        { e:"rowTable", s:2, x:8, r:60 }, { e:"superman", s:2, x:10, r:45 },
+        { e:"crunch", s:2, x:10, r:45 }, { e:"respiration", s:1, t:90 } ] }
+    ] },
+
+  { id:"maison", n:"Remise en forme — maison", mat:0, sem:8, par:3, min:30, niv:"Débutant",
+    d:"Trois séances complètes par semaine, tout le corps à chaque fois. Le socle quand on veut retrouver de la force et du souffle sans matériel.",
+    mod:[
+      { n:"Full body A", k:280, b:[
+        { e:"jumping", s:1, t:120 }, { e:"squat", s:3, x:12, r:60 },
+        { e:"pompes", s:3, x:8, r:60 }, { e:"rowTable", s:3, x:8, r:60 },
+        { e:"pont", s:3, x:12, r:45 }, { e:"planche", s:3, t:30, r:45 },
+        { e:"etirIsch", s:1, t:45 } ] },
+      { n:"Full body B", k:290, b:[
+        { e:"genoux", s:1, t:120 }, { e:"fentes", s:3, x:10, r:60 },
+        { e:"pompesInc", s:3, x:10, r:60 }, { e:"superman", s:3, x:12, r:45 },
+        { e:"plancheLat", s:3, t:20, r:45 }, { e:"crunch", s:3, x:15, r:45 },
+        { e:"chatVache", s:1, t:60 } ] },
+      { n:"Full body C", k:300, b:[
+        { e:"corde", s:1, t:120 }, { e:"squatSumo", s:3, x:12, r:60 },
+        { e:"dipsBanc", s:3, x:10, r:60 }, { e:"rowTable", s:3, x:10, r:60 },
+        { e:"mountain", s:3, t:30, r:45 }, { e:"hollow", s:3, t:20, r:45 },
+        { e:"etirQuad", s:1, t:45 } ] }
+    ] },
+
+  { id:"brule", n:"Perte de poids — cardio & renfort", mat:0, sem:8, par:4, min:30, niv:"Intermédiaire",
+    d:"Quatre rendez-vous par semaine : deux séances denses en cardio, une de renfort, une sortie longue. Conçu pour creuser la dépense sans matériel.",
+    mod:[
+      { n:"Cardio intense", k:340, b:[
+        { e:"jumping", s:1, t:90 }, { e:"burpees", s:4, x:8, r:45 },
+        { e:"genoux", s:4, t:30, r:30 }, { e:"squatSaute", s:4, x:10, r:45 },
+        { e:"mountain", s:4, t:30, r:30 }, { e:"planche", s:3, t:30, r:40 },
+        { e:"respiration", s:1, t:90 } ] },
+      { n:"Renfort haut du corps", k:250, b:[
+        { e:"jumping", s:1, t:90 }, { e:"pompes", s:3, x:10, r:60 },
+        { e:"rowTable", s:3, x:10, r:60 }, { e:"dipsBanc", s:3, x:10, r:60 },
+        { e:"crunch", s:3, x:15, r:45 }, { e:"plancheLat", s:3, t:25, r:45 } ] },
+      { n:"Sortie longue", k:380, b:[
+        { e:"marche", s:1, t:300 }, { e:"course", s:1, t:1500 },
+        { e:"planche", s:3, t:30, r:45 }, { e:"etirIsch", s:1, t:60 } ] },
+      { n:"Renfort bas du corps", k:280, b:[
+        { e:"jumping", s:1, t:90 }, { e:"squat", s:4, x:15, r:60 },
+        { e:"fentes", s:3, x:12, r:60 }, { e:"pont", s:3, x:15, r:45 },
+        { e:"mollets", s:3, x:20, r:40 }, { e:"twist", s:3, x:20, r:45 },
+        { e:"etirQuad", s:1, t:60 } ] }
+    ] },
+
+  { id:"halteres", n:"Force — haltères, haut / bas", mat:1, sem:10, par:4, min:40, niv:"Intermédiaire",
+    d:"Deux séances hautes, deux séances basses. Garder du muscle pendant la perte de poids est ce qui empêche la balance de mentir.",
+    mod:[
+      { n:"Haut — poussée", k:300, b:[
+        { e:"jumping", s:1, t:120 }, { e:"devHalt", s:4, x:10, r:75 },
+        { e:"devMil", s:3, x:10, r:75 }, { e:"elevLat", s:3, x:12, r:60 },
+        { e:"dipsBanc", s:3, x:10, r:60 }, { e:"planche", s:3, t:40, r:45 } ] },
+      { n:"Bas — quadriceps", k:330, b:[
+        { e:"jumping", s:1, t:120 }, { e:"gobelet", s:4, x:10, r:90 },
+        { e:"souleveHalt", s:4, x:10, r:90 }, { e:"fentes", s:3, x:10, r:75 },
+        { e:"mollets", s:3, x:15, r:45 }, { e:"twist", s:3, x:20, r:45 } ] },
+      { n:"Haut — tirage", k:300, b:[
+        { e:"jumping", s:1, t:120 }, { e:"rowHalt", s:4, x:10, r:75 },
+        { e:"tractionsAssist", s:3, x:6, r:90 }, { e:"ecarte", s:3, x:12, r:60 },
+        { e:"curl", s:3, x:12, r:60 }, { e:"superman", s:3, x:12, r:45 } ] },
+      { n:"Bas — fessiers", k:320, b:[
+        { e:"jumping", s:1, t:120 }, { e:"squatBulg", s:3, x:10, r:75 },
+        { e:"hipThrust", s:4, x:12, r:75 }, { e:"goodMorning", s:3, x:12, r:60 },
+        { e:"monteeBanc", s:3, x:12, r:60 }, { e:"plancheLat", s:3, t:30, r:45 } ] }
+    ] },
+
+  { id:"salle", n:"Full body en salle", mat:2, sem:12, par:3, min:50, niv:"Confirmé",
+    d:"Trois passages en salle par semaine, tout le corps à chaque fois, machines et barres. Le meilleur rendement quand on a l'abonnement.",
+    mod:[
+      { n:"Séance A", k:380, b:[
+        { e:"velo", s:1, t:300 }, { e:"devBarre", s:4, x:8, r:90 },
+        { e:"tirageVert", s:4, x:10, r:90 }, { e:"presse", s:4, x:12, r:90 },
+        { e:"elevLat", s:3, x:12, r:60 }, { e:"planche", s:3, t:45, r:45 } ] },
+      { n:"Séance B", k:400, b:[
+        { e:"rameur", s:1, t:300 }, { e:"tractions", s:4, x:6, r:90 },
+        { e:"devEpauleM", s:4, x:10, r:75 }, { e:"souleveHalt", s:4, x:10, r:90 },
+        { e:"rowMachine", s:3, x:12, r:75 }, { e:"crunch", s:3, x:20, r:45 } ] },
+      { n:"Séance C", k:390, b:[
+        { e:"velo", s:1, t:300 }, { e:"presse", s:4, x:15, r:90 },
+        { e:"devHalt", s:4, x:10, r:75 }, { e:"rowMachine", s:4, x:12, r:75 },
+        { e:"curl", s:3, x:12, r:60 }, { e:"mollets", s:4, x:15, r:45 },
+        { e:"twist", s:3, x:20, r:45 } ] }
+    ] }
+];
+function prog(id){ return PROGS.filter(p => p.id === id)[0] || null; }
+
+/* La progression : un palier tous les deux semaines. Les séries montent d'un
+   cran deux fois au plus, les répétitions de 8 % par palier, le temps de 10 %.
+   Un échauffement — une seule série — n'est jamais alourdi. */
+function progresser(l, semaine){
+  const palier = Math.floor((semaine - 1) / 2);
+  const bonusS = Math.min(2, palier);
+  const f = 1 + 0.08 * palier;
+  const ft = 1 + 0.10 * palier;
+  return {
+    e: l.e,
+    s: l.s > 1 ? l.s + bonusS : l.s,
+    x: l.x ? Math.round(l.x * f) : 0,
+    t: l.t ? (l.s > 1 ? Math.round(l.t * ft / 5) * 5 : l.t) : 0,
+    r: l.r || 0
+  };
+}
+
+/* ============================================================
+   STOCKAGE — IndexedDB
+   L'objet DB est la source de vérité en mémoire : tout le rendu travaille
+   dessus de façon synchrone. Seules la lecture initiale et les écritures
+   passent par la base, et les écritures sont granulaires : valider un repas
+   écrit une journée, pas la base entière.
+   ============================================================ */
+const DEFAULTS = {
+  version:SCHEMA, jours:{}, seances:{},
+  settings:{ theme:"clair", accent:ACCENTS[0][0],
+             sexe:"h", age:35, taille:175, activite:"sedentaire", matos:0,
+             crediterSport:true, eau:true, eauCible:8, subs:{},
+             bTri:"90j" },
+  plan:null, prog:null,
+  meta:{ cree:Date.now(), modifie:0, exporte:0, vue:null }
+};
+let DB = JSON.parse(JSON.stringify(DEFAULTS));
+let pret = false;
+
+const IDB = (() => {
+  const NOM = "palier", V = 1;
+  let db = null;
+  const prom = r => new Promise((res,rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const stores = ["jours","seances","kv"];
+  return {
+    ouvrir(){
+      return new Promise((res,rej) => {
+        if(!window.indexedDB) return rej(new Error("IndexedDB indisponible"));
+        const r = indexedDB.open(NOM, V);
+        r.onupgradeneeded = () => {
+          const d = r.result;
+          if(!d.objectStoreNames.contains("jours"))   d.createObjectStore("jours", { keyPath:"id" });
+          if(!d.objectStoreNames.contains("seances")) d.createObjectStore("seances", { keyPath:"id" });
+          if(!d.objectStoreNames.contains("kv"))      d.createObjectStore("kv");
+        };
+        r.onsuccess = () => { db = r.result; res(db); };
+        r.onerror   = () => rej(r.error || new Error("ouverture refusée"));
+        r.onblocked = () => rej(new Error("base verrouillée par un autre onglet"));
+      });
+    },
+    async tout(){
+      const t = db.transaction(stores, "readonly");
+      const [jours, seances, kk, kvv] = await Promise.all([
+        prom(t.objectStore("jours").getAll()),
+        prom(t.objectStore("seances").getAll()),
+        prom(t.objectStore("kv").getAllKeys()),
+        prom(t.objectStore("kv").getAll())
+      ]);
+      const kv = {}; kk.forEach((k,i) => { kv[k] = kvv[i]; });
+      return { jours, seances, kv };
+    },
+    ecrire(lots){
+      return new Promise((res,rej) => {
+        const t = db.transaction(stores, "readwrite");
+        t.oncomplete = () => res();
+        t.onerror = () => rej(t.error);
+        t.onabort = () => rej(t.error || new Error("écriture annulée"));
+        const J = t.objectStore("jours"), S = t.objectStore("seances"), K = t.objectStore("kv");
+        (lots.jours||[]).forEach(x => J.put(x));
+        (lots.supprJours||[]).forEach(id => J.delete(String(id)));
+        (lots.seances||[]).forEach(x => S.put(x));
+        (lots.supprSeances||[]).forEach(id => S.delete(String(id)));
+        Object.keys(lots.kv||{}).forEach(k => K.put(lots.kv[k], k));
+      });
+    },
+    vider(){
+      return new Promise((res,rej) => {
+        const t = db.transaction(stores, "readwrite");
+        t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+        stores.forEach(x => t.objectStore(x).clear());
+      });
+    }
+  };
+})();
+
+/* ---------- file d'écriture ---------- */
+const sale = { jours:new Set(), supprJours:new Set(), seances:new Set(), supprSeances:new Set(), kv:false };
+let _fl;
+function planifier(interne){
+  clearTimeout(_fl); _fl = setTimeout(ecouler, 150);
+  if(!interne) DB.meta.modifie = Date.now();
+}
+async function ecouler(){
+  if(!pret) return;
+  const rien = !sale.jours.size && !sale.supprJours.size &&
+               !sale.seances.size && !sale.supprSeances.size && !sale.kv;
+  if(rien) return;
+  const lots = { jours:[], supprJours:[...sale.supprJours],
+                 seances:[], supprSeances:[...sale.supprSeances], kv:{} };
+  sale.jours.forEach(id => { const x = DB.jours[id]; if(x) lots.jours.push(x); });
+  sale.seances.forEach(id => { const x = DB.seances[id]; if(x) lots.seances.push(x); });
+  if(sale.kv) lots.kv = { settings:DB.settings, meta:DB.meta, plan:DB.plan, prog:DB.prog, version:SCHEMA };
+  Object.values(sale).forEach(v => { if(v && v.clear) v.clear(); });
+  sale.kv = false;
+  try{ await IDB.ecrire(lots); }
+  catch(e){ toast("Enregistrement impossible : " + ((e && e.message) || e)); }
+}
+function sauver(interne){ sale.kv = true; planifier(interne); }
+function sauverJour(j){ if(j) sale.jours.add(String(j.id)); sale.kv = true; planifier(); }
+function sauverSeance(s){ if(s) sale.seances.add(String(s.id)); sale.kv = true; planifier(); }
+function supprimerSeanceDB(id){ delete DB.seances[id]; sale.supprSeances.add(String(id)); sale.kv = true; planifier(); }
+function toutSalir(){
+  Object.keys(DB.jours).forEach(id => sale.jours.add(id));
+  Object.keys(DB.seances).forEach(id => sale.seances.add(id));
+  sale.kv = true; planifier();
+}
+function assembler(k){
+  const d = JSON.parse(JSON.stringify(DEFAULTS));
+  (k.jours||[]).forEach(x => { d.jours[x.id] = x; });
+  (k.seances||[]).forEach(x => { d.seances[x.id] = x; });
+  d.settings = { ...DEFAULTS.settings, ...(k.kv.settings || {}) };
+  if(!d.settings.subs) d.settings.subs = {};
+  d.meta = { ...DEFAULTS.meta, ...(k.kv.meta || {}) };
+  d.plan = k.kv.plan || null;
+  d.prog = k.kv.prog || null;
+  return d;
+}
+/* Fusion d'une sauvegarde, jamais destructive : rien n'est écrasé, seules les
+   entrées absentes sont ajoutées. Les identifiants font foi. */
+function fusionnerSauvegarde(x){
+  if(!x || (!x.jours && !x.seances)) throw new Error("format inattendu");
+  let nj = 0, ns = 0;
+  Object.entries(x.jours||{}).forEach(([k,v]) => { if(!DB.jours[k]){ DB.jours[k] = v; nj++; } });
+  Object.entries(x.seances||{}).forEach(([k,v]) => { if(!DB.seances[k]){ DB.seances[k] = v; ns++; } });
+  if(!DB.plan && x.plan) DB.plan = x.plan;
+  if(!DB.prog && x.prog) DB.prog = x.prog;
+  if(x.settings){
+    ["sexe","age","taille","activite","matos"].forEach(k => {
+      if(x.settings[k] != null) DB.settings[k] = x.settings[k];
+    });
+    DB.settings.subs = { ...(x.settings.subs||{}), ...DB.settings.subs };
+  }
+  toutSalir();
+  return { nj, ns };
+}
+
+/* ============================================================
+   MODÈLE — LES JOURS
+   Une journée porte ce qu'on a mangé, ce qu'on pèse, et l'eau bue. Rien
+   n'est stocké en total : tout se recalcule, donc rien ne peut diverger.
+   ============================================================ */
+function jourLu(iso){ return DB.jours[iso] || null; }
+function jour(iso){
+  let j = DB.jours[iso];
+  if(!j){ j = { id:iso, repas:[], poids:0, tour:0, eau:0, note:"" }; DB.jours[iso] = j; }
+  if(!j.repas) j.repas = [];
+  return j;
+}
+const joursAll = () => Object.values(DB.jours);
+function kcalJour(iso){
+  const j = jourLu(iso);
+  if(!j || !j.repas) return 0;
+  return j.repas.reduce((s,r) => s + (r.k||0), 0);
+}
+function renseigne(iso){ const j = jourLu(iso); return !!(j && j.repas && j.repas.length); }
+/* Les pesées, de la plus ancienne à la plus récente. */
+function pesees(){
+  return joursAll().filter(j => j.poids > 0)
+    .sort((a,b) => a.id < b.id ? -1 : 1)
+    .map(j => ({ d:j.id, p:j.poids, t:j.tour||0 }));
+}
+function poidsActuel(){
+  const l = pesees();
+  if(l.length) return l[l.length-1].p;
+  return DB.plan ? DB.plan.depart : 0;
+}
+function poidsPrecedent(){
+  const l = pesees();
+  return l.length > 1 ? l[l.length-2].p : 0;
+}
+
+/* ============================================================
+   MODÈLE — LE PLAN DE CALORIES
+   La dépense de repos vient de l'équation de Mifflin-St Jeor, la plus fiable
+   des formules d'estimation. Elle reste une estimation : la balance, au bout
+   de trois semaines, dit la vérité mieux qu'elle.
+   ============================================================ */
+const ACTIVITES = [
+  ["sedentaire","Sédentaire",1.20,"Bureau, peu de marche. À choisir si le sport est compté à part."],
+  ["leger","Légèrement actif",1.375,"Debout une partie de la journée, un peu de marche."],
+  ["modere","Actif",1.55,"Métier physique, ou beaucoup de déplacements à pied."],
+  ["intense","Très actif",1.725,"Travail de force, plusieurs heures d'effort par jour."]
+];
+function facteurActivite(){
+  const a = ACTIVITES.filter(x => x[0] === DB.settings.activite)[0];
+  return a ? a[2] : 1.2;
+}
+const KCAL_PAR_KG = 7700;   /* l'équivalent énergétique d'un kilo de masse grasse */
+
+function bmrDe(poidsG, s){
+  const p = (poidsG || 0) / 1000;
+  if(!p) return 0;
+  const base = 10*p + 6.25*(s.taille||175) - 5*(s.age||35);
+  return Math.round(base + (s.sexe === "f" ? -161 : 5));
+}
+function facteurDe(s){
+  const a = ACTIVITES.filter(x => x[0] === s.activite)[0];
+  return a ? a[2] : 1.2;
+}
+function tdeeDe(poidsG, s){ return Math.round(bmrDe(poidsG, s) * facteurDe(s)); }
+function plancherDe(poidsG, s){
+  const mini = s.sexe === "f" ? 1200 : 1500;
+  return Math.max(mini, Math.round(tdeeDe(poidsG, s) * 0.65));
+}
+function bmr(){ return bmrDe(poidsActuel(), DB.settings); }
+function tdee(){ return tdeeDe(poidsActuel(), DB.settings); }
+/* Le plancher : jamais moins de 1 500 kcal pour un homme, 1 200 pour une
+   femme, et jamais moins des deux tiers de la dépense estimée. Un objectif
+   trop ambitieux est rogné ici plutôt que d'être suivi. */
+function plancher(){ return plancherDe(poidsActuel(), DB.settings); }
+
+function planCalc(){
+  const P = DB.plan;
+  if(!P) return null;
+  const total = Math.max(7, Math.round((P.mois || 3) * 30.44));
+  const fin = plusJours(P.debut, total);
+  const ecoule = clamp(ecart(P.debut, todayISO()), 0, total);
+  const restants = Math.max(1, total - ecoule);
+  const perdreG = Math.max(0, P.depart - P.cible);
+  const deficitTotal = (perdreG / 1000) * KCAL_PAR_KG;
+  const deficitJour = deficitTotal / total;
+  const dep = tdee();
+  const pl = plancher();
+  const brute = Math.round(dep - deficitJour);
+  const base = Math.max(pl, brute);
+  const bride = base - brute > 50;                  /* l'objectif a été rogné, et pas de quelques calories */
+  const rythme = ((dep - base) * 7) / KCAL_PAR_KG;  /* kilos par semaine visés */
+  return { P, total, fin, ecoule, restants, deficitJour, dep, plancher:pl, brute, base, bride, rythme, perdreG };
+}
+/* La dette : la somme des écarts des jours déjà renseignés. Un jour sans
+   aucune saisie n'est pas compté comme un jeûne — il est simplement ignoré,
+   sans quoi une journée oubliée offrirait un crédit qu'on n'a pas gagné. */
+function dette(){
+  const c = planCalc();
+  if(!c) return { v:0, n:0 };
+  let v = 0, n = 0;
+  for(let i = 0; i < c.ecoule; i++){
+    const d = plusJours(c.P.debut, i);
+    if(!renseigne(d)) continue;
+    v += kcalJour(d) - c.base;
+    n++;
+  }
+  return { v:Math.round(v), n };
+}
+/* Les calories brûlées créditées un jour donné : les séances validées. */
+function creditSport(iso){
+  if(!DB.settings.crediterSport) return 0;
+  return seancesDuJour(iso).filter(s => s.fait).reduce((t,s) => t + (s.k||0), 0);
+}
+/* L'objectif du jour : la base du plan, corrigée par la dette étalée sur les
+   jours restants — au plus un cinquième dans un sens ou dans l'autre, pour
+   qu'un dimanche de fête ne transforme pas la semaine en purge. */
+function objectifJour(iso){
+  const c = planCalc();
+  if(!c) return 0;
+  const d = dette();
+  const marge = c.base * 0.2;
+  const ajust = clamp(-d.v / c.restants, -marge, marge);
+  const brut = c.base + ajust + creditSport(iso || todayISO());
+  return Math.round(clamp(brut, c.plancher, c.dep + 500));
+}
+function etatCal(consomme, cible){
+  if(!cible) return null;
+  const r = consomme / cible;
+  if(r > 1.02) return "dang";
+  if(r >= 0.9) return "att";
+  return "ok";
+}
+const CL = { ok:"c-ok", att:"c-att", dang:"c-dang" };
+
+/* Projection : le rythme réellement constaté sur les pesées des huit
+   dernières semaines, extrapolé jusqu'au poids visé. Deux pesées suffisent
+   à tracer une droite, pas à faire une prédiction : on le dit. */
+function projection(){
+  const l = pesees();
+  if(l.length < 2 || !DB.plan) return null;
+  const limite = plusJours(todayISO(), -56);
+  const rec = l.filter(x => x.d >= limite);
+  const s = rec.length >= 2 ? rec : l.slice(-2);
+  const a = s[0], b = s[s.length-1];
+  const j = Math.max(1, ecart(a.d, b.d));
+  const parJour = (b.p - a.p) / j;               /* grammes par jour, négatif si l'on perd */
+  const reste = b.p - DB.plan.cible;
+  /* Moins de deux semaines entre la première et la dernière pesée : la pente
+     mesure surtout l'eau et le contenu de l'estomac. Pas de date. */
+  if(j < 14) return { parJour, semaine:parJour*7, date:null, n:s.length, court:true };
+  if(parJour >= -1 || reste <= 0) return { parJour, semaine:parJour*7, date:null, n:s.length };
+  const jours = Math.round(reste / -parJour);
+  return { parJour, semaine:parJour*7, date:plusJours(b.d, jours), jours, n:s.length };
+}
+
+/* ============================================================
+   MODÈLE — LES SÉANCES
+   ============================================================ */
+const seancesAll = () => Object.values(DB.seances);
+/* Les séances du programme en cours. Changer de programme n'efface pas les
+   séances déjà validées : elles gardent leur identifiant de série, sortent de
+   l'agenda et restent dans le bilan. */
+function seancesRun(){
+  const r = DB.prog && DB.prog.run;
+  return seancesAll().filter(s => r ? s.run === r : !s.run);
+}
+function seancesTri(){ return seancesRun().sort((a,b) => a.date === b.date ? a.mod - b.mod : (a.date < b.date ? -1 : 1)); }
+function seancesDuJour(iso){ return seancesRun().filter(s => s.date === iso); }
+function prochaineSeance(){
+  const t = todayISO();
+  const l = seancesTri().filter(s => s.date >= t && !s.fait);
+  return l.length ? l[0] : null;
+}
+function seancesFaites(){ return seancesRun().filter(s => s.fait).length; }
+function seancesPassees(){ const t = todayISO(); return seancesRun().filter(s => s.date <= t); }
+function assiduite(){
+  const p = seancesPassees();
+  if(!p.length) return null;
+  return Math.round(p.filter(s => s.fait).length / p.length * 100);
+}
+
+/* Génération : toutes les séances du programme sont créées d'un coup, posées
+   sur les jours de semaine choisis. Les modèles tournent en boucle, si bien
+   qu'une semaine à trois séances enchaîne A, B, C puis reprend à A. */
+function genererSeances(progId, debut, joursSem){
+  const p = prog(progId);
+  if(!p || !joursSem.length) return 0;
+  const ordre = joursSem.slice().sort((a,b) => ((a+6)%7) - ((b+6)%7));
+  /* Un programme commencé un samedi ne doit pas perdre sa première semaine :
+     si aucun des jours choisis ne tombe après la date de début, la semaine 1
+     est celle d'après. */
+  let lundi = lundiDe(debut);
+  if(!ordre.some(jd => plusJours(lundi, (jd + 6) % 7) >= debut)) lundi = plusJours(lundi, 7);
+  const run = uid();
+  let n = 0, k = 0;
+  for(let w = 1; w <= p.sem; w++){
+    const base = plusJours(lundi, (w-1) * 7);
+    ordre.forEach(jd => {
+      const date = plusJours(base, (jd + 6) % 7);
+      if(date < debut) return;
+      const m = p.mod[k % p.mod.length];
+      k++;
+      const s = { id:uid(), prog:p.id, run, sem:w, mod:p.mod.indexOf(m), date,
+                  n:m.n, k:m.k, min:p.min,
+                  b:m.b.map(l => progresser(l, w)),
+                  fait:false, faitLe:0, done:[] };
+      DB.seances[s.id] = s;
+      sale.seances.add(s.id);
+      n++;
+    });
+  }
+  DB.prog = { id:p.id, run, debut, lundi, jours:joursSem.slice(), sem:p.sem, cree:Date.now() };
+  sauver();
+  return n;
+}
+function effacerProgramme(){
+  const gardees = [];
+  seancesAll().forEach(s => {
+    if(s.fait){ gardees.push(s); return; }
+    supprimerSeanceDB(s.id);
+  });
+  DB.prog = null;
+  sauver();
+  return gardees.length;
+}
+
+/* ---------- remplacements ----------
+   Le remplacement est une correspondance globale, pas une retouche de séance :
+   il vaut pour toutes les occurrences, passées et à venir, et se défait aussi
+   simplement qu'il s'est posé. */
+function resoudre(id){
+  const s = DB.settings.subs || {};
+  return s[id] && EXOS[s[id]] ? s[id] : id;
+}
+function estRemplace(id){ return resoudre(id) !== id; }
+function alternatives(id){
+  const e = EXOS[id];
+  if(!e) return [];
+  const dispo = DB.settings.matos || 0;
+  const l = Object.keys(EXOS).filter(k => {
+    if(k === id) return false;
+    const x = EXOS[k];
+    if(x.mat > dispo) return false;
+    return x.pat === e.pat || x.g === e.g;
+  });
+  /* Même schéma d'abord, même muscle ensuite, puis par nom. */
+  return l.sort((a,b) => {
+    const A = EXOS[a], B = EXOS[b];
+    const sa = (A.pat === e.pat ? 0 : 1) + (A.g === e.g ? 0 : 1);
+    const sb = (B.pat === e.pat ? 0 : 1) + (B.g === e.g ? 0 : 1);
+    if(sa !== sb) return sa - sb;
+    return A.n.localeCompare(B.n, "fr");
+  });
+}
+function remplacer(id, parId){
+  if(!DB.settings.subs) DB.settings.subs = {};
+  if(!parId || parId === id) delete DB.settings.subs[id];
+  else DB.settings.subs[id] = parId;
+  sauver();
+}
+function nbRemplacements(){ return Object.keys(DB.settings.subs || {}).length; }
+
+/* ---------- petits graphiques ----------
+   Tracés à la main en SVG : une bibliothèque de graphiques pèserait cent fois
+   ce que pèsent ces deux fonctions. */
+function graphLigne(pts, opt){
+  const o = opt || {};
+  const W = 320, H = 118, ml = 34, mr = 6, mt = 10, mb = 16;
+  if(pts.length < 2) return '<div class="aide" style="text-align:center;padding:18px 0">Deux mesures suffiront à tracer la courbe.</div>';
+  const vals = pts.map(p => p.v);
+  if(o.cible != null) vals.push(o.cible);
+  let mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+  if(mx - mn < 0.6){ mx += 0.3; mn -= 0.3; }
+  const pad = (mx - mn) * 0.12; mn -= pad; mx += pad;
+  const x = i => ml + (i / (pts.length - 1)) * (W - ml - mr);
+  const y = v => mt + (1 - (v - mn) / (mx - mn)) * (H - mt - mb);
+  const d = pts.map((p,i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.v).toFixed(1)).join(" ");
+  const aire = d + " L" + x(pts.length-1).toFixed(1) + " " + (H-mb) + " L" + ml + " " + (H-mb) + " Z";
+  let h = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">';
+  h += '<path d="' + aire + '" fill="var(--accF)"/>';
+  if(o.cible != null && o.cible >= mn && o.cible <= mx)
+    h += '<line x1="' + ml + '" x2="' + (W-mr) + '" y1="' + y(o.cible).toFixed(1) + '" y2="' + y(o.cible).toFixed(1) +
+         '" stroke="var(--ok)" stroke-width="1.2" stroke-dasharray="4 3" opacity=".8"/>';
+  h += '<path d="' + d + '" fill="none" stroke="var(--acc)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+  h += '<circle cx="' + x(pts.length-1).toFixed(1) + '" cy="' + y(pts[pts.length-1].v).toFixed(1) + '" r="3.4" fill="var(--acc)"/>';
+  h += '<text class="gx" x="2" y="' + (mt+4) + '">' + esc(o.fmt ? o.fmt(mx) : mx.toFixed(1)) + '</text>';
+  h += '<text class="gx" x="2" y="' + (H-mb+4) + '">' + esc(o.fmt ? o.fmt(mn) : mn.toFixed(1)) + '</text>';
+  h += '<text class="gx" x="' + ml + '" y="' + (H-3) + '">' + esc(frDate(pts[0].d)) + '</text>';
+  h += '<text class="gx" x="' + (W-mr) + '" y="' + (H-3) + '" text-anchor="end">' + esc(frDate(pts[pts.length-1].d)) + '</text>';
+  return h + '</svg>';
+}
+function graphBarres(items, cible){
+  const W = 320, H = 108, mt = 8, mb = 16, ml = 4, mr = 4;
+  if(!items.length) return '<div class="aide" style="text-align:center;padding:18px 0">Aucune journée renseignée.</div>';
+  const mx = Math.max(cible || 0, Math.max.apply(null, items.map(i => i.v))) * 1.12 || 1;
+  const n = items.length;
+  const bw = (W - ml - mr) / n;
+  const y = v => mt + (1 - v / mx) * (H - mt - mb);
+  let h = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="height:108px">';
+  items.forEach((it,i) => {
+    const hh = Math.max(1, (H - mb) - y(it.v));
+    const col = it.v === 0 ? "var(--trait)" : (it.v > (it.c || cible) ? "var(--dang)" : "var(--acc)");
+    h += '<rect x="' + (ml + i*bw + bw*0.14).toFixed(1) + '" y="' + y(it.v).toFixed(1) +
+         '" width="' + (bw*0.72).toFixed(1) + '" height="' + hh.toFixed(1) + '" rx="1" fill="' + col + '"/>';
+  });
+  if(cible) h += '<line x1="0" x2="' + W + '" y1="' + y(cible).toFixed(1) + '" y2="' + y(cible).toFixed(1) +
+    '" stroke="var(--texte)" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>';
+  return h + '</svg>';
+}
+
+/* ============================================================
+   ÉTAT DE L'INTERFACE
+   ============================================================ */
+const TABS = [
+  { id:"jour",     l:"Aujourd'hui", i:"home" },
+  { id:"poids",    l:"Poids",       i:"balance" },
+  { id:"sport",    l:"Sport",       i:"halt" },
+  { id:"bilan",    l:"Bilan",       i:"courbe" },
+  { id:"reglages", l:"Réglages",    i:"cog" }
+];
+const state = { tab:"jour", sheet:null, modal:null, journal:false, neuf:false, quota:null,
+                passe:false, choix:false, bPeriode:"90j" };
+
+function render(){
+  const v = $("#view");
+  const anc = document.querySelector(".sheet");
+  const posSheet = anc ? anc.scrollTop : 0;
+  const posPage = window.scrollY;
+  const h = v.offsetHeight;
+  if(h) v.style.minHeight = h + "px";
+  try{ dessiner(); }
+  finally{ requestAnimationFrame(() => { v.style.minHeight = ""; }); }
+  const neuf = document.querySelector(".sheet");
+  if(neuf && posSheet) neuf.scrollTop = posSheet;
+  if(window.scrollY !== posPage) window.scrollTo(0, posPage);
+}
+
+function dessiner(){
+  $("#tabs").innerHTML = TABS.map(t =>
+    '<button class="tab ' + (state.tab === t.id ? "on" : "") + '" data-act="tab" data-id="' + t.id + '">' +
+    svg(t.i, 20) + '<span>' + t.l + '</span></button>').join("");
+
+  const chip = $("#ver-chip");
+  if(chip){ chip.textContent = "v" + VERSION; chip.classList.toggle("neuf", state.neuf); }
+  /* Le « plus » n'ajoute pas la même chose selon l'onglet : un repas, une
+     pesée, un programme. Là où il n'a rien à ajouter, il disparaît. */
+  const plus = $("#btn-plus");
+  if(plus){
+    const util = state.tab === "jour" || state.tab === "poids" || state.tab === "sport";
+    plus.classList.toggle("hide", !util);
+    plus.setAttribute("title", state.tab === "poids" ? "Nouvelle pesée" :
+      (state.tab === "sport" ? "Choisir un programme" : "Ajouter un repas"));
+  }
+
+  const v = $("#view");
+  if(state.tab === "jour")       v.innerHTML = vueJour();
+  else if(state.tab === "poids") v.innerHTML = vuePoids();
+  else if(state.tab === "sport") v.innerHTML = vueSport();
+  else if(state.tab === "bilan") v.innerHTML = vueBilan();
+  else                           v.innerHTML = vueReglages();
+
+  $("#sheet").innerHTML = state.sheet ? vueSheet(state.sheet) : "";
+  $("#modal").innerHTML = state.modal ? vueModal(state.modal) : "";
+  if(state.modal && state.modal.type === "objectif") majApercu();
+
+  const couvert = !!($("#sheet").firstChild || $("#modal").firstChild);
+  document.body.style.overflow = couvert ? "hidden" : "";
+  if(state.modal && state.modal.focus){
+    const el = document.getElementById(state.modal.focus);
+    if(el && document.activeElement !== el){ el.focus(); if(el.select) el.select(); }
+  }
+}
+
+/* ============================================================
+   AUJOURD'HUI
+   Une seule question en ouvrant l'application : qu'est-ce qu'il me reste à
+   manger, et qu'est-ce que j'ai à faire aujourd'hui ?
+   ============================================================ */
+function carteSeance(s, compact){
+  const t = todayISO();
+  const etat = s.fait ? "fait" : (s.date === t ? "now" : (s.date < t ? "rate" : ""));
+  const d = dObj(s.date);
+  const sous = s.fait ? "Terminée " + relDate(s.date)
+    : (s.date < t ? "Manquée · " + relDate(s.date)
+    : (s.date === t ? s.b.length + " exercices · " + s.min + " min"
+    : cap(relDate(s.date)) + " · " + s.min + " min"));
+  return '<button class="sea' + (s.fait ? " off" : "") + '" data-act="ouvrir-seance" data-id="' + s.id + '">' +
+    '<span class="sea-d ' + etat + '">' +
+      (s.fait ? svg("check",18,2.4) : '<span class="j">' + d.getDate() + '</span><span class="m">' + MOIS[d.getMonth()] + '</span>') +
+    '</span>' +
+    '<span class="sea-mid"><span class="sea-n">' + esc(s.n) + '</span>' +
+      '<span class="sea-s">' + esc(sous) + (compact ? "" : ' · S' + s.sem) + '</span></span>' +
+    '<span class="sea-go">' + svg("chev",18) + '</span></button>';
+}
+
+function vueJour(){
+  const t = todayISO();
+  const c = planCalc();
+  const conso = kcalJour(t);
+  const j = jourLu(t);
+  let h = "";
+
+  if(!c){
+    h += '<section class="total"><div class="total-lbl">Aucun objectif</div>' +
+      '<span class="total-val num">Commencer</span>' +
+      '<div class="total-sub"><span>Un poids de départ, un poids visé, un délai — et le compte des calories se règle tout seul.</span></div>' +
+      '</section>' +
+      '<div class="btns grow"><button class="btn pri" data-act="nouvel-objectif">' + svg("cible",16) +
+      'Définir un objectif</button></div>';
+  }else{
+    const cible = objectifJour(t);
+    const reste = cible - conso;
+    const e = etatCal(conso, cible);
+    h += '<section class="total">' +
+      '<div class="total-lbl">' + (reste >= 0 ? "Il reste aujourd'hui" : "Objectif dépassé de") + '</div>' +
+      '<span class="total-val num ' + (e ? CL[e] : "") + '">' + kcal(Math.abs(reste)) +
+        '<span class="u">kcal</span></span>';
+    const pc = Math.min(100, Math.round(conso / cible * 100));
+    h += '<div class="bud"><div class="bud-l">' +
+      '<span class="' + CL[e] + '">' + kcal(conso) + '</span><span>sur ' + kcal(cible) + ' kcal</span>' +
+      '<span class="r">' + pc + ' %</span></div>' +
+      '<div class="bud-b"><i class="' + e + '" style="width:' + pc + '%"></i></div></div>';
+    const sub = [];
+    const cs = creditSport(t);
+    if(cs) sub.push('<span>dont <b class="c-ok">+' + kcal(cs) + '</b> gagnés au sport</span>');
+    const d = dette();
+    if(d.n && Math.abs(d.v) > 60){
+      const dj = Math.round(-d.v / c.restants);
+      sub.push('<span>report des jours passés <b class="' + (dj < 0 ? "c-dang" : "c-ok") + '">' +
+        (dj > 0 ? "+" : "−") + kcal(Math.abs(dj)) + '</b></span>');
+    }
+    sub.push('<span><b>J' + (c.ecoule + 1) + '</b> sur ' + c.total + '</span>');
+    h += '<div class="total-sub">' + sub.join("") + '</div></section>';
+
+    h += '<div class="btns grow">' +
+      '<button class="btn pri" data-act="nouveau-repas">' + svg("plus",16,2) + 'Ajouter</button>' +
+      '<button class="btn" data-act="objectif-tenu">' + svg("check",16,2) + 'Journée conforme</button></div>';
+  }
+
+  /* ---- la séance ---- */
+  const sj = seancesDuJour(t);
+  const prochaine = prochaineSeance();
+  if(sj.length || prochaine){
+    const liste = sj.length ? sj : [prochaine];
+    h += '<div class="sect"><h2>' + (sj.length ? "La séance du jour" : "Prochaine séance") + '</h2>' +
+      '<div class="sp"></div><button class="lien" data-act="tab" data-id="sport">Tout voir</button></div>';
+    h += '<div class="ops">' + liste.map(s => carteSeance(s, true)).join("") + '</div>';
+  }else if(!DB.prog){
+    h += '<div class="sect"><h2>Le sport</h2></div>' +
+      '<div class="ops"><div class="vide"><b>Aucun programme</b>' +
+      'Choisis un programme et toutes les séances se posent sur ton agenda.</div></div>' +
+      '<div class="btns grow"><button class="btn" data-act="choisir-programme">' + svg("halt",16) +
+      'Choisir un programme</button></div>';
+  }
+
+  /* ---- l'eau ---- */
+  if(DB.settings.eau){
+    const bu = (j && j.eau) || 0, ci = DB.settings.eauCible || 8;
+    h += '<div class="sect"><h2>L\'eau</h2><div class="sp"></div>' +
+      '<span class="cnt mono">' + bu + " / " + ci + ' verres</span></div>';
+    h += '<div class="pas"><button data-act="eau" data-id="-1" aria-label="Retirer un verre">' + svg("moins",18,2) + '</button>' +
+      '<div class="v">' + '💧'.repeat(Math.min(bu,12)) + (bu ? "" : '<span style="color:var(--gris2)">rien encore</span>') + '</div>' +
+      '<button data-act="eau" data-id="1" aria-label="Ajouter un verre">' + svg("plus",18,2) + '</button></div>';
+    h += '<div class="barre"><i style="width:' + Math.min(100, Math.round(bu/ci*100)) + '%"></i></div>';
+  }
+
+  /* ---- les repas ---- */
+  h += '<div class="sect"><h2>Les repas d\'aujourd\'hui</h2><div class="sp"></div>' +
+    (conso ? '<span class="cnt mono">' + kcal(conso) + ' kcal</span>' : "") + '</div>';
+  const repas = (j && j.repas) ? j.repas.slice().sort((a,b) => (b.t||0) - (a.t||0)) : [];
+  if(!repas.length){
+    h += '<div class="ops"><div class="vide"><b>Rien de noté</b>' +
+      'Chaque repas ajouté affine le compte. Une estimation vaut mieux qu\'un oubli.</div></div>';
+  }else{
+    h += '<div class="ops">' + repas.map(r =>
+      '<button class="op" data-act="modifier-repas" data-id="' + r.i + '">' +
+      '<span class="op-ic">' + svg("assiette",15,2) + '</span>' +
+      '<span class="op-mid"><span class="op-lib">' + esc(r.n || "Repas") + '</span>' +
+      '<span class="op-met">' + esc(r.t ? p2(new Date(r.t).getHours()) + ":" + p2(new Date(r.t).getMinutes()) : "") + '</span></span>' +
+      '<span class="op-mt">' + kcal(r.k) + '</span></button>').join("") + '</div>';
+  }
+
+  /* ---- la pesée du jour ---- */
+  const pj = j && j.poids;
+  h += '<div class="sect"><h2>La pesée</h2></div>';
+  h += '<div class="ops"><button class="op" data-act="nouvelle-pesee">' +
+    '<span class="op-ic">' + svg("balance",15,1.8) + '</span>' +
+    '<span class="op-mid"><span class="op-lib">' + (pj ? kg(pj) + " kg" : "Se peser") + '</span>' +
+    '<span class="op-met">' + (pj ? "enregistré aujourd'hui" : "le matin, à jeun, c'est le plus fiable") + '</span></span>' +
+    '<span class="sea-go">' + svg("chev",18) + '</span></button></div>';
+  return h;
+}
+
+/* ============================================================
+   POIDS
+   ============================================================ */
+function vuePoids(){
+  const c = planCalc();
+  if(!c){
+    return '<section class="total"><div class="total-lbl">Perte de poids</div>' +
+      '<span class="total-val num">Aucun plan</span>' +
+      '<div class="total-sub"><span>Le poids de départ, le poids visé et le nombre de mois suffisent : le reste se calcule.</span></div></section>' +
+      '<div class="btns grow"><button class="btn pri" data-act="nouvel-objectif">' + svg("cible",16) +
+      'Définir un objectif</button></div>' +
+      '<div class="ops"><div class="vide"><b>Comment ça marche</b>' +
+      'La dépense quotidienne est estimée à partir du profil, le déficit est réparti sur la durée, et chaque écart de la veille se rattrape sur les jours restants.</div></div>';
+  }
+  const P = c.P, act = poidsActuel();
+  const perdu = P.depart - act, reste = act - P.cible;
+  const totalAPerdre = Math.max(1, P.depart - P.cible);
+  const pc = clamp(Math.round(perdu / totalAPerdre * 100), 0, 100);
+  const prec = poidsPrecedent();
+
+  let h = '<section class="total"><div class="total-lbl">Poids actuel</div>' +
+    '<span class="total-val num">' + kg(act) + '<span class="u">kg</span></span>' +
+    '<div class="bud"><div class="bud-l"><span>' + esc(kg(P.depart)) + ' kg au départ</span>' +
+      '<span class="r">objectif ' + esc(kg(P.cible)) + ' kg</span></div>' +
+      '<div class="bud-b"><i class="acc" style="width:' + pc + '%"></i></div></div>';
+  const sub = [];
+  sub.push('<span>' + (perdu >= 0 ? "perdus " : "repris ") + '<b class="' + (perdu >= 0 ? "c-ok" : "c-dang") + '">' +
+    kg(Math.abs(perdu)) + ' kg</b></span>');
+  sub.push('<span>reste <b>' + kg(Math.max(0,reste)) + ' kg</b></span>');
+  if(prec) sub.push('<span>depuis la dernière pesée <b class="' + (act - prec <= 0 ? "c-ok" : "c-dang") + '">' +
+    kgSigne(act - prec) + '</b></span>');
+  h += '<div class="total-sub">' + sub.join("") + '</div></section>';
+
+  h += '<div class="btns grow">' +
+    '<button class="btn pri" data-act="nouvelle-pesee">' + svg("plus",16,2) + 'Peser</button>' +
+    '<button class="btn" data-act="modifier-objectif">' + svg("cible",16) + 'L\'objectif</button></div>';
+
+  /* ---- le plan ---- */
+  h += '<div class="sect"><h2>Le plan</h2><div class="sp"></div>' +
+    '<span class="cnt mono">J' + (c.ecoule+1) + '/' + c.total + '</span></div>';
+  h += '<div class="bloc"><div class="bloc-b">' +
+    '<div class="lig"><div class="l">Calories du jour<div class="d">Base du plan : ' + kcal(c.base) + ' kcal</div></div>' +
+      '<span class="mono" style="font-size:16px;font-weight:500">' + kcal(objectifJour(todayISO())) + '</span></div>' +
+    '<div class="lig"><div class="l">Dépense estimée<div class="d">Métabolisme de repos ' + kcal(bmr()) +
+      ' × ' + facteurActivite().toFixed(3).replace(".",",") + '</div></div>' +
+      '<span class="mono">' + kcal(c.dep) + '</span></div>' +
+    '<div class="lig"><div class="l">Rythme visé<div class="d">' + esc(kg(Math.round(c.rythme*1000))) +
+      ' kg par semaine</div></div><span class="mono">−' + kcal(c.dep - c.base) + '/j</span></div>' +
+    '<div class="lig"><div class="l">Fin du plan<div class="d">' + esc(frDate(c.fin, true)) + '</div></div>' +
+      '<span class="mono">' + c.restants + ' j</span></div>' +
+    '</div></div>';
+
+  if(c.bride){
+    h += '<div class="avert"><b>Objectif rogné.</b> Atteindre ' + esc(kg(P.cible)) + ' kg en ' + P.mois +
+      ' mois demanderait ' + kcal(c.brute) + ' kcal par jour, sous le plancher de sécurité de ' + kcal(c.plancher) +
+      ' kcal. Le plan s\'en tient au plancher : la perte sera plus lente que prévu. Allonge le délai pour retrouver un plan tenable.</div>';
+  }else if(c.rythme > 1.0 || (act && c.rythme > act/1000*0.01)){
+    h += '<div class="avert">Le rythme visé dépasse un kilo par semaine. C\'est possible au début, rarement tenable ensuite, et la masse musculaire en paie une partie. Un délai plus long donne un résultat qui dure.</div>';
+  }
+
+  /* ---- projection ---- */
+  const pr = projection();
+  if(pr){
+    h += '<div class="sect"><h2>Au rythme constaté</h2></div>';
+    if(pr.date){
+      h += '<div class="bloc"><div class="bloc-b">' +
+        '<div class="lig"><div class="l">Objectif atteint le<div class="d">' +
+          'Sur ' + pr.n + ' pesées · ' + kg(Math.round(-pr.semaine)) + ' kg par semaine</div></div>' +
+        '<span class="mono">' + esc(frDate(pr.date, true)) + '</span></div>' +
+        '<div class="lig"><div class="l">Par rapport au plan<div class="d">' +
+          (pr.date <= c.fin ? "En avance sur la date prévue." : "En retard sur la date prévue.") + '</div></div>' +
+        '<span class="mono ' + (pr.date <= c.fin ? "c-ok" : "c-att") + '">' +
+          (pr.date <= c.fin ? "−" : "+") + Math.abs(ecart(c.fin, pr.date)) + ' j</span></div></div></div>';
+    }else{
+      h += '<div class="aide">' + (pr.court
+        ? "Moins de deux semaines entre la première et la dernière pesée : la pente mesurerait surtout l'eau et le contenu de l'estomac. La projection arrive ensuite."
+        : "Le poids ne baisse pas encore sur les dernières pesées : pas de projection. Trois semaines de recul valent mieux qu'une conclusion hâtive.") + '</div>';
+    }
+  }
+
+  /* ---- courbe et pesées ---- */
+  const l = pesees();
+  if(l.length >= 2){
+    h += '<div class="graph"><div class="graph-t"><span>Courbe de poids</span><span class="sp"></span>' +
+      '<span class="mono">' + l.length + ' pesées</span></div>' +
+      graphLigne(l.map(x => ({ d:x.d, v:x.p/1000 })), { cible:P.cible/1000, fmt:v => v.toFixed(1).replace(".",",") }) +
+      '</div>';
+  }
+  h += '<div class="sect"><h2>Les pesées</h2></div>';
+  if(!l.length){
+    h += '<div class="ops"><div class="vide"><b>Aucune pesée</b>' +
+      'Le matin, à jeun, après être passé aux toilettes : c\'est la mesure la moins bruitée.</div></div>';
+  }else{
+    h += '<div class="ops">' + l.slice().reverse().slice(0, 40).map((x,i,arr) => {
+      const suiv = arr[i+1];
+      const dl = suiv ? x.p - suiv.p : 0;
+      return '<button class="op" data-act="modifier-pesee" data-id="' + x.d + '">' +
+        '<span class="op-ic">' + svg("balance",15,1.8) + '</span>' +
+        '<span class="op-mid"><span class="op-lib">' + kg(x.p) + ' kg' +
+          (x.t ? '<span class="badge">tour ' + x.t + ' cm</span>' : "") + '</span>' +
+        '<span class="op-met">' + esc(cap(relDate(x.d))) + '</span></span>' +
+        '<span class="op-mt ' + (dl < 0 ? "c-ok" : (dl > 0 ? "c-dang" : "c-gris")) + '">' +
+          (suiv ? kgSigne(dl) : "départ") + '</span></button>';
+    }).join("") + '</div>';
+  }
+  return h;
+}
+
+/* ============================================================
+   SPORT
+   L'agenda ressemble à un calendrier plutôt qu'à une liste : c'est la
+   semaine qui donne le rythme, pas la séance isolée.
+   ============================================================ */
+function carteProgramme(p, choisi){
+  return '<button class="prog' + (choisi ? " on" : "") + '" data-act="config-programme" data-id="' + p.id + '">' +
+    '<div class="prog-n">' + esc(p.n) + '</div>' +
+    '<div class="prog-d">' + esc(p.d) + '</div>' +
+    '<div class="prog-m"><span>' + p.sem + ' semaines</span><span>' + p.par + '×/sem</span>' +
+      '<span>' + p.min + ' min</span><span>' + esc(MATOS[p.mat]) + '</span><span>' + esc(p.niv) + '</span></div>' +
+    '</button>';
+}
+
+function vueSport(){
+  if(!DB.prog || state.choix){
+    const enCours = DB.prog ? DB.prog.id : null;
+    let h = '<section class="total"><div class="total-lbl">Programme de sport</div>' +
+      '<span class="total-val num">Choisir</span>' +
+      '<div class="total-sub"><span>Le programme choisi crée toutes ses séances d\'un coup, jusqu\'à la dernière semaine.</span></div></section>';
+    if(enCours){
+      h += '<div class="btns grow"><button class="btn" data-act="annuler-choix">' + svg("fleche",16) +
+        'Garder le programme en cours</button></div>';
+    }
+    h += '<div class="sect"><h2>Les programmes</h2></div>';
+    h += PROGS.map(p => carteProgramme(p, p.id === enCours)).join("");
+    h += '<div class="aide" style="text-align:center;margin-top:14px">Un exercice qui ne convient pas se remplace, et le remplacement vaut pour tout le programme.</div>';
+    return h;
+  }
+
+  const p = prog(DB.prog.id);
+  const l = seancesTri();
+  const faites = seancesFaites();
+  const ass = assiduite();
+  const t = todayISO();
+  const semCourante = Math.max(1, Math.min(DB.prog.sem,
+    Math.floor(ecart(DB.prog.lundi || lundiDe(DB.prog.debut), t) / 7) + 1));
+
+  let h = '<section class="total"><div class="total-lbl">' + esc(p ? p.n : "Programme") + '</div>' +
+    '<span class="total-val num">' + faites + '<span class="u">/ ' + l.length + ' séances</span></span>' +
+    '<div class="bud"><div class="bud-l"><span>Semaine ' + semCourante + ' sur ' + DB.prog.sem + '</span>' +
+      (ass != null ? '<span class="r">assiduité ' + ass + ' %</span>' : "") + '</div>' +
+      '<div class="bud-b"><i class="acc" style="width:' + Math.round(faites/Math.max(1,l.length)*100) + '%"></i></div></div>';
+  const sub = [];
+  sub.push('<span><b>' + DB.prog.jours.map(j => JOURS_A[j]).join(", ") + '</b></span>');
+  if(nbRemplacements()) sub.push('<span><b>' + nbRemplacements() + '</b> exercice' + (nbRemplacements()>1?"s":"") + ' remplacé' + (nbRemplacements()>1?"s":"") + '</span>');
+  h += '<div class="total-sub">' + sub.join("") + '</div></section>';
+
+  const prochaine = prochaineSeance();
+  if(prochaine){
+    h += '<div class="btns grow"><button class="btn pri" data-act="ouvrir-seance" data-id="' + prochaine.id + '">' +
+      svg("halt",16) + (prochaine.date === t ? "La séance du jour" : "Prochaine séance") + '</button></div>';
+  }
+
+  /* ---- l'agenda, semaine par semaine ---- */
+  const parSem = {};
+  l.forEach(s => { (parSem[s.sem] = parSem[s.sem] || []).push(s); });
+  const sems = Object.keys(parSem).map(Number).sort((a,b) => a-b);
+  const passees = sems.filter(w => parSem[w].every(s => s.date < t));
+  const visibles = state.passe ? sems : sems.filter(w => passees.indexOf(w) === -1);
+
+  h += '<div class="sect"><h2>L\'agenda</h2><div class="sp"></div>' +
+    (passees.length ? '<button class="lien" data-act="basculer-passe">' +
+      (state.passe ? "Masquer le passé" : passees.length + " semaines passées") + '</button>' : "") + '</div>';
+
+  h += '<div class="ops">';
+  if(!visibles.length){
+    h += '<div class="vide"><b>Programme terminé</b>Toutes les semaines sont derrière toi. Choisis-en un nouveau pour continuer.</div>';
+  }
+  visibles.forEach(w => {
+    const g = parSem[w];
+    const d1 = g[0].date, d2 = g[g.length-1].date;
+    const now = w === semCourante;
+    h += '<div class="sem' + (now ? " now" : "") + '"><span>Semaine ' + w + '</span>' +
+      '<span class="sp"></span><span>' + esc(frDate(d1)) + ' – ' + esc(frDate(d2)) + '</span>' +
+      '<span>' + g.filter(s => s.fait).length + '/' + g.length + '</span></div>';
+    g.forEach(s => { h += carteSeance(s); });
+  });
+  h += '</div>';
+
+  h += '<div class="btns"><button class="btn" data-act="changer-programme">' + svg("echange",16) +
+    'Changer de programme</button></div>';
+  return h;
+}
+
+/* ============================================================
+   BILAN
+   ============================================================ */
+const PERIODES = [["30j","30 jours"],["90j","3 mois"],["tout","Tout"]];
+function debutPeriode(f){
+  if(f === "tout") return "";
+  if(f === "30j") return plusJours(todayISO(), -30);
+  return plusJours(todayISO(), -90);
+}
+function vueBilan(){
+  const per = state.bPeriode;
+  const dep = debutPeriode(per);
+  const c = planCalc();
+  const l = pesees().filter(x => !dep || x.d >= dep);
+  const jrs = joursAll().filter(j => (!dep || j.id >= dep) && j.repas && j.repas.length)
+    .sort((a,b) => a.id < b.id ? -1 : 1);
+
+  let h = '<section class="total" style="padding:22px 0 14px">' +
+    '<div class="total-lbl">Bilan</div>';
+  const perdu = c ? (c.P.depart - poidsActuel()) : (l.length > 1 ? l[0].p - l[l.length-1].p : 0);
+  h += '<span class="total-val num ' + (perdu > 0 ? "c-ok" : "") + '">' + kgSigne(-perdu) +
+    '<span class="u">kg</span></span>' +
+    '<div class="total-sub"><span>depuis le début du plan</span></div></section>';
+
+  h += '<div class="chips" style="margin-top:14px">' + PERIODES.map(([k,lb]) =>
+    '<button class="chip ' + (per === k ? "on" : "") + '" data-act="b-periode" data-id="' + k + '">' + lb + '</button>').join("") + '</div>';
+
+  const moy = jrs.length ? Math.round(jrs.reduce((s,j) => s + kcalJour(j.id), 0) / jrs.length) : 0;
+  const pr = projection();
+  const ass = assiduite();
+  const sf = seancesAll().filter(s => s.fait && (!dep || s.date >= dep));
+  const brulees = sf.reduce((s,x) => s + (x.k||0), 0);
+
+  h += '<div class="stats">' +
+    '<div class="stat"><div class="v">' + (moy ? kcal(moy) : "—") + '</div><div class="l">kcal par jour en moyenne</div></div>' +
+    '<div class="stat"><div class="v">' + jrs.length + '</div><div class="l">journées renseignées</div></div>' +
+    '<div class="stat"><div class="v">' + sf.length + '</div><div class="l">séances terminées</div></div>' +
+    '<div class="stat"><div class="v">' + (ass != null ? ass + " %" : "—") + '</div><div class="l">assiduité au programme</div></div>' +
+    '<div class="stat"><div class="v">' + (pr && pr.semaine ? kg(Math.round(pr.semaine)) : "—") + '</div><div class="l">kg par semaine constatés</div></div>' +
+    '<div class="stat"><div class="v">' + (brulees ? kcal(brulees) : "—") + '</div><div class="l">kcal dépensées au sport</div></div>' +
+    '</div>';
+
+  if(l.length >= 2){
+    h += '<div class="graph"><div class="graph-t"><span>Poids</span><span class="sp"></span>' +
+      '<span class="mono">' + kg(l[0].p) + ' → ' + kg(l[l.length-1].p) + ' kg</span></div>' +
+      graphLigne(l.map(x => ({ d:x.d, v:x.p/1000 })), { cible:c ? c.P.cible/1000 : null, fmt:v => v.toFixed(1).replace(".",",") }) +
+      '</div>';
+  }
+
+  /* Les calories jour après jour, sur les trente derniers jours du filtre. */
+  const fin = todayISO();
+  const nbJ = per === "30j" ? 30 : (per === "90j" ? 45 : 45);
+  const barres = [];
+  for(let i = nbJ - 1; i >= 0; i--){
+    const d = plusJours(fin, -i);
+    barres.push({ d, v:kcalJour(d), c:c ? c.base : 0 });
+  }
+  if(barres.some(b => b.v)){
+    h += '<div class="graph"><div class="graph-t"><span>Calories par jour</span><span class="sp"></span>' +
+      (c ? '<span class="mono">cible ' + kcal(c.base) + '</span>' : "") + '</div>' +
+      graphBarres(barres, c ? c.base : 0) +
+      '<div class="graph-t" style="margin:6px 0 0"><span class="mono">' + esc(frDate(barres[0].d)) +
+      '</span><span class="sp"></span><span class="mono">' + esc(frDate(barres[barres.length-1].d)) + '</span></div></div>';
+  }
+
+  /* L'assiduité, semaine par semaine. */
+  if(DB.prog){
+    const parSem = {};
+    seancesRun().filter(s => s.date <= fin).forEach(s => {
+      const g = parSem[s.sem] = parSem[s.sem] || { t:0, f:0 };
+      g.t++; if(s.fait) g.f++;
+    });
+    const ks = Object.keys(parSem).map(Number).sort((a,b) => a-b).slice(-12);
+    if(ks.length){
+      h += '<div class="sect"><h2>Semaine par semaine</h2></div><div class="ops">';
+      ks.reverse().forEach(w => {
+        const g = parSem[w];
+        h += '<div class="op"><span class="op-ic">' + svg("halt",15,1.8) + '</span>' +
+          '<span class="op-mid"><span class="op-lib">Semaine ' + w + '</span>' +
+          '<span class="barre" style="margin-top:6px"><i style="width:' + Math.round(g.f/g.t*100) + '%"></i></span></span>' +
+          '<span class="op-mt ' + (g.f === g.t ? "c-ok" : "") + '">' + g.f + '/' + g.t + '</span></div>';
+      });
+      h += '</div>';
+    }
+  }
+
+  if(!l.length && !jrs.length){
+    h += '<div class="ops"><div class="vide"><b>Rien à mesurer encore</b>' +
+      'Une pesée et quelques repas notés, et les courbes commencent à dire quelque chose.</div></div>';
+  }
+  return h;
+}
+
+/* ============================================================
+   RÉGLAGES
+   ============================================================ */
+function ko(o){
+  if(o == null) return "?";
+  if(o > 1048576) return (o/1048576).toFixed(1) + " Mo";
+  if(o > 1024) return Math.round(o/1024) + " Ko";
+  return o + " o";
+}
+function vueReglages(){
+  const s = DB.settings;
+  const th = themeActuel(), acc = accentActuel();
+  const c = planCalc();
+
+  let h = '<section class="total" style="padding:22px 0 14px">' +
+    '<div class="total-lbl">Réglages</div>' +
+    '<span class="total-val num" style="font-size:clamp(28px,8vw,34px)">Palier</span>' +
+    '<div class="total-sub"><span class="mono">v' + VERSION + '</span><span>schéma ' + SCHEMA + '</span></div></section>';
+
+  /* ---- profil ---- */
+  const a = ACTIVITES.filter(x => x[0] === s.activite)[0] || ACTIVITES[0];
+  h += '<div class="bloc"><div class="bloc-h">Profil</div><div class="bloc-b">' +
+    '<div class="lig"><div class="l">Sexe<div class="d">Change la formule du métabolisme de repos.</div></div>' +
+      '<div class="seg"><button class="' + (s.sexe === "h" ? "on" : "") + '" data-act="sexe" data-id="h">Homme</button>' +
+      '<button class="' + (s.sexe === "f" ? "on" : "") + '" data-act="sexe" data-id="f">Femme</button></div></div>' +
+    '<div class="lig"><div class="l">Âge et taille<div class="d">' + (s.age||35) + ' ans · ' + (s.taille||175) + ' cm</div></div>' +
+      '<button class="btn" data-act="modifier-profil">Modifier</button></div>' +
+    '<div class="lig"><div class="l">Niveau d\'activité<div class="d">' + esc(a[3]) + '</div></div>' +
+      '<button class="btn" data-act="modifier-activite">' + esc(a[1]) + '</button></div>' +
+    '<div class="lig"><div class="l">Dépense estimée<div class="d">Repos ' + kcal(bmr()) + ' kcal · plancher ' + kcal(plancher()) + ' kcal</div></div>' +
+      '<span class="mono" style="font-size:15px">' + kcal(tdee()) + '</span></div>' +
+    '</div></div>';
+
+  /* ---- objectif ---- */
+  h += '<div class="bloc"><div class="bloc-h">Objectif</div><div class="bloc-b">';
+  if(c){
+    h += '<div class="lig"><div class="l">Le plan<div class="d">' + kg(c.P.depart) + ' → ' + kg(c.P.cible) +
+      ' kg en ' + c.P.mois + ' mois</div></div><button class="btn" data-act="modifier-objectif">Modifier</button></div>' +
+      '<div class="lig"><div class="l">Début<div class="d">' + esc(frDate(c.P.debut, true)) + ' · fin le ' + esc(frDate(c.fin, true)) + '</div></div>' +
+      '<span class="mono">' + kcal(c.base) + ' kcal/j</span></div>' +
+      '<div class="lig"><div class="l">Abandonner l\'objectif<div class="d">Les pesées et les repas sont conservés.</div></div>' +
+      '<button class="btn dang" data-act="retirer-objectif">Retirer</button></div>';
+  }else{
+    h += '<div class="lig"><div class="l">Aucun objectif<div class="d">Sans plan, pas de plafond de calories.</div></div>' +
+      '<button class="btn" data-act="nouvel-objectif">Définir</button></div>';
+  }
+  h += '</div></div>';
+
+  /* ---- sport ---- */
+  h += '<div class="bloc"><div class="bloc-h">Sport</div><div class="bloc-b">' +
+    '<div class="lig"><div class="l">Programme<div class="d">' +
+      (DB.prog ? esc((prog(DB.prog.id)||{}).n || "") + ' · ' + DB.prog.jours.map(j => JOURS_A[j]).join(", ")
+               : "Aucun programme en cours.") + '</div></div>' +
+      '<button class="btn" data-act="changer-programme">' + (DB.prog ? "Changer" : "Choisir") + '</button></div>' +
+    '<div class="lig"><div class="l">Matériel disponible<div class="d">Détermine les remplacements proposés.</div></div>' +
+      '<div class="seg">' + MATOS.map((m,i) => '<button class="' + (s.matos === i ? "on" : "") +
+        '" data-act="matos" data-id="' + i + '">' + (i === 0 ? "Rien" : (i === 1 ? "Haltères" : "Salle")) + '</button>').join("") + '</div></div>' +
+    (nbRemplacements() ? '<div class="lig"><div class="l">Exercices remplacés<div class="d">' +
+      Object.keys(s.subs).map(k => (EXOS[k]||{}).n + " → " + (EXOS[s.subs[k]]||{}).n).join(" · ") +
+      '</div></div><button class="btn" data-act="raz-subs">Tout rétablir</button></div>' : "") +
+    '<button class="bascule ' + (s.crediterSport ? "on" : "") + '" data-act="bascule" data-id="crediterSport">' +
+      '<span class="l">Créditer les calories du sport<span class="d">Une séance validée relève le plafond du jour. À laisser actif seulement si le niveau d\'activité est réglé bas.</span></span>' +
+      '<span class="k"></span></button>' +
+    '</div></div>';
+
+  /* ---- suivi ---- */
+  h += '<div class="bloc"><div class="bloc-h">Suivi</div><div class="bloc-b">' +
+    '<button class="bascule ' + (s.eau ? "on" : "") + '" data-act="bascule" data-id="eau">' +
+      '<span class="l">Compteur d\'eau<span class="d">Un compteur de verres sur l\'écran du jour.</span></span>' +
+      '<span class="k"></span></button>' +
+    (s.eau ? '<div class="lig"><div class="l">Objectif d\'eau<div class="d">' + (s.eauCible||8) + ' verres par jour</div></div>' +
+      '<div class="seg"><button data-act="eau-cible" data-id="-1">−</button><button data-act="eau-cible" data-id="1">+</button></div></div>' : "") +
+    '</div></div>';
+
+  /* ---- apparence ---- */
+  h += '<div class="bloc"><div class="bloc-h">Apparence</div><div class="bloc-b">' +
+    '<div class="lig"><div class="l">Thème</div><div class="seg">' +
+      THEMES.map(([k,lb]) => '<button class="' + (th === k ? "on" : "") + '" data-act="theme" data-id="' + k + '">' + lb + '</button>').join("") +
+    '</div></div>' +
+    '<div class="lig" style="align-items:flex-start"><div class="l">Couleur d\'accent' +
+      '<div class="d">Une seule couleur porte l\'interface.</div></div></div>' +
+    '<div class="pastilles" style="margin-top:2px">' +
+      ACCENTS.map(([hex,nom]) => '<button class="past ' + (acc === hex ? "on" : "") + '" ' +
+        'style="background:' + hex + '" data-act="accent" data-id="' + hex + '" title="' + nom + '" aria-label="' + nom + '"></button>').join("") +
+    '</div>' +
+    '<div class="apercu">' + icoSVG(36) +
+      '<div class="d" style="font-size:12px;color:var(--gris)">L\'icône prend la couleur choisie. Un raccourci déjà posé sur l\'écran d\'accueil garde son ancienne image : retire-le et rajoute-le pour la rafraîchir.</div>' +
+    '</div></div></div>';
+
+  /* ---- données ---- */
+  const q = state.quota;
+  h += '<div class="bloc"><div class="bloc-h">Données</div><div class="bloc-b">' +
+    '<div class="lig"><div class="l">Sauvegarde<div class="d">Un fichier JSON, à ranger où tu veux.</div></div>' +
+      '<button class="btn" data-act="exporter">Exporter</button></div>' +
+    '<div class="lig"><div class="l">Restaurer<div class="d">Ajoute ce qui manque, n\'écrase rien.</div></div>' +
+      '<button class="btn" data-act="importer">Importer</button></div>' +
+    '<div class="lig"><div class="l">Contenu<div class="d">' +
+      joursAll().length + " journées · " + seancesAll().length + " séances · " + pesees().length + " pesées" +
+      '</div></div><span class="mono" style="font-size:12px;color:var(--gris)">' +
+      (DB.meta.exporte ? "export " + esc(quand(DB.meta.exporte)) : "jamais exporté") + '</span></div>' +
+    (q && q.usage != null ? '<div class="lig" style="display:block"><div class="l">Espace utilisé<div class="d">' +
+      ko(q.usage) + ' sur ' + ko(q.quota) + '</div></div><div class="barre"><i style="width:' +
+      Math.min(100, Math.round((q.usage/(q.quota||1))*100)) + '%"></i></div></div>' : "") +
+    '<div class="lig"><div class="l">Tout effacer<div class="d">Définitif, sans retour.</div></div>' +
+      '<button class="btn dang" data-act="effacer">Effacer</button></div>' +
+    '</div></div>';
+
+  h += '<div class="bloc"><div class="bloc-h">Nouveautés' +
+    '<div style="margin-left:auto"><button class="btn" style="padding:6px 10px;font-size:13px" data-act="basculer-journal">' +
+    (state.journal ? "Réduire" : "Voir") + '</button></div></div>';
+  if(state.journal){
+    h += '<div class="bloc-b">' + JOURNAL.map(j =>
+      '<div class="jrn"><div class="jrn-h"><span class="jrn-v">v' + j.v + '</span>' +
+      '<span class="jrn-d">' + esc(frDate(j.d, true)) + '</span><span class="jrn-t">' + esc(j.t) + '</span></div>' +
+      '<ul>' + j.l.map(x => '<li>' + esc(x) + '</li>').join("") + '</ul></div>').join("") + '</div>';
+  }
+  h += '</div>';
+
+  h += '<div class="aide" style="text-align:center;margin:18px 0 0">' +
+    'Tout reste sur cet appareil. Rien ne part sur un serveur.<br>' +
+    'Palier estime, il ne diagnostique pas : un avis médical reste la référence, surtout en cas de traitement ou de pathologie.</div>';
+  return h;
+}
+
+/* ============================================================
+   LES PANNEAUX — SÉANCE, EXERCICE, REMPLACEMENT
+   ============================================================ */
+function fmtLigne(l){
+  const p = [];
+  if(l.t && l.s <= 1) p.push(duree(l.t));
+  else if(l.t) p.push(l.s + " × " + l.t + " s");
+  else p.push(l.s + " × " + l.x);
+  if(l.r) p.push("repos " + l.r + " s");
+  return p.join(" · ");
+}
+function hautPanneau(titre, act, droite){
+  return '<div class="sheet-top"><button class="iconbtn" data-act="' + (act || "fermer-sheet") + '" aria-label="Retour">' +
+    svg("fleche",18) + '</button><span class="t">' + esc(titre) + '</span><span class="sp"></span>' +
+    (droite || "") + '</div>';
+}
+
+function vueSheet(sh){
+  if(sh.type === "seance")    return sheetSeance(sh);
+  if(sh.type === "exo")       return sheetExo(sh);
+  if(sh.type === "remplacer") return sheetRemplacer(sh);
+  return "";
+}
+
+function sheetSeance(sh){
+  const s = DB.seances[sh.id];
+  if(!s) return "";
+  const t = todayISO();
+  const done = s.done || [];
+  let h = '<div class="sheet">' + hautPanneau(s.n, "fermer-sheet",
+    '<button class="iconbtn' + (s.fait ? "" : " pri") + '" data-act="basculer-seance" data-id="' + s.id +
+    '" aria-label="Terminer">' + svg("check",18,2.2) + '</button>');
+  h += '<div class="sheet-in">';
+
+  h += '<section class="total" style="padding:20px 0 16px">' +
+    '<div class="total-lbl">' + esc(cap(relDate(s.date))) + ' · semaine ' + s.sem + '</div>' +
+    '<span class="total-val num" style="font-size:clamp(26px,8vw,34px)">' + s.b.length + '<span class="u">exercices</span></span>' +
+    '<div class="total-sub"><span><b>' + s.min + '</b> min environ</span>' +
+      '<span>≈ <b>' + kcal(s.k) + '</b> kcal</span>' +
+      (s.fait ? '<span class="c-ok"><b class="c-ok">terminée</b></span>' : "") +
+      (!s.fait && s.date < t ? '<span class="c-att">passée</span>' : "") + '</div></section>';
+
+  if(!s.fait){
+    h += '<div class="aide" style="margin:12px 0 0">Coche les exercices au fil de la séance. Touche un exercice pour voir le mouvement, les conseils, ou le remplacer.</div>';
+  }
+
+  h += '<div class="ops" style="margin-top:10px">';
+  s.b.forEach((l,i) => {
+    const eid = resoudre(l.e);
+    const e = EXOS[eid] || {};
+    const ok = done.indexOf(i) !== -1;
+    h += '<div class="exo' + (ok ? " done" : "") + '">' +
+      '<button class="chk ' + (ok ? "on" : "") + '" data-act="cocher-exo" data-id="' + s.id + '" data-i="' + i +
+        '" aria-label="Cocher">' + svg("check",14,3) + '</button>' +
+      '<button class="exo-f" data-act="ouvrir-exo" data-id="' + l.e + '" data-sid="' + s.id + '" data-i="' + i + '" aria-label="' + esc(e.n||"") + '">' +
+        figSVG(e.fig) + '</button>' +
+      '<button class="exo-mid" style="text-align:left" data-act="ouvrir-exo" data-id="' + l.e + '" data-sid="' + s.id + '" data-i="' + i + '">' +
+        '<span class="exo-n">' + esc(e.n || l.e) +
+          (estRemplace(l.e) ? '<span class="badge acc">remplacé</span>' : "") + '</span>' +
+        '<span class="exo-s">' + esc(fmtLigne(l)) + '</span></button>' +
+      '<span class="sea-go">' + svg("chev",16) + '</span></div>';
+  });
+  h += '</div>';
+
+  h += '<div class="btns grow" style="margin-top:18px">' +
+    '<button class="btn ' + (s.fait ? "" : "pri") + '" data-act="basculer-seance" data-id="' + s.id + '">' +
+      svg("check",16,2.2) + (s.fait ? "Annuler la validation" : "Terminer la séance") + '</button></div>';
+  if(!s.fait && done.length)
+    h += '<div class="aide" style="text-align:center">' + done.length + ' exercice' + (done.length>1?"s":"") + ' sur ' + s.b.length + ' coché' + (done.length>1?"s":"") + '.</div>';
+  h += '</div></div>';
+  return h;
+}
+
+function sheetExo(sh){
+  const eid = resoudre(sh.e);
+  const e = EXOS[eid];
+  if(!e) return "";
+  const s = sh.sid ? DB.seances[sh.sid] : null;
+  const l = s && sh.i != null ? s.b[sh.i] : null;
+  let h = '<div class="sheet">' + hautPanneau(e.n, sh.sid ? "retour-seance" : "fermer-sheet");
+  h += '<div class="sheet-in">';
+  h += '<div style="margin:16px 0 0">' + '<div class="figbig">' + figSVG(e.fig) + '</div></div>';
+
+  h += '<div class="sect" style="margin-top:18px"><h2>' + esc(e.n) + '</h2></div>';
+  if(estRemplace(sh.e)){
+    h += '<div class="avert" style="border-color:var(--accB);background:var(--accF);color:var(--acc)">' +
+      'Cet exercice remplace <b>' + esc((EXOS[sh.e]||{}).n || sh.e) + '</b> dans toutes les séances du programme. ' +
+      '<button style="color:inherit;text-decoration:underline;text-underline-offset:3px" data-act="retablir-exo" data-id="' + sh.e + '">Rétablir l\'original</button></div>';
+  }
+  h += '<div class="muscles"><span class="mus p">' + esc(GROUPES[e.g] || e.g) + '</span>' +
+    (e.g2||[]).map(g => '<span class="mus">' + esc(GROUPES[g] || g) + '</span>').join("") +
+    '<span class="mus">' + esc(PATS[e.pat] || "") + '</span></div>';
+
+  h += '<p style="font-size:14.5px;line-height:1.6;color:var(--gris);margin:14px 0 0">' + esc(e.d) + '</p>';
+
+  if(l){
+    h += '<div class="repere">' +
+      (l.t && l.s <= 1 ? '<span>Durée <b>' + esc(duree(l.t)) + '</b></span>'
+        : '<span>Séries <b>' + l.s + '</b></span><span>' + (l.t ? 'Temps <b>' + l.t + ' s</b>' : 'Répétitions <b>' + l.x + '</b>') + '</span>') +
+      (l.r ? '<span>Repos <b>' + l.r + ' s</b></span>' : "") +
+      '<span>Matériel <b>' + esc(MATOS[e.mat]) + '</b></span></div>';
+  }else{
+    h += '<div class="repere"><span>Matériel <b>' + esc(MATOS[e.mat]) + '</b></span></div>';
+  }
+
+  h += '<div class="sect"><h2>Les conseils</h2></div><ul class="conseils">' +
+    (e.c||[]).map(x => '<li>' + esc(x) + '</li>').join("") + '</ul>';
+
+  h += '<div class="btns grow" style="margin-top:20px">' +
+    '<button class="btn" data-act="ouvrir-remplacer" data-id="' + sh.e + '" data-sid="' + (sh.sid||"") + '" data-i="' + (sh.i != null ? sh.i : "") + '">' +
+      svg("echange",16) + 'Remplacer cet exercice</button></div>';
+  h += '<div class="aide" style="text-align:center">Le remplacement vaut pour toutes les séances où l\'exercice apparaît, celles à venir comme celles déjà passées.</div>';
+  h += '</div></div>';
+  return h;
+}
+
+function sheetRemplacer(sh){
+  const orig = EXOS[sh.e];
+  if(!orig) return "";
+  const actuel = resoudre(sh.e);
+  const alts = alternatives(sh.e);
+  let h = '<div class="sheet">' + hautPanneau("Remplacer", "retour-exo");
+  h += '<div class="sheet-in">';
+  h += '<section class="total" style="padding:20px 0 14px">' +
+    '<div class="total-lbl">À la place de</div>' +
+    '<span class="total-val num" style="font-size:clamp(24px,7vw,30px)">' + esc(orig.n) + '</span>' +
+    '<div class="total-sub"><span>' + esc(GROUPES[orig.g]) + '</span><span>' + esc(PATS[orig.pat]) + '</span>' +
+      '<span>' + esc(MATOS[DB.settings.matos||0]) + '</span></div></section>';
+  h += '<div class="aide" style="margin-top:12px">Seuls les exercices travaillant les mêmes muscles sont proposés, et seulement ceux que ton matériel permet. Le matériel se règle dans les réglages.</div>';
+
+  if(actuel !== sh.e){
+    h += '<div class="btns grow" style="margin-top:14px"><button class="btn" data-act="retablir-exo" data-id="' + sh.e + '">' +
+      svg("echange",16) + 'Rétablir ' + esc(orig.n) + '</button></div>';
+  }
+
+  h += '<div class="sect"><h2>Les remplaçants possibles</h2><div class="sp"></div><span class="cnt">' + alts.length + '</span></div>';
+  h += '<div class="ops">';
+  if(!alts.length){
+    h += '<div class="vide"><b>Aucun remplaçant</b>Élargis le matériel disponible dans les réglages pour ouvrir le choix.</div>';
+  }
+  alts.forEach(k => {
+    const x = EXOS[k];
+    const meme = x.pat === orig.pat;
+    h += '<div class="exo' + (k === actuel ? " done" : "") + '">' +
+      '<button class="exo-f" data-act="appliquer-remplacement" data-id="' + sh.e + '" data-par="' + k + '" aria-label="' + esc(x.n) + '">' + figSVG(x.fig) + '</button>' +
+      '<button class="exo-mid" style="text-align:left" data-act="appliquer-remplacement" data-id="' + sh.e + '" data-par="' + k + '">' +
+        '<span class="exo-n">' + esc(x.n) + (k === actuel ? '<span class="badge acc">en place</span>' : "") + '</span>' +
+        '<span class="exo-s">' + esc(GROUPES[x.g]) + ' · ' + esc(meme ? PATS[x.pat] : "muscles proches") +
+          (x.mat ? ' · ' + esc(MATOS[x.mat]) : "") + '</span></button>' +
+      '<span class="sea-go">' + svg("chev",16) + '</span></div>';
+  });
+  h += '</div></div></div>';
+  return h;
+}
+
+/* ============================================================
+   MODALES
+   ============================================================ */
+function grandChamp(id, val, unite, ph){
+  return '<div class="mt-in"><input type="text" id="' + id + '" inputmode="decimal" autocomplete="off" ' +
+    'placeholder="' + esc(ph||"0") + '" value="' + esc(val || "") + '"><span class="mt-eur">' + esc(unite) + '</span></div>';
+}
+function boiteBoutons(valider, act, sup){
+  return '<div class="btns" style="margin:20px 0 0">' +
+    (sup ? '<button class="btn dang" style="flex:0 0 auto" data-act="' + sup.act + '" data-id="' + esc(sup.id) + '">' + esc(sup.l) + '</button>'
+         : '<button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Renoncer</button>') +
+    '<button class="btn pri" style="flex:1" data-act="' + act + '">' + valider + '</button></div>';
+}
+/* Les repas déjà saisis servent de raccourcis : on mange rarement des choses
+   entièrement nouvelles, et retaper « petit-déjeuner » chaque matin serait
+   une punition. */
+function favoris(){
+  const m = new Map();
+  joursAll().forEach(j => (j.repas||[]).forEach(r => {
+    const k = (r.n||"").trim().toLowerCase();
+    if(!k) return;
+    const g = m.get(k) || { n:r.n, k:r.k, nb:0, t:0 };
+    g.nb++;
+    if((r.t||0) > g.t){ g.t = r.t; g.k = r.k; }
+    m.set(k, g);
+  }));
+  return [...m.values()].sort((a,b) => b.nb - a.nb || b.t - a.t).slice(0, 6);
+}
+
+function vueModal(m){
+  let c = "";
+
+  if(m.type === "objectif"){
+    const edit = !!m.edit;
+    c = '<h3>' + (edit ? "Modifier l'objectif" : "Définir un objectif") + '</h3>' +
+      '<div class="sous">Le déficit est réparti sur toute la durée, puis ajusté chaque jour selon ce qui a été mangé.</div>' +
+      '<div class="duo"><div class="champ" style="margin-top:0"><label for="m-depart">Poids de départ</label>' +
+        grandChamp("m-depart", m.depart, "kg", "80") + '</div>' +
+      '<div class="champ" style="margin-top:0"><label for="m-cible">Poids visé</label>' +
+        grandChamp("m-cible", m.cible, "kg", "72") + '</div></div>' +
+      '<div class="champ"><label for="m-mois">Durée</label>' +
+        '<select id="m-mois">' + [1,2,3,4,5,6,8,10,12,18,24].map(x =>
+          '<option value="' + x + '"' + (String(m.mois) === String(x) ? " selected" : "") + '>' + x + ' mois</option>').join("") + '</select></div>' +
+      '<div class="champ"><label>Profil</label>' +
+        '<div class="seg" style="width:100%;margin-bottom:9px">' +
+          '<button style="flex:1" class="' + (m.sexe === "h" ? "on" : "") + '" data-act="m-sexe" data-id="h">Homme</button>' +
+          '<button style="flex:1" class="' + (m.sexe === "f" ? "on" : "") + '" data-act="m-sexe" data-id="f">Femme</button></div>' +
+        '<div class="duo"><input type="number" id="m-age" inputmode="numeric" placeholder="âge" value="' + esc(m.age||"") + '">' +
+        '<input type="number" id="m-taille" inputmode="numeric" placeholder="taille en cm" value="' + esc(m.taille||"") + '"></div></div>' +
+      '<div class="champ"><label for="m-activite">Niveau d\'activité</label>' +
+        '<select id="m-activite">' + ACTIVITES.map(a =>
+          '<option value="' + a[0] + '"' + (m.activite === a[0] ? " selected" : "") + '>' + a[1] + '</option>').join("") + '</select>' +
+        '<div class="aide">Choisis « Sédentaire » si tu veux que les séances de sport soient créditées à part.</div></div>' +
+      (edit ? '<div class="champ"><label for="m-debut">Début du plan</label>' +
+        '<input type="date" id="m-debut" value="' + esc(m.debut || todayISO()) + '"></div>' : "") +
+      '<div id="m-apercu"></div>' +
+      boiteBoutons(edit ? "Enregistrer" : "Créer le plan", "objectif-ok");
+  }
+
+  if(m.type === "repas"){
+    const fav = favoris();
+    c = '<h3>' + (m.id ? "Modifier le repas" : "Ajouter un repas") + '</h3>' +
+      '<div class="sous">Une estimation vaut mieux qu\'un oubli : à 100 kcal près, le plan tient.</div>' +
+      '<div class="champ"><label for="m-kcal">Calories</label>' + grandChamp("m-kcal", m.kcal, "kcal", "0") + '</div>' +
+      '<div class="champ"><label for="m-nom">C\'est quoi ?</label>' +
+        '<input type="text" id="m-nom" autocomplete="off" placeholder="Petit-déjeuner, déjeuner, encas…" value="' + esc(m.nom||"") + '"></div>' +
+      (fav.length && !m.id ? '<div class="raccourcis">' + fav.map(f =>
+        '<button data-act="repas-favori" data-id="' + esc(f.n) + '" data-k="' + f.k + '">' + esc(f.n) + ' · ' + f.k + '</button>').join("") + '</div>' : "") +
+      (m.date && m.date !== todayISO() ? '<div class="aide">Journée du ' + esc(frDate(m.date, true)) + '.</div>' : "") +
+      boiteBoutons(m.id ? "Enregistrer" : "Ajouter", m.id ? "repas-modifier" : "repas-creer",
+        m.id ? { act:"repas-supprimer", id:m.id, l:"Supprimer" } : null);
+  }
+
+  if(m.type === "pesee"){
+    c = '<h3>' + (m.edit ? "Modifier la pesée" : "Nouvelle pesée") + '</h3>' +
+      '<div class="sous">Le matin, à jeun : c\'est la mesure la moins bruitée, et la seule comparable d\'un jour à l\'autre.</div>' +
+      '<div class="champ"><label for="m-poids">Poids</label>' + grandChamp("m-poids", m.poids, "kg", "0,0") + '</div>' +
+      '<div class="champ"><label for="m-tour">Tour de taille <span style="color:var(--gris2)">facultatif</span></label>' +
+        '<input type="number" id="m-tour" inputmode="numeric" placeholder="en cm" value="' + esc(m.tour||"") + '">' +
+        '<div class="aide">Quand la balance stagne, le tour de taille continue souvent de descendre.</div></div>' +
+      '<div class="champ"><label for="m-date">Date</label>' +
+        '<input type="date" id="m-date" value="' + esc(m.date || todayISO()) + '"></div>' +
+      boiteBoutons("Enregistrer", "pesee-ok",
+        m.edit ? { act:"pesee-supprimer", id:m.origine || m.date, l:"Supprimer" } : null);
+  }
+
+  if(m.type === "profil"){
+    c = '<h3>Âge et taille</h3>' +
+      '<div class="sous">Deux chiffres qui entrent dans l\'estimation de la dépense au repos.</div>' +
+      '<div class="duo"><div class="champ"><label for="m-age">Âge</label>' +
+        '<input type="number" id="m-age" inputmode="numeric" value="' + esc(m.age||"") + '"></div>' +
+      '<div class="champ"><label for="m-taille">Taille (cm)</label>' +
+        '<input type="number" id="m-taille" inputmode="numeric" value="' + esc(m.taille||"") + '"></div></div>' +
+      boiteBoutons("Enregistrer", "profil-ok");
+  }
+
+  if(m.type === "activite"){
+    c = '<h3>Niveau d\'activité</h3>' +
+      '<div class="sous">Hors séances de sport si tu laisses le crédit du sport actif.</div>' +
+      ACTIVITES.map(a => '<button class="bascule ' + (DB.settings.activite === a[0] ? "on" : "") + '" data-act="activite-ok" data-id="' + a[0] + '">' +
+        '<span class="l">' + esc(a[1]) + '<span class="d">' + esc(a[3]) + '</span></span>' +
+        '<span class="mono" style="font-size:12px;color:var(--gris)">×' + a[2].toFixed(3).replace(".",",") + '</span></button>').join("") +
+      '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
+  }
+
+  if(m.type === "programme"){
+    const p = prog(m.id);
+    if(!p) return "";
+    const js = m.jours || [];
+    const n = js.length;
+    c = '<h3>' + esc(p.n) + '</h3>' +
+      '<div class="sous">' + esc(p.d) + '</div>' +
+      '<div class="prog-m" style="margin-bottom:12px"><span>' + p.sem + ' semaines</span><span>' + p.par + '×/sem conseillé</span>' +
+        '<span>' + p.min + ' min</span><span>' + esc(MATOS[p.mat]) + '</span></div>' +
+      '<div class="champ"><label>Jours de la semaine</label><div class="jsem">' +
+        [1,2,3,4,5,6,0].map(j => '<button class="' + (js.indexOf(j) !== -1 ? "on" : "") + '" data-act="m-jour" data-id="' + j + '">' +
+          JOURS_C[j] + '</button>').join("") + '</div>' +
+        '<div class="aide">' + (n ? n + ' séance' + (n>1?"s":"") + ' par semaine, soit ' + (n * p.sem) + ' au total.'
+          : 'Choisis au moins un jour.') +
+        (n && n !== p.par ? ' Le programme est prévu pour ' + p.par + '.' : "") + '</div></div>' +
+      '<div class="champ"><label for="m-debut">Première séance</label>' +
+        '<input type="date" id="m-debut" value="' + esc(m.debut || todayISO()) + '"></div>' +
+      (m.remplace ? '<div class="avert">Un programme est déjà en cours. Les séances à venir seront remplacées ; les séances déjà validées restent dans l\'historique.</div>' : "") +
+      boiteBoutons("Créer les séances", "programme-ok");
+  }
+
+  if(m.type === "confirm"){
+    c = '<h3>' + esc(m.titre) + '</h3><div class="sous">' + esc(m.texte) + '</div>' +
+      '<div class="btns" style="margin:18px 0 0"><button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Renoncer</button>' +
+      '<button class="btn ' + (m.dang ? "dang" : "pri") + '" style="flex:1" data-act="' + m.ok + '" data-id="' + esc(m.id||"") + '">' +
+      esc(m.valider) + '</button></div>';
+  }
+
+  if(m.type === "effacer"){
+    c = '<h3>Tout effacer</h3>' +
+      '<div class="sous">Journées, pesées, séances, objectif et programme. Rien ne pourra être récupéré.</div>' +
+      '<div class="champ"><label for="m-conf">Tape EFFACER pour confirmer</label>' +
+        '<input type="text" id="m-conf" autocomplete="off" placeholder="EFFACER"></div>' +
+      '<div class="btns" style="margin:18px 0 0"><button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Renoncer</button>' +
+      '<button class="btn dang" style="flex:1" data-act="effacer-ok">Tout effacer</button></div>';
+  }
+
+  return '<div class="mdl-bg" data-act="fermer-modal"><div class="mdl" data-act="rien">' + c + '</div></div>';
+}
+
+/* L'aperçu du plan, recalculé à chaque frappe sans redessiner la fenêtre :
+   redessiner fermerait le clavier au premier chiffre tapé. */
+function majApercu(){
+  const el = document.getElementById("m-apercu");
+  if(!el || !state.modal || state.modal.type !== "objectif") return;
+  const g = i => { const e = document.getElementById(i); return e ? e.value : ""; };
+  const depart = grammes(g("m-depart")), cible = grammes(g("m-cible"));
+  const mois = parseInt(g("m-mois"), 10) || 3;
+  const prof = { sexe:state.modal.sexe, age:parseInt(g("m-age"),10) || 35,
+                 taille:parseInt(g("m-taille"),10) || 175, activite:g("m-activite") || "sedentaire" };
+  if(!depart || !cible || cible >= depart){
+    el.innerHTML = '<div class="aide" style="margin-top:14px">Renseigne un poids de départ et un poids visé plus bas pour voir le plan.</div>';
+    return;
+  }
+  const total = Math.max(7, Math.round(mois * 30.44));
+  const dep = tdeeDe(depart, prof), pl = plancherDe(depart, prof);
+  const brute = Math.round(dep - ((depart - cible)/1000 * KCAL_PAR_KG) / total);
+  const base = Math.max(pl, brute);
+  const rythme = ((dep - base) * 7) / KCAL_PAR_KG;
+  let h = '<div class="bloc" style="margin-top:16px"><div class="bloc-b">' +
+    '<div class="lig"><div class="l">Calories par jour<div class="d">Dépense estimée ' + kcal(dep) + ' kcal</div></div>' +
+      '<span class="mono" style="font-size:16px;font-weight:500">' + kcal(base) + '</span></div>' +
+    '<div class="lig"><div class="l">Rythme<div class="d">' + esc(kg(Math.round(rythme*1000))) + ' kg par semaine</div></div>' +
+      '<span class="mono">−' + kg(depart - cible) + ' kg</span></div>' +
+    '<div class="lig"><div class="l">Fin du plan<div class="d">' + total + ' jours</div></div>' +
+      '<span class="mono">' + esc(frDate(plusJours(todayISO(), total), true)) + '</span></div></div></div>';
+  if(base - brute > 50)
+    h += '<div class="avert">Ce délai demanderait ' + kcal(brute) + ' kcal par jour, sous le plancher de ' + kcal(pl) +
+         '. Le plan s\'y tiendra, mais l\'objectif arrivera plus tard que prévu — mieux vaut allonger la durée.</div>';
+  else if(rythme > 1)
+    h += '<div class="avert">Plus d\'un kilo par semaine : tenable quelques semaines, rarement au-delà.</div>';
+  el.innerHTML = h;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function ouvrirModal(m){ state.modal = m; render(); }
+function fermerModal(){ state.modal = null; render(); }
+function ouvrirSheet(s){ state.sheet = s; render(); }
+
+/* Basculer un interrupteur redessine la fenêtre : sans relever les champs
+   avant, un poids à moitié saisi disparaîtrait au moindre changement. */
+const CHAMPS = { "m-depart":"depart", "m-cible":"cible", "m-mois":"mois", "m-age":"age",
+  "m-taille":"taille", "m-activite":"activite", "m-debut":"debut", "m-nom":"nom",
+  "m-kcal":"kcal", "m-poids":"poids", "m-tour":"tour", "m-date":"date" };
+function capturerModal(){
+  const m = state.modal;
+  if(!m) return;
+  Object.keys(CHAMPS).forEach(id => {
+    const e = document.getElementById(id);
+    if(e) m[CHAMPS[id]] = e.value;
+  });
+}
+function val(id){ const e = document.getElementById(id); return e ? e.value : ""; }
+function restaurerPaquet(paq){
+  (paq.jours||[]).forEach(j => { DB.jours[j.id] = j; sauverJour(j); });
+}
+
+document.addEventListener("click", async ev => {
+  const el = ev.target.closest("[data-act]");
+  if(!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  if(act === "rien"){ ev.stopPropagation(); return; }
+
+  /* ---- navigation ---- */
+  if(act === "tab"){ state.tab = id; state.sheet = null; state.choix = false; render(); window.scrollTo(0,0); return; }
+  if(act === "fermer-sheet"){ state.sheet = null; render(); return; }
+  if(act === "fermer-modal"){ fermerModal(); return; }
+  if(act === "retour-seance"){ ouvrirSheet({ type:"seance", id:state.sheet.sid }); return; }
+  if(act === "retour-exo"){
+    ouvrirSheet({ type:"exo", e:state.sheet.e, sid:state.sheet.sid || null, i:state.sheet.i });
+    return;
+  }
+  if(act === "basculer-journal"){ state.journal = !state.journal; state.neuf = false; DB.meta.vue = VERSION; sauver(true); render(); return; }
+  if(act === "journal-ouvrir"){
+    state.tab = "reglages"; state.journal = true; state.neuf = false;
+    DB.meta.vue = VERSION; sauver(true); render(); window.scrollTo(0,0); return;
+  }
+  if(act === "basculer-passe"){ state.passe = !state.passe; render(); return; }
+  if(act === "b-periode"){ state.bPeriode = id; DB.settings.bTri = id; sauver(true); render(); return; }
+  /* Le « plus » du bandeau, qui n'ajoute pas la même chose selon l'onglet. */
+  if(act === "plus"){
+    if(state.tab === "sport"){ ouvrirChoixProgramme(); return; }
+    if(state.tab === "poids"){ if(!DB.plan) ouvrirObjectif(false); else ouvrirPesee(null); return; }
+    ouvrirRepas(null); return;
+  }
+
+  /* ---- objectif ---- */
+  if(act === "nouvel-objectif"){ ouvrirObjectif(false); return; }
+  if(act === "modifier-objectif"){ ouvrirObjectif(true); return; }
+  if(act === "m-sexe"){ capturerModal(); state.modal.sexe = id; render(); return; }
+  if(act === "objectif-ok"){
+    capturerModal();
+    const m = state.modal;
+    const depart = grammes(m.depart), cible = grammes(m.cible);
+    const mois = parseInt(m.mois, 10) || 3;
+    if(!depart){ toast("Il manque le poids de départ"); return; }
+    if(!cible || cible >= depart){ toast("Le poids visé doit être inférieur au départ"); return; }
+    if(depart < 30000 || depart > 400000){ toast("Ce poids de départ semble erroné"); return; }
+    DB.settings.sexe = m.sexe === "f" ? "f" : "h";
+    DB.settings.age = clamp(parseInt(m.age,10) || 35, 14, 100);
+    DB.settings.taille = clamp(parseInt(m.taille,10) || 175, 120, 230);
+    DB.settings.activite = m.activite || "sedentaire";
+    const debut = (m.debut || "").trim() || (DB.plan ? DB.plan.debut : todayISO());
+    DB.plan = { debut, depart, cible, mois, cree:(DB.plan && DB.plan.cree) || Date.now() };
+    /* La première pesée du plan, si elle manque, c'est le poids de départ. */
+    if(!pesees().length){ const j = jour(debut); j.poids = depart; sauverJour(j); }
+    sauver(); fermerModal();
+    state.tab = "poids"; render(); window.scrollTo(0,0);
+    toast("Plan créé : " + kcal(planCalc().base) + " kcal par jour");
+    return;
+  }
+  if(act === "retirer-objectif"){
+    ouvrirModal({ type:"confirm", titre:"Retirer l'objectif", valider:"Retirer", ok:"retirer-objectif-ok", dang:true,
+      texte:"Le plafond de calories disparaît. Les pesées, les repas et les séances sont conservés." });
+    return;
+  }
+  if(act === "retirer-objectif-ok"){ DB.plan = null; sauver(); fermerModal(); toast("Objectif retiré"); return; }
+
+  /* ---- repas ---- */
+  if(act === "nouveau-repas"){ ouvrirRepas(null); return; }
+  if(act === "modifier-repas"){
+    const j = jourLu(todayISO());
+    const r = j && (j.repas||[]).filter(x => x.i === id)[0];
+    if(r) ouvrirModal({ type:"repas", id:r.i, nom:r.n, kcal:String(r.k), date:todayISO(), focus:"m-kcal" });
+    return;
+  }
+  if(act === "repas-favori"){
+    const k = el.dataset.k;
+    const cn = document.getElementById("m-nom"), ck = document.getElementById("m-kcal");
+    if(cn) cn.value = id;
+    if(ck) ck.value = k;
+    return;
+  }
+  if(act === "repas-creer" || act === "repas-modifier"){
+    capturerModal();
+    const m = state.modal;
+    const k = Math.round(parseFloat(String(m.kcal||"").replace(",",".")) || 0);
+    if(k <= 0){ toast("Il manque les calories"); const c = $("#m-kcal"); if(c) c.focus(); return; }
+    const j = jour(m.date || todayISO());
+    if(act === "repas-creer"){
+      j.repas.push({ i:uid(), n:(m.nom||"").trim() || "Repas", k, t:Date.now() });
+    }else{
+      const r = j.repas.filter(x => x.i === m.id)[0];
+      if(r){ r.k = k; r.n = (m.nom||"").trim() || "Repas"; }
+    }
+    sauverJour(j); fermerModal();
+    toast(act === "repas-creer" ? "Repas ajouté" : "Repas modifié");
+    return;
+  }
+  if(act === "repas-supprimer"){
+    const m = state.modal;
+    const j = jour(m.date || todayISO());
+    corbeille = { jours:[JSON.parse(JSON.stringify(j))] };
+    j.repas = j.repas.filter(x => x.i !== id);
+    sauverJour(j); fermerModal();
+    toast("Repas supprimé", "annuler-suppr");
+    return;
+  }
+  if(act === "objectif-tenu"){
+    const t = todayISO();
+    const c = planCalc();
+    if(!c){ toast("Aucun objectif défini"); return; }
+    const reste = objectifJour(t) - kcalJour(t);
+    if(reste <= 0){ toast("L'objectif du jour est déjà atteint"); return; }
+    const j = jour(t);
+    j.repas.push({ i:uid(), n:"Reste de la journée", k:reste, t:Date.now() });
+    sauverJour(j); render();
+    toast(kcal(reste) + " kcal ajoutées pour boucler la journée");
+    return;
+  }
+  if(act === "annuler-suppr"){
+    if(corbeille){ restaurerPaquet(corbeille); corbeille = null; toast("Restauré"); render(); }
+    fermerToast(); return;
+  }
+
+  /* ---- pesées ---- */
+  if(act === "nouvelle-pesee"){ ouvrirPesee(null); return; }
+  if(act === "modifier-pesee"){ ouvrirPesee(id); return; }
+  if(act === "pesee-ok"){
+    capturerModal();
+    const m = state.modal;
+    const p = grammes(m.poids);
+    if(!p){ toast("Il manque le poids"); return; }
+    if(p < 25000 || p > 400000){ toast("Ce poids semble erroné"); return; }
+    const d = (m.date || todayISO()).trim() || todayISO();
+    /* Changer la date d'une pesée, c'est la déplacer : l'ancienne journée
+       perd son poids, la nouvelle le reçoit. */
+    if(m.edit && m.origine && m.origine !== d){
+      const anc = jourLu(m.origine);
+      if(anc){ anc.poids = 0; anc.tour = 0; sauverJour(anc); }
+    }
+    const j = jour(d);
+    j.poids = p;
+    j.tour = clamp(parseInt(m.tour,10) || 0, 0, 300);
+    sauverJour(j); fermerModal();
+    toast("Pesée enregistrée");
+    return;
+  }
+  if(act === "pesee-supprimer"){
+    const j = jourLu(id);
+    if(j){
+      corbeille = { jours:[JSON.parse(JSON.stringify(j))] };
+      j.poids = 0; j.tour = 0; sauverJour(j);
+    }
+    fermerModal();
+    toast("Pesée supprimée", "annuler-suppr");
+    return;
+  }
+
+  /* ---- eau ---- */
+  if(act === "eau"){
+    const j = jour(todayISO());
+    j.eau = clamp((j.eau||0) + parseInt(id,10), 0, 30);
+    sauverJour(j); render();
+    return;
+  }
+  if(act === "eau-cible"){
+    DB.settings.eauCible = clamp((DB.settings.eauCible||8) + parseInt(id,10), 1, 20);
+    sauver(true); render(); return;
+  }
+
+  /* ---- programme ---- */
+  if(act === "choisir-programme" || act === "changer-programme"){ ouvrirChoixProgramme(); return; }
+  if(act === "annuler-choix"){ state.choix = false; render(); window.scrollTo(0,0); return; }
+  if(act === "config-programme"){
+    const p = prog(id);
+    if(!p) return;
+    const defaut = [[1,4],[1,3,5],[1,2,4,6],[1,2,4,5],[1,2,3,4,5]][clamp(p.par,1,5)-1] || [1,3,5];
+    ouvrirModal({ type:"programme", id:p.id, jours:defaut.slice(), debut:todayISO(), remplace:!!DB.prog });
+    return;
+  }
+  if(act === "m-jour"){
+    capturerModal();
+    const j = parseInt(id,10);
+    const l = state.modal.jours || [];
+    const i = l.indexOf(j);
+    if(i === -1) l.push(j); else l.splice(i,1);
+    state.modal.jours = l;
+    render();
+    return;
+  }
+  if(act === "programme-ok"){
+    capturerModal();
+    const m = state.modal;
+    if(!m.jours || !m.jours.length){ toast("Choisis au moins un jour"); return; }
+    const debut = (m.debut || "").trim() || todayISO();
+    if(DB.prog) effacerProgramme();
+    const n = genererSeances(m.id, debut, m.jours);
+    fermerModal();
+    state.tab = "sport"; state.passe = false; state.choix = false;
+    render(); window.scrollTo(0,0);
+    toast(n + " séances créées");
+    return;
+  }
+
+  /* ---- séances ---- */
+  if(act === "ouvrir-seance"){ ouvrirSheet({ type:"seance", id }); window.scrollTo(0,0); return; }
+  if(act === "basculer-seance"){
+    const s = DB.seances[id];
+    if(!s) return;
+    s.fait = !s.fait;
+    s.faitLe = s.fait ? Date.now() : 0;
+    if(s.fait && (!s.done || s.done.length !== s.b.length)) s.done = s.b.map((x,i) => i);
+    if(!s.fait) s.done = [];
+    sauverSeance(s);
+    if(s.fait){ state.sheet = null; render(); toast("Séance terminée" + (DB.settings.crediterSport && DB.plan ? " · +" + kcal(s.k) + " kcal aujourd'hui" : "")); }
+    else render();
+    return;
+  }
+  if(act === "cocher-exo"){
+    const s = DB.seances[id];
+    if(!s) return;
+    const i = parseInt(el.dataset.i, 10);
+    s.done = s.done || [];
+    const k = s.done.indexOf(i);
+    if(k === -1) s.done.push(i); else s.done.splice(k,1);
+    sauverSeance(s); render();
+    return;
+  }
+  if(act === "ouvrir-exo"){
+    ouvrirSheet({ type:"exo", e:id, sid:el.dataset.sid || null,
+                  i:el.dataset.i === "" ? null : parseInt(el.dataset.i,10) });
+    window.scrollTo(0,0);
+    return;
+  }
+  if(act === "ouvrir-remplacer"){
+    ouvrirSheet({ type:"remplacer", e:id, sid:el.dataset.sid || null,
+                  i:el.dataset.i === "" ? null : parseInt(el.dataset.i,10) });
+    window.scrollTo(0,0);
+    return;
+  }
+  if(act === "appliquer-remplacement"){
+    const par = el.dataset.par;
+    remplacer(id, par);
+    ouvrirSheet({ type:"exo", e:id, sid:state.sheet.sid, i:state.sheet.i });
+    toast((EXOS[par]||{}).n + " remplace " + (EXOS[id]||{}).n + " partout");
+    return;
+  }
+  if(act === "retablir-exo"){
+    remplacer(id, null);
+    if(state.sheet) ouvrirSheet({ type:"exo", e:id, sid:state.sheet.sid, i:state.sheet.i });
+    else render();
+    toast("Exercice d'origine rétabli");
+    return;
+  }
+  if(act === "raz-subs"){
+    DB.settings.subs = {}; sauver(); render();
+    toast("Tous les exercices d'origine sont rétablis");
+    return;
+  }
+
+  /* ---- profil et réglages ---- */
+  if(act === "modifier-profil"){ ouvrirModal({ type:"profil", age:DB.settings.age, taille:DB.settings.taille, focus:"m-age" }); return; }
+  if(act === "profil-ok"){
+    DB.settings.age = clamp(parseInt(val("m-age"),10) || 35, 14, 100);
+    DB.settings.taille = clamp(parseInt(val("m-taille"),10) || 175, 120, 230);
+    sauver(); fermerModal(); toast("Profil enregistré");
+    return;
+  }
+  if(act === "modifier-activite"){ ouvrirModal({ type:"activite" }); return; }
+  if(act === "activite-ok"){ DB.settings.activite = id; sauver(); fermerModal(); return; }
+  if(act === "sexe"){ DB.settings.sexe = id; sauver(); render(); return; }
+  if(act === "matos"){ DB.settings.matos = parseInt(id,10) || 0; sauver(); render(); return; }
+  if(act === "bascule"){
+    DB.settings[id] = !DB.settings[id];
+    sauver(); render();
+    return;
+  }
+  if(act === "theme"){
+    ecritLS(LSTHEME, id); appliquerTheme(id);
+    DB.settings.theme = id; sauver(true); majIcone(); render(); return;
+  }
+  if(act === "accent"){
+    ecritLS(LSACC, id); appliquerAccent(id);
+    DB.settings.accent = id; sauver(true); majIcone(); render(); return;
+  }
+
+  /* ---- données ---- */
+  if(act === "exporter"){ exporterJSON(); return; }
+  if(act === "importer"){
+    const inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "application/json,.json";
+    inp.onchange = () => { if(inp.files && inp.files[0]) importerFichier(inp.files[0]); };
+    inp.click();
+    return;
+  }
+  if(act === "effacer"){ ouvrirModal({ type:"effacer", focus:"m-conf" }); return; }
+  if(act === "effacer-ok"){
+    const v = (val("m-conf") || "").trim().toUpperCase();
+    if(v !== "EFFACER"){ toast("Tape EFFACER pour confirmer"); return; }
+    try{ await IDB.vider(); }catch(e){}
+    DB = JSON.parse(JSON.stringify(DEFAULTS));
+    DB.settings.theme = themeActuel(); DB.settings.accent = accentActuel();
+    corbeille = null;
+    state.sheet = null; state.tab = "jour";
+    fermerModal();
+    toast("Tout est effacé");
+    return;
+  }
+});
+
+function ouvrirObjectif(edit){
+  const s = DB.settings, P = DB.plan;
+  ouvrirModal({ type:"objectif", edit:!!edit,
+    depart: P ? kg(P.depart) : (poidsActuel() ? kg(poidsActuel()) : ""),
+    cible: P ? kg(P.cible) : "",
+    mois: P ? P.mois : 3,
+    debut: P ? P.debut : todayISO(),
+    sexe: s.sexe, age: s.age, taille: s.taille, activite: s.activite });
+}
+function ouvrirRepas(){ ouvrirModal({ type:"repas", date:todayISO(), focus:"m-kcal" }); }
+function ouvrirPesee(iso){
+  const j = iso ? jourLu(iso) : null;
+  ouvrirModal({ type:"pesee", edit:!!j, origine:iso || null,
+    poids: j && j.poids ? kg(j.poids) : (poidsActuel() ? kg(poidsActuel()) : ""),
+    tour: j && j.tour ? String(j.tour) : "",
+    date: iso || todayISO(), focus:"m-poids" });
+}
+function ouvrirChoixProgramme(){
+  state.tab = "sport";
+  state.choix = true;
+  state.sheet = null;
+  render(); window.scrollTo(0,0);
+}
+
+/* Les champs de l'objectif rafraîchissent l'aperçu sans redessiner. */
+document.addEventListener("input", ev => {
+  if(!state.modal || state.modal.type !== "objectif") return;
+  if(!ev.target || !ev.target.id || ev.target.id.indexOf("m-") !== 0) return;
+  majApercu();
+});
+document.addEventListener("change", ev => {
+  if(!state.modal || state.modal.type !== "objectif") return;
+  if(!ev.target || !ev.target.id) return;
+  majApercu();
+});
+
+/* Entrée valide la modale ouverte, Échap referme ce qui est ouvert. */
+document.addEventListener("keydown", ev => {
+  if(ev.key === "Escape"){
+    if(state.modal){ fermerModal(); return; }
+    if(state.sheet){ state.sheet = null; render(); return; }
+  }
+  if(ev.key !== "Enter" || !state.modal) return;
+  const t = ev.target;
+  if(t && t.tagName === "TEXTAREA") return;
+  const b = document.querySelector('.mdl .btn.pri[data-act]');
+  if(b && !b.disabled){ ev.preventDefault(); b.click(); }
+});
+
+/* ============================================================
+   IMPORT / EXPORT
+   ============================================================ */
+function contenuSauvegarde(){
+  return JSON.stringify({ app:"palier", appVersion:VERSION, schema:SCHEMA,
+    jours:DB.jours, seances:DB.seances, plan:DB.plan, prog:DB.prog,
+    settings:DB.settings, meta:DB.meta }, null, 2);
+}
+function telecharger(nom, blob){
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = u; a.download = nom;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+function exporterJSON(){
+  const d = new Date();
+  const nom = "palier-" + d.getFullYear() + p2(d.getMonth()+1) + p2(d.getDate()) + ".json";
+  telecharger(nom, new Blob([contenuSauvegarde()], { type:"application/json" }));
+  DB.meta.exporte = Date.now(); sauver(true); render();
+  toast("Sauvegarde exportée");
+}
+async function importerFichier(f){
+  try{
+    const x = JSON.parse(await f.text());
+    const r = fusionnerSauvegarde(x);
+    render();
+    toast(r.nj + " journées et " + r.ns + " séances ajoutées");
+  }catch(e){
+    toast("Fichier illisible : " + ((e && e.message) || e));
+  }
+}
+
+/* ============================================================
+   ICÔNE ET MANIFESTE, PEINTS À LA COULEUR D'ACCENT
+   ============================================================ */
+function dessinerIcone(taille, marge){
+  const c = document.createElement("canvas");
+  c.width = c.height = taille;
+  const x = c.getContext("2d");
+  const acc = accentActuel();
+  /* « maskable » : Android rogne l'icône en cercle ou en écusson selon le
+     téléphone. On peint alors tout le carré et on garde le sigle au centre,
+     à l'abri du rognage. Sinon, carré aux angles arrondis. */
+  const p = marge ? taille * 0.12 : 0;
+  const t = taille - p * 2, r = t * 0.22;
+  x.fillStyle = acc;
+  if(marge) x.fillRect(0, 0, taille, taille);
+  else{
+    x.beginPath();
+    x.moveTo(r, 0); x.arcTo(t, 0, t, t, r); x.arcTo(t, t, 0, t, r);
+    x.arcTo(0, t, 0, 0, r); x.arcTo(0, 0, t, 0, r); x.closePath();
+    x.fill();
+  }
+  const u = t / 64, o = p;
+  x.strokeStyle = surAccent(acc);
+  x.lineCap = "round"; x.lineJoin = "round"; x.lineWidth = 5 * u;
+  x.beginPath();
+  x.moveTo(o + 12*u, o + 50*u);
+  x.lineTo(o + 25*u, o + 50*u); x.lineTo(o + 25*u, o + 37*u);
+  x.lineTo(o + 38*u, o + 37*u); x.lineTo(o + 38*u, o + 24*u);
+  x.lineTo(o + 51*u, o + 24*u); x.lineTo(o + 51*u, o + 12*u);
+  x.stroke();
+  return c.toDataURL("image/png");
+}
+let _manifeste = null;
+function majIcone(){
+  try{
+    const acc = accentActuel(), sur = surAccent(acc);
+    const fav = document.getElementById("favicon");
+    if(fav) fav.href = "data:image/svg+xml," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+      '<rect width="64" height="64" rx="14" fill="' + acc + '"/>' +
+      '<path d="M12 50h13V37h13V24h13V12" fill="none" stroke="' + sur + '" ' +
+      'stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+
+    const p192 = dessinerIcone(192, false), p512 = dessinerIcone(512, false), pm = dessinerIcone(512, true);
+    let at = document.querySelector('link[rel="apple-touch-icon"]');
+    if(!at){ at = document.createElement("link"); at.rel = "apple-touch-icon"; document.head.appendChild(at); }
+    at.href = p192;
+
+    const man = {
+      id:"palier", name:"Palier", short_name:"Palier", start_url:".", scope:".",
+      display:"standalone", orientation:"portrait",
+      background_color: themeActuel() === "sombre" ? "#0d0d10" : "#ffffff",
+      theme_color: themeActuel() === "sombre" ? "#0d0d10" : "#ffffff",
+      icons:[ { src:p192, sizes:"192x192", type:"image/png" },
+              { src:p512, sizes:"512x512", type:"image/png" },
+              { src:pm,  sizes:"512x512", type:"image/png", purpose:"maskable" } ]
+    };
+    if(_manifeste) URL.revokeObjectURL(_manifeste);
+    _manifeste = URL.createObjectURL(new Blob([JSON.stringify(man)], { type:"application/manifest+json" }));
+    let lm = document.querySelector('link[rel="manifest"]');
+    if(!lm){ lm = document.createElement("link"); lm.rel = "manifest"; document.head.appendChild(lm); }
+    lm.href = _manifeste;
+  }catch(e){ /* une icône ratée ne doit pas empêcher l'application de tourner */ }
+}
+
+/* ---------- espace disque ---------- */
+async function majQuota(){
+  if(!navigator.storage || !navigator.storage.estimate) return;
+  try{
+    state.quota = await navigator.storage.estimate();
+    if(pret && state.tab === "reglages") render();
+  }catch(e){}
+}
+
+/* ============================================================
+   DÉMARRAGE
+   ============================================================ */
+async function demarrer(){
+  try{
+    await IDB.ouvrir();
+    DB = assembler(await IDB.tout());
+  }catch(e){
+    const vue = document.getElementById("view");
+    if(vue) vue.innerHTML =
+      '<div class="vide" style="margin-top:60px"><b>Stockage indisponible</b>' +
+      esc(String((e && e.message) || e)) + '<br>La navigation privée de certains navigateurs interdit IndexedDB.</div>';
+    return;
+  }
+  pret = true;
+
+  if(!litLS(LSTHEME) && DB.settings.theme){ ecritLS(LSTHEME, DB.settings.theme); appliquerTheme(DB.settings.theme); }
+  if(!litLS(LSACC) && DB.settings.accent){ ecritLS(LSACC, DB.settings.accent); appliquerAccent(DB.settings.accent); }
+  DB.settings.theme = themeActuel();
+  DB.settings.accent = accentActuel();
+  state.bPeriode = DB.settings.bTri || "90j";
+
+  state.neuf = DB.meta.vue !== VERSION;
+  render();
+  majIcone();
+  majQuota();
+}
+
+/* Un téléphone rouvert le lendemain doit reclasser « aujourd'hui » et la
+   séance du jour sans qu'on ait besoin de recharger la page. */
+let _jour = todayISO();
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState !== "visible" || !pret) return;
+  if(_jour !== todayISO()){ _jour = todayISO(); render(); }
+});
+window.addEventListener("pagehide", () => { ecouler(); });
+
+demarrer();
+</script>
+</body>
+</html>
