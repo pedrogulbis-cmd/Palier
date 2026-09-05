@@ -353,9 +353,15 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"1.1.0", d:"2026-09-05", t:"Un vrai catalogue", l:[
+    "Quatorze programmes au lieu de cinq, dont un consacré au haut du corps à la maison, un autre au haut du corps à l'élastique, un pour le bas du corps, un d'abdos en quinze minutes, un cardio express, une progression de la marche vers la course, et une série pour les dos de bureau.",
+    "Le catalogue s'ouvre dans son propre panneau, avec deux rangées de filtres : la zone du corps et le matériel. Le bouton « plus » de l'onglet Sport y mène désormais, qu'un programme soit en cours ou non.",
+    "L'élastique n'est plus rangé avec les haltères : le matériel compte quatre crans — rien, élastique, haltères, salle — et les remplacements en tiennent compte.",
+    "Vingt et un exercices de plus : pompes excentriques, dips entre deux chaises, rowing à la serviette, élévations en Y, bird dog, pont fessier à une jambe, et dix mouvements à l'élastique."
+  ]},
   { v:"1.0.0", d:"2026-09-05", t:"Première version", l:[
     "Un objectif de poids se pose en quatre chiffres : le poids de départ, le poids visé, le nombre de mois, et le profil qui sert au calcul de la dépense quotidienne.",
     "Chaque jour reçoit son plafond de calories. Ce qu'on mange se note repas par repas ; ce qui manque ou ce qui dépasse est réparti sur les jours restants, sans jamais descendre sous un plancher de sécurité.",
@@ -609,7 +615,7 @@ const PATS = { pouh:"Poussée horizontale", pouv:"Poussée verticale", tirh:"Tir
   tirv:"Tirage vertical", squat:"Flexion de jambes", charn:"Charnière de hanche",
   fente:"Fente", gain:"Gainage", abdo:"Flexion du tronc", mollet:"Mollets",
   cardio:"Cardio", mob:"Mobilité" };
-const MATOS = ["Sans matériel", "Haltères ou élastique", "Salle de sport"];
+const MATOS = ["Sans matériel", "Élastique", "Haltères", "Salle de sport"];
 
 const EXOS = {
   /* ---- poussée horizontale ---- */
@@ -634,13 +640,13 @@ const EXOS = {
   dipsBanc:{ n:"Dips sur chaise", g:"bras", g2:["pecs","epaules"], pat:"pouh", mat:0, fig:"dips",
     d:"Assis au bord d'une chaise, mains de part et d'autre des hanches, fesses dans le vide. On descend en pliant les coudes, on remonte.",
     c:["Coudes vers l'arrière, pas vers l'extérieur.","Jambes tendues pour durcir, pliées pour alléger.","Descends jusqu'à 90° au coude, pas plus bas."] },
-  devHalt:{ n:"Développé couché haltères", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:1, fig:"developpe",
+  devHalt:{ n:"Développé couché haltères", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:2, fig:"developpe",
     d:"Allongé sur un banc ou au sol, un haltère dans chaque main. On pousse vers le plafond jusqu'à tendre les bras sans les verrouiller.",
     c:["Omoplates serrées, poitrine ouverte.","Au sol, l'amplitude est limitée : c'est normal et plus sûr pour l'épaule."] },
-  ecarte:{ n:"Écarté avec haltères", g:"pecs", g2:["epaules"], pat:"pouh", mat:1, fig:"elevation",
+  ecarte:{ n:"Écarté avec haltères", g:"pecs", g2:["epaules"], pat:"pouh", mat:2, fig:"elevation",
     d:"Allongé, bras légèrement fléchis, on ouvre les bras en arc de cercle puis on les ramène au-dessus de la poitrine.",
     c:["Charge légère : c'est un exercice d'étirement, pas de force.","Les coudes gardent le même angle du début à la fin."] },
-  devBarre:{ n:"Développé couché", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:2, fig:"developpe",
+  devBarre:{ n:"Développé couché", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:3, fig:"developpe",
     d:"Sur le banc, barre descendue au milieu de la poitrine puis repoussée. L'exercice de référence pour les pectoraux.",
     c:["Pieds au sol, dos stable, omoplates serrées.","Un pareur ou les sécurités du rack quand tu charges lourd."] },
 
@@ -651,13 +657,13 @@ const EXOS = {
   elevBouteille:{ n:"Élévations latérales avec bouteilles", g:"epaules", g2:[], pat:"pouv", mat:0, fig:"elevation",
     d:"Deux bouteilles d'eau en guise d'haltères, bras le long du corps. On lève sur les côtés jusqu'à l'horizontale.",
     c:["Deux bouteilles d'un litre et demi suffisent largement.","Monte en une seconde, redescends en deux.","Épaules basses, pas de balancement du buste."] },
-  devMil:{ n:"Développé militaire haltères", g:"epaules", g2:["bras"], pat:"pouv", mat:1, fig:"developpe",
+  devMil:{ n:"Développé militaire haltères", g:"epaules", g2:["bras"], pat:"pouv", mat:2, fig:"developpe",
     d:"Debout ou assis, haltères à hauteur d'épaules. On pousse au-dessus de la tête, on redescend contrôlé.",
     c:["Ventre gainé : le dos ne doit pas partir en arrière.","Ne verrouille pas les coudes en haut."] },
-  elevLat:{ n:"Élévations latérales", g:"epaules", g2:[], pat:"pouv", mat:1, fig:"elevation",
+  elevLat:{ n:"Élévations latérales", g:"epaules", g2:[], pat:"pouv", mat:2, fig:"elevation",
     d:"Bras le long du corps, on lève les haltères sur les côtés jusqu'à l'horizontale, coudes à peine fléchis.",
     c:["Léger, toujours : l'épaule se blesse vite ici.","Monte en 1 seconde, descends en 2.","Pas d'élan avec le dos."] },
-  devEpauleM:{ n:"Développé épaules machine", g:"epaules", g2:["bras"], pat:"pouv", mat:2, fig:"developpe",
+  devEpauleM:{ n:"Développé épaules machine", g:"epaules", g2:["bras"], pat:"pouv", mat:3, fig:"developpe",
     d:"Assis dans la machine, dos calé, on pousse les poignées au-dessus de la tête.",
     c:["Règle la hauteur du siège : les poignées partent à hauteur d'épaules.","Amplitude complète, sans à-coups."] },
 
@@ -668,13 +674,13 @@ const EXOS = {
   superman:{ n:"Superman", g:"dos", g2:["fessiers"], pat:"tirh", mat:0, fig:"superman",
     d:"À plat ventre, bras devant. On soulève simultanément le buste et les jambes, on tient une seconde, on relâche.",
     c:["Cherche la longueur plutôt que la hauteur.","Nuque dans le prolongement du dos, regard au sol."] },
-  rowHalt:{ n:"Rowing haltère", g:"dos", g2:["bras"], pat:"tirh", mat:1, fig:"rowing",
+  rowHalt:{ n:"Rowing haltère", g:"dos", g2:["bras"], pat:"tirh", mat:2, fig:"rowing",
     d:"Un genou et une main en appui sur un banc, l'autre main tire l'haltère le long du corps jusqu'à la hanche.",
     c:["Dos plat, pas de rotation du buste.","Tire avec le coude, pas avec la main."] },
   rowElast:{ n:"Tirage à l'élastique", g:"dos", g2:["bras"], pat:"tirh", mat:1, fig:"rowing",
-    d:"Élastique fixé à hauteur de taille, on tire les poignées vers le ventre en serrant les omoplates.",
+    d:"Élastique fixé à hauteur de taille — poignée de porte, radiateur, pied de meuble lourd. On tire les poignées vers le ventre en serrant les omoplates.",
     c:["Recule pour augmenter la tension.","Épaules basses, loin des oreilles."] },
-  rowMachine:{ n:"Rowing assis machine", g:"dos", g2:["bras"], pat:"tirh", mat:2, fig:"rowing",
+  rowMachine:{ n:"Rowing assis machine", g:"dos", g2:["bras"], pat:"tirh", mat:3, fig:"rowing",
     d:"Assis, poitrine contre le support, on tire la poignée vers le ventre.",
     c:["Le buste reste immobile : c'est le dos qui travaille.","Retiens la charge au retour."] },
 
@@ -682,10 +688,10 @@ const EXOS = {
   tractionsAssist:{ n:"Tractions assistées", g:"dos", g2:["bras"], pat:"tirv", mat:1, fig:"traction",
     d:"Barre fixe avec un gros élastique sous les pieds ou les genoux, qui rend une partie du poids du corps.",
     c:["Commence menton au-dessus de la barre, même avec beaucoup d'aide.","Descends jusqu'aux bras tendus à chaque répétition."] },
-  tractions:{ n:"Tractions", g:"dos", g2:["bras"], pat:"tirv", mat:2, fig:"traction",
+  tractions:{ n:"Tractions", g:"dos", g2:["bras"], pat:"tirv", mat:3, fig:"traction",
     d:"Suspendu à la barre, mains en pronation, on tire jusqu'à passer le menton au-dessus.",
     c:["Épaules basses avant de tirer : on ne part pas d'un dos relâché.","Pas de coup de reins."] },
-  tirageVert:{ n:"Tirage vertical poulie", g:"dos", g2:["bras"], pat:"tirv", mat:2, fig:"traction",
+  tirageVert:{ n:"Tirage vertical poulie", g:"dos", g2:["bras"], pat:"tirv", mat:3, fig:"traction",
     d:"Assis, cuisses bloquées, on tire la barre vers le haut de la poitrine.",
     c:["Léger recul du buste, pas un balancement.","Barre devant la tête, jamais derrière la nuque."] },
 
@@ -705,10 +711,10 @@ const EXOS = {
   squatBulg:{ n:"Squat bulgare", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, fig:"fente",
     d:"Pied arrière posé sur une chaise, on descend sur la jambe avant jusqu'à 90° au genou.",
     c:["Avance suffisamment le pied avant pour que le genou reste au-dessus de la cheville.","Tiens un mur du bout des doigts si l'équilibre manque."] },
-  gobelet:{ n:"Goblet squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:1, fig:"squat",
+  gobelet:{ n:"Goblet squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:2, fig:"squat",
     d:"Un haltère tenu verticalement contre la poitrine, on descend en squat. Le contrepoids aide à garder le buste droit.",
     c:["Coudes à l'intérieur des genoux en bas.","La charge reste collée au sternum."] },
-  presse:{ n:"Presse à cuisses", g:"jambes", g2:["fessiers"], pat:"squat", mat:2, fig:"squat",
+  presse:{ n:"Presse à cuisses", g:"jambes", g2:["fessiers"], pat:"squat", mat:3, fig:"squat",
     d:"Assis dans la machine, on pousse le chariot en tendant les jambes sans verrouiller les genoux.",
     c:["Ne décolle jamais le bas du dos du dossier.","Descends jusqu'à 90° au genou, pas plus."] },
 
@@ -725,7 +731,7 @@ const EXOS = {
   donkey:{ n:"Kick-back fessier", g:"fessiers", g2:[], pat:"charn", mat:0, fig:"jambes",
     d:"À quatre pattes, on tend une jambe vers l'arrière en poussant le talon vers le plafond.",
     c:["Bassin stable : pas de rotation.","Serre le fessier en haut plutôt que de monter plus haut."] },
-  souleveHalt:{ n:"Soulevé de terre jambes semi-tendues", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:1, fig:"souleve",
+  souleveHalt:{ n:"Soulevé de terre jambes semi-tendues", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:2, fig:"souleve",
     d:"Haltères devant les cuisses, on descend en poussant les hanches vers l'arrière, dos plat, jusqu'à mi-tibia.",
     c:["Les haltères frôlent les jambes pendant toute la descente.","Le mouvement vient de la hanche, pas du bas du dos.","Charge modérée tant que la technique n'est pas solide."] },
 
@@ -808,16 +814,86 @@ const EXOS = {
   velo:{ n:"Vélo", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, fig:"velo", type:"temps",
     d:"Sur route ou sur home-trainer, à une intensité où l'on garde le souffle.",
     c:["Cadence de pédalage plutôt élevée, braquet modéré.","Excellent choix quand les articulations encaissent mal les impacts."] },
-  rameur:{ n:"Rameur", g:"cardio", g2:["dos","jambes"], pat:"cardio", mat:2, fig:"rowing", type:"temps",
+  rameur:{ n:"Rameur", g:"cardio", g2:["dos","jambes"], pat:"cardio", mat:3, fig:"rowing", type:"temps",
     d:"L'enchaînement jambes, buste, bras — puis le retour dans l'ordre inverse.",
     c:["La poussée vient des jambes, pas des bras.","Dos droit, pas d'arrondi en fin de tirage."] },
 
   /* ---- bras ---- */
-  curl:{ n:"Curl biceps", g:"bras", g2:[], pat:"tirh", mat:1, fig:"curl",
+  curl:{ n:"Curl biceps", g:"bras", g2:[], pat:"tirh", mat:2, fig:"curl",
     d:"Debout, haltères le long du corps, on fléchit les coudes sans bouger les épaules.",
     c:["Les coudes restent collés au buste.","Pas d'élan du dos : allège plutôt la charge."] },
 
+  /* ---- poids du corps, haut du corps ---- */
+  pompesLarges:{ n:"Pompes prise large", g:"pecs", g2:["epaules"], pat:"pouh", mat:0, fig:"pompe",
+    d:"Mains nettement plus larges que les épaules. L'amplitude est plus courte, l'étirement du pectoral plus marqué.",
+    c:["Ne descends pas plus bas que ce que l'épaule accepte sans pincement.","Garde le corps aligné, fessiers serrés."] },
+  pompesExc:{ n:"Pompes excentriques", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompe",
+    d:"On descend en cinq secondes, on remonte comme on peut — genoux au sol si nécessaire. La méthode la plus rapide pour arriver à sa première pompe complète.",
+    c:["Compte réellement les cinq secondes de descente.","Cinq répétitions lentes valent mieux que quinze rapides."] },
+  dipsChaises:{ n:"Dips entre deux chaises", g:"bras", g2:["pecs","epaules"], pat:"pouh", mat:0, fig:"dips",
+    d:"Une main sur chaque chaise, pieds au sol ou sur une troisième chaise. On descend jusqu'à 90° au coude.",
+    c:["Vérifie la stabilité des chaises avant de charger dessus.","Buste légèrement penché en avant pour les pectoraux, vertical pour les triceps.","Ne descends pas plus bas que l'horizontale de l'épaule."] },
+  rowServiette:{ n:"Rowing à la serviette", g:"dos", g2:["bras"], pat:"tirh", mat:0, fig:"rowing",
+    d:"Une serviette passée autour d'une poignée de porte, on s'assoit en arrière bras tendus et on tire le buste vers la porte.",
+    c:["Ouvre la porte et cale-la : on tire du côté des gonds.","Plus les pieds avancent, plus c'est difficile.","Serre les omoplates en fin de tirage."] },
+  yWall:{ n:"Élévations en Y", g:"dos", g2:["epaules"], pat:"tirh", mat:0, fig:"superman",
+    d:"À plat ventre, bras tendus en Y au-dessus de la tête, pouces vers le plafond. On décolle les bras sans bouger le buste.",
+    c:["Le mouvement est minuscule : deux centimètres suffisent.","Épaules loin des oreilles.","L'exercice qui répare le dos rond des journées de bureau."] },
+  birdDog:{ n:"Bird dog", g:"abdos", g2:["dos","fessiers"], pat:"gain", mat:0, fig:"chat",
+    d:"À quatre pattes, on tend simultanément un bras et la jambe opposée, on tient deux secondes, on change.",
+    c:["Le bassin ne bascule pas : imagine un verre d'eau posé sur le bas du dos.","Cherche la longueur, pas la hauteur."] },
+  plancheMD:{ n:"Planche montée-descente", g:"abdos", g2:["epaules","bras"], pat:"gain", mat:0, fig:"gainDyn",
+    d:"De la planche sur les avant-bras à la planche bras tendus, un bras après l'autre, puis retour.",
+    c:["Écarte les pieds pour limiter le roulis du bassin.","Alterne le bras qui monte en premier."] },
+  vups:{ n:"V-ups", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"crunch",
+    d:"Allongé bras tendus derrière la tête, on plie le corps en V en amenant mains et pieds au-dessus du bassin.",
+    c:["Genoux pliés pour une version plus accessible.","Redescends sans laisser retomber les jambes."] },
+  pontUn:{ n:"Pont fessier une jambe", g:"fessiers", g2:["jambes"], pat:"charn", mat:0, fig:"pont",
+    d:"Un pont fessier classique, mais une jambe tendue en l'air. Tout le travail passe sur un seul côté.",
+    c:["Le bassin reste horizontal : ne laisse pas la hanche libre s'affaisser.","Pousse dans le talon, pas dans la pointe."] },
+  abdCouche:{ n:"Abduction couchée", g:"fessiers", g2:[], pat:"charn", mat:0, fig:"jambes",
+    d:"Allongé sur le côté, jambes superposées, on lève la jambe du dessus sans basculer en arrière.",
+    c:["Pointe du pied vers l'avant, légèrement vers le sol.","Amplitude modeste, brûlure garantie."] },
+
+  /* ---- élastique ---- */
+  elastDeveloppe:{ n:"Développé couché élastique", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:1, fig:"developpe",
+    d:"Élastique passé dans le dos, poignées au niveau des aisselles, on pousse vers l'avant jusqu'à tendre les bras.",
+    c:["Debout ou à genoux, le buste reste gainé.","Fais un tour d'élastique autour des mains pour augmenter la tension.","Retiens le retour, c'est là que le muscle travaille."] },
+  elastEpaules:{ n:"Développé épaules élastique", g:"epaules", g2:["bras"], pat:"pouv", mat:1, fig:"developpe",
+    d:"Debout sur l'élastique, poignées à hauteur d'épaules, on pousse au-dessus de la tête.",
+    c:["Écarte les pieds sur l'élastique pour augmenter la résistance.","Ne cambre pas le bas du dos en fin de poussée."] },
+  elastTirageV:{ n:"Tirage vertical élastique", g:"dos", g2:["bras"], pat:"tirv", mat:1, fig:"traction",
+    d:"Élastique fixé en hauteur — une porte, une barre —, on tire les poignées vers la poitrine, coudes vers le bas.",
+    c:["Recule d'un pas pour mettre l'élastique en tension avant de commencer.","Pense à descendre les coudes plutôt qu'à tirer avec les mains."] },
+  elastFacePull:{ n:"Face pull élastique", g:"epaules", g2:["dos"], pat:"tirh", mat:1, fig:"rowing",
+    d:"Élastique à hauteur de visage, on tire les poignées vers le front en écartant les coudes.",
+    c:["Le meilleur exercice contre les épaules enroulées vers l'avant.","Léger et lent : ce n'est pas un exercice de force."] },
+  elastCurl:{ n:"Curl élastique", g:"bras", g2:[], pat:"tirh", mat:1, fig:"curl",
+    d:"Debout sur l'élastique, paumes vers le haut, on fléchit les coudes sans bouger les épaules.",
+    c:["Coudes collés au buste.","La tension augmente en fin de mouvement : ralentis à ce moment-là."] },
+  elastTriceps:{ n:"Extension triceps élastique", g:"bras", g2:[], pat:"pouh", mat:1, fig:"dips",
+    d:"Élastique accroché en hauteur, coudes fixes près du corps, on tend les avant-bras vers le bas.",
+    c:["Seuls les avant-bras bougent.","Une seconde de contraction en bas."] },
+  elastSquat:{ n:"Squat avec élastique", g:"jambes", g2:["fessiers"], pat:"squat", mat:1, fig:"squat",
+    d:"Debout sur l'élastique, poignées aux épaules, on descend en squat contre la résistance.",
+    c:["La tension est maximale en haut : ne relâche pas en fin de montée.","Genoux dans l'axe des pointes de pieds."] },
+  elastSouleve:{ n:"Soulevé de terre élastique", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:1, fig:"souleve",
+    d:"Pieds sur l'élastique, on se penche en poussant les hanches en arrière, dos plat, puis on se redresse en serrant les fessiers.",
+    c:["Le dos ne s'arrondit jamais.","Le mouvement vient de la hanche, pas des genoux."] },
+  elastAbduction:{ n:"Abduction hanche élastique", g:"fessiers", g2:[], pat:"charn", mat:1, fig:"jambes",
+    d:"Mini-bande autour des cuisses, allongé sur le côté ou debout, on écarte la jambe contre la résistance.",
+    c:["Bassin stable, pas de rotation du buste.","Retiens le retour."] },
+  elastMonster:{ n:"Marche latérale élastique", g:"fessiers", g2:["jambes"], pat:"charn", mat:1, fig:"marche",
+    d:"Élastique autour des chevilles ou des genoux, demi-squat, on avance en pas chassés sans laisser les genoux rentrer.",
+    c:["Reste bas pendant toute la série.","Une dizaine de pas dans chaque sens compte pour une série."] },
+
   /* ---- mobilité ---- */
+  etirPecs:{ n:"Étirement des pectoraux", g:"mobilite", g2:["pecs"], pat:"mob", mat:0, fig:"etirement", type:"temps",
+    d:"Avant-bras contre un montant de porte, coude à hauteur d'épaule, on avance le buste jusqu'à sentir l'avant de l'épaule s'ouvrir.",
+    c:["Trente secondes de chaque côté.","Ne force pas : l'épaule aime la douceur."] },
+  rotThor:{ n:"Rotation thoracique", g:"mobilite", g2:["dos"], pat:"mob", mat:0, fig:"chat", type:"temps",
+    d:"À quatre pattes, une main derrière la nuque, on ouvre le coude vers le plafond en suivant du regard.",
+    c:["Le bassin reste face au sol.","Inspire en ouvrant, expire en refermant."] },
   chatVache:{ n:"Chat-vache", g:"mobilite", g2:["dos"], pat:"mob", mat:0, fig:"chat", type:"temps",
     d:"À quatre pattes, on alterne dos rond et dos creux au rythme de la respiration.",
     c:["Inspire en creusant, expire en arrondissant.","Mouvement lent, vertèbre par vertèbre."] },
@@ -846,7 +922,7 @@ function exo(id){ return EXOS[id] || null; }
    s : séries · x : répétitions · t : secondes · r : repos en secondes
    ============================================================ */
 const PROGS = [
-  { id:"douceur", n:"Reprise en douceur", mat:0, sem:6, par:3, min:20, niv:"Grand débutant",
+  { id:"douceur", n:"Reprise en douceur", z:"full", mat:0, sem:6, par:3, min:20, niv:"Grand débutant",
     d:"Pour repartir de zéro sans se dégoûter : mobilité, marche et renfort léger. Aucun saut, aucune charge.",
     mod:[
       { n:"Mobilité & bas du corps", k:150, b:[
@@ -864,7 +940,7 @@ const PROGS = [
         { e:"crunch", s:2, x:10, r:45 }, { e:"respiration", s:1, t:90 } ] }
     ] },
 
-  { id:"maison", n:"Remise en forme — maison", mat:0, sem:8, par:3, min:30, niv:"Débutant",
+  { id:"maison", n:"Remise en forme — maison", z:"full", mat:0, sem:8, par:3, min:30, niv:"Débutant",
     d:"Trois séances complètes par semaine, tout le corps à chaque fois. Le socle quand on veut retrouver de la force et du souffle sans matériel.",
     mod:[
       { n:"Full body A", k:280, b:[
@@ -884,7 +960,79 @@ const PROGS = [
         { e:"etirQuad", s:1, t:45 } ] }
     ] },
 
-  { id:"brule", n:"Perte de poids — cardio & renfort", mat:0, sem:8, par:4, min:30, niv:"Intermédiaire",
+  { id:"hautMaison", n:"Haut du corps — maison", z:"haut", mat:0, sem:8, par:3, min:30, niv:"Débutant",
+    d:"Pectoraux, dos, épaules et bras, sans rien d'autre qu'une table et deux chaises. Trois séances : une de poussée, une de tirage, une complète.",
+    mod:[
+      { n:"Poussée — pectoraux & triceps", k:230, b:[
+        { e:"rotEp", s:1, t:60 }, { e:"pompesInc", s:4, x:8, r:60 },
+        { e:"pompesLarges", s:3, x:10, r:60 }, { e:"dipsChaises", s:3, x:8, r:60 },
+        { e:"pompesPiq", s:3, x:6, r:60 }, { e:"gainDyn", s:3, t:30, r:45 },
+        { e:"etirPecs", s:1, t:45 } ] },
+      { n:"Tirage — dos & biceps", k:220, b:[
+        { e:"rotEp", s:1, t:60 }, { e:"rowTable", s:4, x:8, r:60 },
+        { e:"rowServiette", s:3, x:12, r:60 }, { e:"superman", s:3, x:12, r:45 },
+        { e:"yWall", s:3, x:12, r:45 }, { e:"planche", s:3, t:30, r:45 },
+        { e:"rotThor", s:1, t:60 } ] },
+      { n:"Haut du corps complet", k:250, b:[
+        { e:"jumping", s:1, t:90 }, { e:"pompes", s:4, x:8, r:60 },
+        { e:"rowTable", s:4, x:10, r:60 }, { e:"pompesPiq", s:3, x:8, r:60 },
+        { e:"elevBouteille", s:3, x:12, r:45 }, { e:"dipsChaises", s:3, x:10, r:60 },
+        { e:"crunch", s:3, x:15, r:45 } ] }
+    ] },
+
+  { id:"basMaison", n:"Bas du corps & fessiers — maison", z:"bas", mat:0, sem:6, par:3, min:30, niv:"Débutant",
+    d:"Cuisses, fessiers et mollets au poids du corps. Une séance quadriceps, une séance fessiers, une séance complète.",
+    mod:[
+      { n:"Quadriceps", k:250, b:[
+        { e:"jumping", s:1, t:90 }, { e:"squat", s:4, x:15, r:60 },
+        { e:"fentes", s:3, x:12, r:60 }, { e:"monteeBanc", s:3, x:12, r:60 },
+        { e:"mollets", s:3, x:20, r:40 }, { e:"etirQuad", s:1, t:45 } ] },
+      { n:"Fessiers", k:230, b:[
+        { e:"genoux", s:1, t:90 }, { e:"pont", s:4, x:15, r:45 },
+        { e:"pontUn", s:3, x:10, r:45 }, { e:"donkey", s:3, x:15, r:40 },
+        { e:"abdCouche", s:3, x:15, r:40 }, { e:"plancheLat", s:3, t:25, r:45 } ] },
+      { n:"Jambes complet", k:270, b:[
+        { e:"corde", s:1, t:120 }, { e:"squatSumo", s:4, x:15, r:60 },
+        { e:"squatBulg", s:3, x:10, r:60 }, { e:"goodMorning", s:3, x:12, r:45 },
+        { e:"molletsUn", s:3, x:12, r:40 }, { e:"etirIsch", s:1, t:60 } ] }
+    ] },
+
+  { id:"abdos15", n:"Abdos & gainage — 15 minutes", z:"abdos", mat:0, sem:6, par:4, min:15, niv:"Tous niveaux",
+    d:"Quatre séances courtes par semaine, à glisser n'importe où dans la journée. Rien à installer, rien à ranger.",
+    mod:[
+      { n:"Gainage", k:110, b:[
+        { e:"planche", s:3, t:30, r:40 }, { e:"plancheLat", s:3, t:25, r:40 },
+        { e:"birdDog", s:3, x:10, r:40 }, { e:"hollow", s:3, t:20, r:40 } ] },
+      { n:"Abdos dynamiques", k:120, b:[
+        { e:"crunch", s:3, x:15, r:40 }, { e:"releveJambes", s:3, x:12, r:40 },
+        { e:"bicyclette", s:3, x:20, r:40 }, { e:"twist", s:3, x:20, r:40 } ] },
+      { n:"Ceinture complète", k:130, b:[
+        { e:"plancheMD", s:3, x:10, r:40 }, { e:"mountain", s:3, t:30, r:35 },
+        { e:"vups", s:3, x:10, r:40 }, { e:"plancheLat", s:3, t:25, r:40 } ] },
+      { n:"Circuit court", k:140, b:[
+        { e:"jumping", s:1, t:60 }, { e:"gainDyn", s:3, t:30, r:35 },
+        { e:"crunch", s:3, x:20, r:35 }, { e:"superman", s:3, x:12, r:35 },
+        { e:"planche", s:3, t:30, r:40 } ] }
+    ] },
+
+  { id:"dosPosture", n:"Dos & posture — après le bureau", z:"mobilite", mat:0, sem:6, par:3, min:20, niv:"Tous niveaux",
+    d:"Pour les dos ronds et les épaules enroulées de ceux qui passent la journée devant un écran. Mobilité, gainage, et les petits muscles qui retiennent les omoplates.",
+    mod:[
+      { n:"Dos et omoplates", k:120, b:[
+        { e:"chatVache", s:1, t:60 }, { e:"yWall", s:3, x:12, r:40 },
+        { e:"superman", s:3, x:12, r:40 }, { e:"birdDog", s:3, x:10, r:40 },
+        { e:"rowTable", s:3, x:10, r:50 }, { e:"etirPecs", s:1, t:45 } ] },
+      { n:"Mobilité complète", k:90, b:[
+        { e:"rotEp", s:1, t:60 }, { e:"rotThor", s:1, t:60 },
+        { e:"chatVache", s:1, t:60 }, { e:"etirIsch", s:1, t:60 },
+        { e:"etirQuad", s:1, t:60 }, { e:"respiration", s:1, t:120 } ] },
+      { n:"Gainage et posture", k:130, b:[
+        { e:"planche", s:3, t:30, r:40 }, { e:"plancheLat", s:3, t:25, r:40 },
+        { e:"birdDog", s:3, x:12, r:40 }, { e:"pont", s:3, x:15, r:40 },
+        { e:"yWall", s:3, x:12, r:40 }, { e:"rotThor", s:1, t:60 } ] }
+    ] },
+
+  { id:"brule", n:"Perte de poids — cardio & renfort", z:"cardio", mat:0, sem:8, par:4, min:30, niv:"Intermédiaire",
     d:"Quatre rendez-vous par semaine : deux séances denses en cardio, une de renfort, une sortie longue. Conçu pour creuser la dépense sans matériel.",
     mod:[
       { n:"Cardio intense", k:340, b:[
@@ -906,7 +1054,78 @@ const PROGS = [
         { e:"etirQuad", s:1, t:60 } ] }
     ] },
 
-  { id:"halteres", n:"Force — haltères, haut / bas", mat:1, sem:10, par:4, min:40, niv:"Intermédiaire",
+  { id:"cardio20", n:"Cardio express — 20 minutes", z:"cardio", mat:0, sem:6, par:4, min:20, niv:"Intermédiaire",
+    d:"Quatre séances courtes et denses, sans matériel ni sortie. Le meilleur rapport dépense sur temps passé quand les journées sont pleines.",
+    mod:[
+      { n:"Circuit 20 minutes", k:250, b:[
+        { e:"jumping", s:1, t:60 }, { e:"burpees", s:4, x:8, r:40 },
+        { e:"genoux", s:4, t:30, r:30 }, { e:"squatSaute", s:3, x:12, r:40 },
+        { e:"mountain", s:4, t:30, r:30 } ] },
+      { n:"Intervalles courts", k:240, b:[
+        { e:"jumping", s:1, t:60 }, { e:"talons", s:4, t:30, r:20 },
+        { e:"corde", s:4, t:45, r:30 }, { e:"genoux", s:4, t:30, r:20 },
+        { e:"planche", s:2, t:30, r:40 } ] },
+      { n:"Cardio et gainage", k:230, b:[
+        { e:"corde", s:1, t:180 }, { e:"mountain", s:3, t:40, r:30 },
+        { e:"gainDyn", s:3, t:30, r:35 }, { e:"twist", s:3, x:20, r:35 },
+        { e:"respiration", s:1, t:90 } ] },
+      { n:"Sortie rapide", k:260, b:[
+        { e:"marche", s:1, t:300 }, { e:"course", s:1, t:900 },
+        { e:"etirIsch", s:1, t:60 } ] }
+    ] },
+
+  { id:"marcheCourse", n:"De la marche à la course", z:"cardio", mat:0, sem:8, par:3, min:30, niv:"Débutant",
+    d:"Huit semaines pour passer de la marche à trente minutes de course continue, avec une séance de renfort qui protège genoux et chevilles.",
+    mod:[
+      { n:"Fractionné marche-course", k:250, b:[
+        { e:"marche", s:1, t:600 }, { e:"course", s:1, t:600 },
+        { e:"marche", s:1, t:300 }, { e:"etirIsch", s:1, t:60 } ] },
+      { n:"Endurance", k:280, b:[
+        { e:"marche", s:1, t:300 }, { e:"course", s:1, t:900 },
+        { e:"etirQuad", s:1, t:60 } ] },
+      { n:"Renfort du coureur", k:220, b:[
+        { e:"squat", s:3, x:15, r:50 }, { e:"fentes", s:3, x:12, r:50 },
+        { e:"pont", s:3, x:15, r:45 }, { e:"mollets", s:3, x:20, r:40 },
+        { e:"planche", s:3, t:30, r:45 }, { e:"etirIsch", s:1, t:60 } ] }
+    ] },
+
+  { id:"hautElastique", n:"Haut du corps — élastique", z:"haut", mat:1, sem:8, par:3, min:35, niv:"Intermédiaire",
+    d:"Tout le haut du corps avec un seul élastique et une porte. La résistance progressive de l'élastique est douce pour les articulations et sévère en fin de mouvement.",
+    mod:[
+      { n:"Poussée à l'élastique", k:250, b:[
+        { e:"rotEp", s:1, t:60 }, { e:"elastDeveloppe", s:4, x:12, r:60 },
+        { e:"elastEpaules", s:3, x:12, r:60 }, { e:"elastTriceps", s:3, x:15, r:45 },
+        { e:"pompes", s:3, x:8, r:60 }, { e:"planche", s:3, t:30, r:45 } ] },
+      { n:"Tirage à l'élastique", k:250, b:[
+        { e:"rotEp", s:1, t:60 }, { e:"elastTirageV", s:4, x:12, r:60 },
+        { e:"rowElast", s:4, x:12, r:60 }, { e:"elastFacePull", s:3, x:15, r:45 },
+        { e:"elastCurl", s:3, x:15, r:45 }, { e:"superman", s:3, x:12, r:45 } ] },
+      { n:"Haut du corps complet", k:260, b:[
+        { e:"jumping", s:1, t:90 }, { e:"elastDeveloppe", s:3, x:12, r:60 },
+        { e:"rowElast", s:3, x:12, r:60 }, { e:"elastEpaules", s:3, x:12, r:60 },
+        { e:"elastCurl", s:3, x:15, r:45 }, { e:"elastTriceps", s:3, x:15, r:45 },
+        { e:"etirPecs", s:1, t:45 } ] }
+    ] },
+
+  { id:"fullElastique", n:"Full body — élastique", z:"full", mat:1, sem:8, par:3, min:40, niv:"Intermédiaire",
+    d:"Tout le corps avec un élastique, trois fois par semaine. De quoi entretenir sa force en voyage ou dans un salon.",
+    mod:[
+      { n:"Full body élastique A", k:290, b:[
+        { e:"jumping", s:1, t:120 }, { e:"elastSquat", s:4, x:12, r:60 },
+        { e:"elastDeveloppe", s:4, x:12, r:60 }, { e:"rowElast", s:4, x:12, r:60 },
+        { e:"elastSouleve", s:3, x:12, r:60 }, { e:"planche", s:3, t:30, r:45 } ] },
+      { n:"Full body élastique B", k:290, b:[
+        { e:"jumping", s:1, t:120 }, { e:"elastSouleve", s:4, x:12, r:60 },
+        { e:"elastTirageV", s:4, x:10, r:60 }, { e:"elastEpaules", s:3, x:12, r:60 },
+        { e:"elastMonster", s:3, x:20, r:45 }, { e:"twist", s:3, x:20, r:45 } ] },
+      { n:"Full body élastique C", k:300, b:[
+        { e:"jumping", s:1, t:120 }, { e:"elastSquat", s:4, x:15, r:60 },
+        { e:"elastFacePull", s:3, x:15, r:45 }, { e:"elastCurl", s:3, x:15, r:45 },
+        { e:"elastTriceps", s:3, x:15, r:45 }, { e:"pont", s:3, x:15, r:45 },
+        { e:"etirIsch", s:1, t:60 } ] }
+    ] },
+
+  { id:"halteres", n:"Force — haltères, haut / bas", z:"full", mat:2, sem:10, par:4, min:40, niv:"Intermédiaire",
     d:"Deux séances hautes, deux séances basses. Garder du muscle pendant la perte de poids est ce qui empêche la balance de mentir.",
     mod:[
       { n:"Haut — poussée", k:300, b:[
@@ -927,7 +1146,25 @@ const PROGS = [
         { e:"monteeBanc", s:3, x:12, r:60 }, { e:"plancheLat", s:3, t:30, r:45 } ] }
     ] },
 
-  { id:"salle", n:"Full body en salle", mat:2, sem:12, par:3, min:50, niv:"Confirmé",
+  { id:"halteresFull", n:"Full body — haltères", z:"full", mat:2, sem:8, par:3, min:40, niv:"Intermédiaire",
+    d:"Trois séances complètes par semaine avec une paire d'haltères. Le plus simple des programmes de force quand on n'a ni salle ni temps.",
+    mod:[
+      { n:"Full body haltères A", k:300, b:[
+        { e:"jumping", s:1, t:120 }, { e:"gobelet", s:4, x:10, r:75 },
+        { e:"devHalt", s:4, x:10, r:75 }, { e:"rowHalt", s:4, x:10, r:75 },
+        { e:"souleveHalt", s:3, x:10, r:75 }, { e:"planche", s:3, t:30, r:45 } ] },
+      { n:"Full body haltères B", k:300, b:[
+        { e:"jumping", s:1, t:120 }, { e:"souleveHalt", s:4, x:10, r:75 },
+        { e:"devMil", s:4, x:10, r:75 }, { e:"tractionsAssist", s:3, x:6, r:90 },
+        { e:"curl", s:3, x:12, r:60 }, { e:"twist", s:3, x:20, r:45 } ] },
+      { n:"Full body haltères C", k:310, b:[
+        { e:"jumping", s:1, t:120 }, { e:"fentes", s:3, x:12, r:60 },
+        { e:"ecarte", s:3, x:12, r:60 }, { e:"rowHalt", s:4, x:12, r:75 },
+        { e:"elevLat", s:3, x:12, r:60 }, { e:"mollets", s:3, x:15, r:45 },
+        { e:"crunch", s:3, x:20, r:45 } ] }
+    ] },
+
+  { id:"salle", n:"Full body en salle", z:"full", mat:3, sem:12, par:3, min:50, niv:"Confirmé",
     d:"Trois passages en salle par semaine, tout le corps à chaque fois, machines et barres. Le meilleur rendement quand on a l'abonnement.",
     mod:[
       { n:"Séance A", k:380, b:[
@@ -945,6 +1182,9 @@ const PROGS = [
         { e:"twist", s:3, x:20, r:45 } ] }
     ] }
 ];
+const ZONES = [["tout","Tout"],["full","Full body"],["haut","Haut du corps"],["bas","Bas du corps"],
+  ["abdos","Abdos"],["cardio","Cardio"],["mobilite","Dos & mobilité"]];
+function zoneNom(z){ const x = ZONES.filter(a => a[0] === z)[0]; return x ? x[1] : "Full body"; }
 function prog(id){ return PROGS.filter(p => p.id === id)[0] || null; }
 
 /* La progression : un palier tous les deux semaines. Les séries montent d'un
@@ -1421,7 +1661,7 @@ const TABS = [
   { id:"reglages", l:"Réglages",    i:"cog" }
 ];
 const state = { tab:"jour", sheet:null, modal:null, journal:false, neuf:false, quota:null,
-                passe:false, choix:false, bPeriode:"90j" };
+                passe:false, fZone:"tout", fMat:null, bPeriode:"90j" };
 
 function render(){
   const v = $("#view");
@@ -1708,26 +1948,33 @@ function vuePoids(){
    ============================================================ */
 function carteProgramme(p, choisi){
   return '<button class="prog' + (choisi ? " on" : "") + '" data-act="config-programme" data-id="' + p.id + '">' +
-    '<div class="prog-n">' + esc(p.n) + '</div>' +
+    '<div class="prog-n">' + esc(p.n) + (choisi ? '<span class="badge acc">en cours</span>' : "") + '</div>' +
     '<div class="prog-d">' + esc(p.d) + '</div>' +
-    '<div class="prog-m"><span>' + p.sem + ' semaines</span><span>' + p.par + '×/sem</span>' +
-      '<span>' + p.min + ' min</span><span>' + esc(MATOS[p.mat]) + '</span><span>' + esc(p.niv) + '</span></div>' +
+    '<div class="prog-m"><span>' + esc(zoneNom(p.z)) + '</span><span>' + p.sem + ' semaines</span>' +
+      '<span>' + p.par + '×/sem</span><span>' + p.min + ' min</span>' +
+      '<span>' + esc(MATOS[p.mat]) + '</span><span>' + esc(p.niv) + '</span></div>' +
     '</button>';
 }
 
 function vueSport(){
-  if(!DB.prog || state.choix){
-    const enCours = DB.prog ? DB.prog.id : null;
+  if(!DB.prog){
     let h = '<section class="total"><div class="total-lbl">Programme de sport</div>' +
-      '<span class="total-val num">Choisir</span>' +
-      '<div class="total-sub"><span>Le programme choisi crée toutes ses séances d\'un coup, jusqu\'à la dernière semaine.</span></div></section>';
-    if(enCours){
-      h += '<div class="btns grow"><button class="btn" data-act="annuler-choix">' + svg("fleche",16) +
-        'Garder le programme en cours</button></div>';
-    }
-    h += '<div class="sect"><h2>Les programmes</h2></div>';
-    h += PROGS.map(p => carteProgramme(p, p.id === enCours)).join("");
-    h += '<div class="aide" style="text-align:center;margin-top:14px">Un exercice qui ne convient pas se remplace, et le remplacement vaut pour tout le programme.</div>';
+      '<span class="total-val num">' + PROGS.length + '<span class="u">programmes</span></span>' +
+      '<div class="total-sub"><span>Le programme choisi crée toutes ses séances d\'un coup, posées sur les jours de la semaine que tu choisis.</span></div></section>';
+    h += '<div class="btns grow"><button class="btn pri" data-act="choisir-programme">' + svg("halt",16) +
+      'Choisir un programme</button></div>';
+    h += '<div class="sect"><h2>Ce qu\'il y a dans le catalogue</h2></div><div class="ops">';
+    ZONES.slice(1).forEach(([z,l]) => {
+      const n = PROGS.filter(p => p.z === z);
+      if(!n.length) return;
+      h += '<button class="op" data-act="choisir-zone" data-id="' + z + '">' +
+        '<span class="op-ic">' + svg("halt",15,1.8) + '</span>' +
+        '<span class="op-mid"><span class="op-lib">' + esc(l) + '</span>' +
+        '<span class="op-met">' + n.map(p => MATOS[p.mat]).filter((v,i,a) => a.indexOf(v) === i).join(" · ") + '</span></span>' +
+        '<span class="op-mt">' + n.length + '</span></button>';
+    });
+    h += '</div>';
+    h += '<div class="aide" style="text-align:center;margin-top:14px">Un exercice qui ne convient pas se remplace par un autre travaillant les mêmes muscles, et le remplacement vaut pour tout le programme.</div>';
     return h;
   }
 
@@ -1933,9 +2180,11 @@ function vueReglages(){
       (DB.prog ? esc((prog(DB.prog.id)||{}).n || "") + ' · ' + DB.prog.jours.map(j => JOURS_A[j]).join(", ")
                : "Aucun programme en cours.") + '</div></div>' +
       '<button class="btn" data-act="changer-programme">' + (DB.prog ? "Changer" : "Choisir") + '</button></div>' +
-    '<div class="lig"><div class="l">Matériel disponible<div class="d">Détermine les remplacements proposés.</div></div>' +
-      '<div class="seg">' + MATOS.map((m,i) => '<button class="' + (s.matos === i ? "on" : "") +
-        '" data-act="matos" data-id="' + i + '">' + (i === 0 ? "Rien" : (i === 1 ? "Haltères" : "Salle")) + '</button>').join("") + '</div></div>' +
+    '<div class="lig" style="display:block"><div class="l">Matériel disponible' +
+      '<div class="d">Détermine les remplacements proposés. Chaque cran comprend les précédents.</div></div>' +
+      '<div class="seg" style="display:flex;width:100%;margin-top:8px">' + MATOS.map((m,i) =>
+        '<button style="flex:1" class="' + (s.matos === i ? "on" : "") + '" data-act="matos" data-id="' + i + '">' +
+        (i === 0 ? "Rien" : (i === 1 ? "Élastique" : (i === 2 ? "Haltères" : "Salle"))) + '</button>').join("") + '</div></div>' +
     (nbRemplacements() ? '<div class="lig"><div class="l">Exercices remplacés<div class="d">' +
       Object.keys(s.subs).map(k => (EXOS[k]||{}).n + " → " + (EXOS[s.subs[k]]||{}).n).join(" · ") +
       '</div></div><button class="btn" data-act="raz-subs">Tout rétablir</button></div>' : "") +
@@ -2021,10 +2270,41 @@ function hautPanneau(titre, act, droite){
 }
 
 function vueSheet(sh){
+  if(sh.type === "progs")     return sheetProgs(sh);
   if(sh.type === "seance")    return sheetSeance(sh);
   if(sh.type === "exo")       return sheetExo(sh);
   if(sh.type === "remplacer") return sheetRemplacer(sh);
   return "";
+}
+
+/* Le catalogue. Deux filtres : la zone du corps, et le matériel dont on
+   dispose — qui montre tout ce qu'on peut faire avec, pas seulement ce qui
+   l'exige exactement. */
+function sheetProgs(){
+  const enCours = DB.prog ? DB.prog.id : null;
+  const z = state.fZone || "tout";
+  const mt = state.fMat;
+  const l = PROGS.filter(p => (z === "tout" || p.z === z) && (mt == null || p.mat <= mt));
+  let h = '<div class="sheet">' + hautPanneau("Choisir un programme");
+  h += '<div class="sheet-in">';
+  h += '<div class="chips" style="margin-top:14px">' + ZONES.map(([k,lb]) =>
+    '<button class="chip ' + (z === k ? "on" : "") + '" data-act="f-zone" data-id="' + k + '">' + lb + '</button>').join("") + '</div>';
+  h += '<div class="chips" style="margin-top:8px">' +
+    '<button class="chip ' + (mt == null ? "on" : "") + '" data-act="f-mat" data-id="tout">Tout matériel</button>' +
+    MATOS.map((m,i) => '<button class="chip ' + (mt === i ? "on" : "") + '" data-act="f-mat" data-id="' + i + '">' +
+      (i === 0 ? "Sans matériel" : (i === 1 ? "Élastique" : (i === 2 ? "Haltères" : "Salle"))) + '</button>').join("") + '</div>';
+  h += '<div class="sect"><h2>' + l.length + ' programme' + (l.length > 1 ? "s" : "") + '</h2>' +
+    '<div class="sp"></div>' + (mt != null ? '<span class="cnt">et tout ce qui demande moins</span>' : "") + '</div>';
+  if(!l.length){
+    h += '<div class="ops"><div class="vide"><b>Rien avec ces filtres</b>' +
+      'Élargis le matériel ou change de zone.</div></div>';
+  }
+  h += l.map(p => carteProgramme(p, p.id === enCours)).join("");
+  if(enCours){
+    h += '<div class="aide" style="text-align:center;margin-top:12px">Choisir un autre programme remplace les séances à venir. Celles déjà validées restent au bilan.</div>';
+  }
+  h += '</div></div>';
+  return h;
 }
 
 function sheetSeance(sh){
@@ -2369,7 +2649,7 @@ document.addEventListener("click", async ev => {
   if(act === "rien"){ ev.stopPropagation(); return; }
 
   /* ---- navigation ---- */
-  if(act === "tab"){ state.tab = id; state.sheet = null; state.choix = false; render(); window.scrollTo(0,0); return; }
+  if(act === "tab"){ state.tab = id; state.sheet = null; render(); window.scrollTo(0,0); return; }
   if(act === "fermer-sheet"){ state.sheet = null; render(); return; }
   if(act === "fermer-modal"){ fermerModal(); return; }
   if(act === "retour-seance"){ ouvrirSheet({ type:"seance", id:state.sheet.sid }); return; }
@@ -2528,7 +2808,9 @@ document.addEventListener("click", async ev => {
 
   /* ---- programme ---- */
   if(act === "choisir-programme" || act === "changer-programme"){ ouvrirChoixProgramme(); return; }
-  if(act === "annuler-choix"){ state.choix = false; render(); window.scrollTo(0,0); return; }
+  if(act === "choisir-zone"){ ouvrirChoixProgramme(id); return; }
+  if(act === "f-zone"){ state.fZone = id; render(); return; }
+  if(act === "f-mat"){ state.fMat = id === "tout" ? null : parseInt(id,10); render(); return; }
   if(act === "config-programme"){
     const p = prog(id);
     if(!p) return;
@@ -2554,7 +2836,7 @@ document.addEventListener("click", async ev => {
     if(DB.prog) effacerProgramme();
     const n = genererSeances(m.id, debut, m.jours);
     fermerModal();
-    state.tab = "sport"; state.passe = false; state.choix = false;
+    state.tab = "sport"; state.passe = false; state.sheet = null;
     render(); window.scrollTo(0,0);
     toast(n + " séances créées");
     return;
@@ -2683,10 +2965,10 @@ function ouvrirPesee(iso){
     tour: j && j.tour ? String(j.tour) : "",
     date: iso || todayISO(), focus:"m-poids" });
 }
-function ouvrirChoixProgramme(){
+function ouvrirChoixProgramme(zone){
   state.tab = "sport";
-  state.choix = true;
-  state.sheet = null;
+  if(zone) state.fZone = zone;
+  state.sheet = { type:"progs" };
   render(); window.scrollTo(0,0);
 }
 
