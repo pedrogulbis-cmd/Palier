@@ -353,9 +353,19 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"1.2.0", d:"2026-09-05", t:"Tenir une année", l:[
+    "Un objectif d'entraînement se choisit avec le programme : se remettre en forme, perdre du poids, prendre du muscle, transformer le gras en muscle, ou conserver ce qu'on a. Il ne change pas les exercices, il change les séries, les répétitions et le repos.",
+    "L'objectif se change en cours de route : les séances déjà faites ne bougent pas, celles à venir sont recalculées avec les nouvelles fourchettes.",
+    "La durée du programme se règle à la création — de sa durée d'origine jusqu'à cinquante-deux semaines — et se prolonge ensuite par tranches de quatre, douze ou vingt-six semaines.",
+    "La progression avance désormais par blocs de quatre semaines : trois qui montent le long d'une fourchette de répétitions, une quatrième allégée pour récupérer. C'est ce qui permet de suivre un même programme un an sans arriver à des séries absurdes.",
+    "Chaque exercice indique sa fourchette, le bon niveau d'effort, et le moment où il faut cesser d'ajouter des répétitions pour ajouter de la difficulté.",
+    "Un guide du débutant explique le vocabulaire et les règles : série, répétition, repos, effort, échauffement, courbatures, fréquence, alimentation.",
+    "Le plan de calories accepte enfin les trois sens : perdre, maintenir, ou prendre du poids — avec un plafond de surplus, et un avertissement quand le plan alimentaire contredit l'objectif d'entraînement.",
+    "Une routine d'entretien à deux séances par semaine rejoint le catalogue."
+  ]},
   { v:"1.1.0", d:"2026-09-05", t:"Un vrai catalogue", l:[
     "Quatorze programmes au lieu de cinq, dont un consacré au haut du corps à la maison, un autre au haut du corps à l'élastique, un pour le bas du corps, un d'abdos en quinze minutes, un cardio express, une progression de la marche vers la course, et une série pour les dos de bureau.",
     "Le catalogue s'ouvre dans son propre panneau, avec deux rangées de filtres : la zone du corps et le matériel. Le bouton « plus » de l'onglet Sport y mène désormais, qu'un programme soit en cours ou non.",
@@ -1032,6 +1042,21 @@ const PROGS = [
         { e:"yWall", s:3, x:12, r:40 }, { e:"rotThor", s:1, t:60 } ] }
     ] },
 
+  { id:"entretien", n:"Routine d'entretien — 2 séances", z:"full", mat:0, sem:12, par:2, min:30, niv:"Tous niveaux",
+    d:"Le programme d'après l'objectif : deux séances complètes par semaine, le minimum qui conserve la force et la forme acquises. Se règle jusqu'à un an.",
+    mod:[
+      { n:"Entretien A", k:250, b:[
+        { e:"jumping", s:1, t:120 }, { e:"squat", s:3, x:12, r:60 },
+        { e:"pompes", s:3, x:10, r:60 }, { e:"rowTable", s:3, x:10, r:60 },
+        { e:"pont", s:3, x:12, r:45 }, { e:"planche", s:3, t:30, r:45 },
+        { e:"etirIsch", s:1, t:60 } ] },
+      { n:"Entretien B", k:250, b:[
+        { e:"jumping", s:1, t:120 }, { e:"fentes", s:3, x:10, r:60 },
+        { e:"pompesPiq", s:3, x:8, r:60 }, { e:"superman", s:3, x:12, r:45 },
+        { e:"dipsChaises", s:3, x:10, r:60 }, { e:"plancheLat", s:3, t:25, r:45 },
+        { e:"rotThor", s:1, t:60 } ] }
+    ] },
+
   { id:"brule", n:"Perte de poids — cardio & renfort", z:"cardio", mat:0, sem:8, par:4, min:30, niv:"Intermédiaire",
     d:"Quatre rendez-vous par semaine : deux séances denses en cardio, une de renfort, une sortie longue. Conçu pour creuser la dépense sans matériel.",
     mod:[
@@ -1187,21 +1212,63 @@ const ZONES = [["tout","Tout"],["full","Full body"],["haut","Haut du corps"],["b
 function zoneNom(z){ const x = ZONES.filter(a => a[0] === z)[0]; return x ? x[1] : "Full body"; }
 function prog(id){ return PROGS.filter(p => p.id === id)[0] || null; }
 
-/* La progression : un palier tous les deux semaines. Les séries montent d'un
-   cran deux fois au plus, les répétitions de 8 % par palier, le temps de 10 %.
+/* ============================================================
+   L'OBJECTIF D'ENTRAÎNEMENT
+   Le même programme ne se conduit pas de la même façon selon ce qu'on
+   cherche. Prendre du muscle réclame des séries courtes et lourdes avec du
+   repos ; perdre du poids réclame des séries longues et peu de repos ;
+   conserver ce qu'on a réclame surtout de la régularité et moins de volume.
+   L'objectif ne change donc pas les exercices, il change les fourchettes.
+   ============================================================ */
+const OBJECTIFS = [
+  { id:"forme", n:"Se remettre en forme", ser:0, rep:1.00, repos:1.00, cal:"maintien",
+    d:"Retrouver du souffle, de la force et l'habitude de bouger. Le point de départ quand on n'a rien fait depuis longtemps.",
+    c:"Répétitions moyennes, repos confortable. On cherche la régularité avant la performance : trois séances tenues valent mieux que cinq abandonnées." },
+  { id:"perte", n:"Perdre du poids", ser:0, rep:1.20, repos:0.70, cal:"deficit",
+    d:"Brûler des calories pendant la séance et garder du muscle malgré le déficit alimentaire.",
+    c:"Séries longues, repos courts, rythme soutenu : la séance doit essouffler. Le muscle se conserve parce qu'on continue à le solliciter, mais c'est l'assiette qui fait perdre le poids." },
+  { id:"muscle", n:"Prendre du muscle", ser:1, rep:0.80, repos:1.40, cal:"surplus",
+    d:"Faire grossir le muscle. Demande de la charge, du repos entre les séries, et de quoi manger.",
+    c:"Séries de 6 à 12 répétitions difficiles, une à deux minutes de repos. Chaque série doit finir près de l'échec : s'il te reste quatre répétitions en réserve, c'est trop léger." },
+  { id:"recomp", n:"Transformer le gras en muscle", ser:1, rep:1.00, repos:1.15, cal:"leger",
+    d:"Perdre de la graisse et gagner du muscle en même temps. Possible quand on repart de loin, lent mais durable.",
+    c:"Charge suffisante pour construire, léger déficit alimentaire pour fondre. La balance bouge peu : c'est le miroir et le tour de taille qui disent la vérité." },
+  { id:"maintien", n:"Conserver ce que j'ai", ser:-1, rep:1.00, repos:1.00, cal:"maintien",
+    d:"Entretenir la force et la forme acquises, sans y passer ses semaines. La routine d'après l'objectif.",
+    c:"Moins de volume, même intensité : c'est la charge, pas le nombre de séries, qui conserve le muscle. Deux à trois séances par semaine suffisent." }
+];
+function objEnt(id){ return OBJECTIFS.filter(o => o.id === id)[0] || OBJECTIFS[0]; }
+function objNom(id){ return objEnt(id).n; }
+
+/* La progression, par blocs de quatre semaines : trois semaines qui montent,
+   une quatrième allégée pour que le corps encaisse. Dans chaque bloc, les
+   répétitions vont du bas au haut de la fourchette ; d'un bloc à l'autre, une
+   série s'ajoute une fois sur deux. Quand le haut de la fourchette est atteint
+   sans effort, ce n'est plus le nombre qu'il faut augmenter mais la
+   difficulté — c'est ce que dit la fiche de l'exercice.
    Un échauffement — une seule série — n'est jamais alourdi. */
-function progresser(l, semaine){
-  const palier = Math.floor((semaine - 1) / 2);
-  const bonusS = Math.min(2, palier);
-  const f = 1 + 0.08 * palier;
-  const ft = 1 + 0.10 * palier;
-  return {
-    e: l.e,
-    s: l.s > 1 ? l.s + bonusS : l.s,
-    x: l.x ? Math.round(l.x * f) : 0,
-    t: l.t ? (l.s > 1 ? Math.round(l.t * ft / 5) * 5 : l.t) : 0,
-    r: l.r || 0
-  };
+function progresser(l, semaine, objId){
+  const o = objEnt(objId);
+  const bloc = Math.floor((semaine - 1) / 4);
+  const wb = (semaine - 1) % 4;
+  const deload = wb === 3;
+  const echauf = l.s <= 1;
+  let s = echauf ? l.s : clamp(l.s + o.ser + Math.min(2, Math.floor(bloc / 2)), 1, 5);
+  if(deload && !echauf) s = Math.max(1, s - 1);
+  /* Passé le troisième bloc, les séries plafonnent : sur un exercice avec
+     charge on ajoute du poids, mais au poids du corps on n'a que les
+     répétitions — la fourchette monte alors d'un cran par bloc, quatre au
+     plus, sans quoi une année de progression n'irait nulle part. */
+  const ex = EXOS[l.e];
+  const bonus = (ex && ex.mat === 0) ? clamp(bloc - 3, 0, 4) : 0;
+  const bas = l.x ? Math.max(4, Math.round(l.x * o.rep) + bonus) : 0;
+  const haut = bas ? Math.round(bas * 1.5) : 0;
+  const x = bas ? (deload ? bas : bas + Math.round((haut - bas) * (wb / 2))) : 0;
+  let t = 0;
+  if(l.t) t = echauf ? l.t
+    : Math.round(l.t * (1 + 0.10 * wb + 0.10 * bloc) * (deload ? 0.8 : 1) / 5) * 5;
+  return { e:l.e, s, x, xmin:bas, xmax:haut, t,
+           r: l.r ? Math.round(l.r * o.repos / 5) * 5 : 0 };
 }
 
 /* ============================================================
@@ -1213,7 +1280,7 @@ function progresser(l, semaine){
    ============================================================ */
 const DEFAULTS = {
   version:SCHEMA, jours:{}, seances:{},
-  settings:{ theme:"clair", accent:ACCENTS[0][0],
+  settings:{ theme:"clair", accent:ACCENTS[0][0], objectif:"forme",
              sexe:"h", age:35, taille:175, activite:"sedentaire", matos:0,
              crediterSport:true, eau:true, eauCible:8, subs:{},
              bTri:"90j" },
@@ -1422,16 +1489,20 @@ function planCalc(){
   const fin = plusJours(P.debut, total);
   const ecoule = clamp(ecart(P.debut, todayISO()), 0, total);
   const restants = Math.max(1, total - ecoule);
-  const perdreG = Math.max(0, P.depart - P.cible);
-  const deficitTotal = (perdreG / 1000) * KCAL_PAR_KG;
-  const deficitJour = deficitTotal / total;
+  /* Positif quand on veut perdre, négatif quand on veut prendre, nul en
+     maintien : la même équation sert aux trois. */
+  const deltaG = P.depart - P.cible;
+  const deficitJour = ((deltaG / 1000) * KCAL_PAR_KG) / total;
   const dep = tdee();
   const pl = plancher();
+  const plafond = dep + 700;                        /* un surplus au-delà se transforme en gras, pas en muscle */
   const brute = Math.round(dep - deficitJour);
-  const base = Math.max(pl, brute);
-  const bride = base - brute > 50;                  /* l'objectif a été rogné, et pas de quelques calories */
-  const rythme = ((dep - base) * 7) / KCAL_PAR_KG;  /* kilos par semaine visés */
-  return { P, total, fin, ecoule, restants, deficitJour, dep, plancher:pl, brute, base, bride, rythme, perdreG };
+  const base = clamp(brute, pl, plafond);
+  const bride = Math.abs(base - brute) > 50;        /* l'objectif a été rogné, et pas de quelques calories */
+  const rythme = ((dep - base) * 7) / KCAL_PAR_KG;  /* kilos par semaine visés, positif en perte */
+  const sens = deltaG > 200 ? "perte" : (deltaG < -200 ? "prise" : "maintien");
+  return { P, total, fin, ecoule, restants, deficitJour, dep, plancher:pl, plafond,
+           brute, base, bride, rythme, sens, deltaG, perdreG:Math.max(0, deltaG) };
 }
 /* La dette : la somme des écarts des jours déjà renseignés. Un jour sans
    aucune saisie n'est pas compté comme un jeûne — il est simplement ignoré,
@@ -1463,7 +1534,7 @@ function objectifJour(iso){
   const marge = c.base * 0.2;
   const ajust = clamp(-d.v / c.restants, -marge, marge);
   const brut = c.base + ajust + creditSport(iso || todayISO());
-  return Math.round(clamp(brut, c.plancher, c.dep + 500));
+  return Math.round(clamp(brut, c.plancher, Math.max(c.base + 300, c.dep + 500)));
 }
 function etatCal(consomme, cible){
   if(!cible) return null;
@@ -1486,12 +1557,14 @@ function projection(){
   const a = s[0], b = s[s.length-1];
   const j = Math.max(1, ecart(a.d, b.d));
   const parJour = (b.p - a.p) / j;               /* grammes par jour, négatif si l'on perd */
-  const reste = b.p - DB.plan.cible;
+  const reste = DB.plan.cible - b.p;   /* positif s'il faut encore prendre, négatif s'il faut perdre */
   /* Moins de deux semaines entre la première et la dernière pesée : la pente
      mesure surtout l'eau et le contenu de l'estomac. Pas de date. */
   if(j < 14) return { parJour, semaine:parJour*7, date:null, n:s.length, court:true };
-  if(parJour >= -1 || reste <= 0) return { parJour, semaine:parJour*7, date:null, n:s.length };
-  const jours = Math.round(reste / -parJour);
+  /* Le poids doit bouger, et dans le bon sens. */
+  if(Math.abs(parJour) < 1 || Math.abs(reste) < 200 || (reste > 0) !== (parJour > 0))
+    return { parJour, semaine:parJour*7, date:null, n:s.length };
+  const jours = Math.round(reste / parJour);
   return { parJour, semaine:parJour*7, date:plusJours(b.d, jours), jours, n:s.length };
 }
 
@@ -1524,9 +1597,31 @@ function assiduite(){
 /* Génération : toutes les séances du programme sont créées d'un coup, posées
    sur les jours de semaine choisis. Les modèles tournent en boucle, si bien
    qu'une semaine à trois séances enchaîne A, B, C puis reprend à A. */
-function genererSeances(progId, debut, joursSem){
+function poserSemaines(p, run, lundi, ordre, debut, w0, w1, objId, k){
+  let n = 0;
+  for(let w = w0; w <= w1; w++){
+    const base = plusJours(lundi, (w-1) * 7);
+    ordre.forEach(jd => {
+      const date = plusJours(base, (jd + 6) % 7);
+      if(date < debut) return;
+      const m = p.mod[k % p.mod.length];
+      k++;
+      const s = { id:uid(), prog:p.id, run, obj:objId, sem:w,
+                  bloc:Math.floor((w-1)/4) + 1, deload:((w-1) % 4) === 3,
+                  mod:p.mod.indexOf(m), date, n:m.n, k:m.k, min:p.min,
+                  b:m.b.map(l => progresser(l, w, objId)),
+                  fait:false, faitLe:0, done:[] };
+      DB.seances[s.id] = s;
+      sale.seances.add(s.id);
+      n++;
+    });
+  }
+  return n;
+}
+function genererSeances(progId, debut, joursSem, semaines, objId){
   const p = prog(progId);
   if(!p || !joursSem.length) return 0;
+  const sem = clamp(parseInt(semaines,10) || p.sem, 1, 52);
   const ordre = joursSem.slice().sort((a,b) => ((a+6)%7) - ((b+6)%7));
   /* Un programme commencé un samedi ne doit pas perdre sa première semaine :
      si aucun des jours choisis ne tombe après la date de début, la semaine 1
@@ -1534,24 +1629,42 @@ function genererSeances(progId, debut, joursSem){
   let lundi = lundiDe(debut);
   if(!ordre.some(jd => plusJours(lundi, (jd + 6) % 7) >= debut)) lundi = plusJours(lundi, 7);
   const run = uid();
-  let n = 0, k = 0;
-  for(let w = 1; w <= p.sem; w++){
-    const base = plusJours(lundi, (w-1) * 7);
-    ordre.forEach(jd => {
-      const date = plusJours(base, (jd + 6) % 7);
-      if(date < debut) return;
-      const m = p.mod[k % p.mod.length];
-      k++;
-      const s = { id:uid(), prog:p.id, run, sem:w, mod:p.mod.indexOf(m), date,
-                  n:m.n, k:m.k, min:p.min,
-                  b:m.b.map(l => progresser(l, w)),
-                  fait:false, faitLe:0, done:[] };
-      DB.seances[s.id] = s;
-      sale.seances.add(s.id);
-      n++;
-    });
-  }
-  DB.prog = { id:p.id, run, debut, lundi, jours:joursSem.slice(), sem:p.sem, cree:Date.now() };
+  DB.prog = { id:p.id, run, obj:objId, debut, lundi, jours:joursSem.slice(), sem, cree:Date.now() };
+  const n = poserSemaines(p, run, lundi, ordre, debut, 1, sem, objId, 0);
+  DB.settings.objectif = objId;
+  sauver();
+  return n;
+}
+/* Prolonger : la suite du même programme, avec les blocs qui continuent de
+   monter là où ils s'étaient arrêtés. C'est ainsi qu'on tient une année. */
+function prolongerProgramme(nb){
+  const P = DB.prog, p = P && prog(P.id);
+  if(!p) return 0;
+  const ordre = P.jours.slice().sort((a,b) => ((a+6)%7) - ((b+6)%7));
+  const k = seancesRun().length;
+  const n = poserSemaines(p, P.run, P.lundi, ordre, P.debut, P.sem + 1, P.sem + nb, P.obj, k);
+  P.sem += nb;
+  sauver();
+  return n;
+}
+/* Changer d'objectif en cours de route ne touche pas au passé : seules les
+   séances à venir sont recalculées, avec les nouvelles fourchettes. */
+function regenererFutur(objId){
+  const P = DB.prog, p = P && prog(P.id);
+  if(!p) return 0;
+  const t = todayISO();
+  let n = 0;
+  seancesRun().forEach(s => {
+    if(s.fait || s.date < t) return;
+    const m = p.mod[s.mod % p.mod.length];
+    s.obj = objId;
+    s.b = m.b.map(l => progresser(l, s.sem, objId));
+    s.done = [];
+    sauverSeance(s);
+    n++;
+  });
+  P.obj = objId;
+  DB.settings.objectif = objId;
   sauver();
   return n;
 }
@@ -1725,7 +1838,8 @@ function carteSeance(s, compact){
   const sous = s.fait ? "Terminée " + relDate(s.date)
     : (s.date < t ? "Manquée · " + relDate(s.date)
     : (s.date === t ? s.b.length + " exercices · " + s.min + " min"
-    : cap(relDate(s.date)) + " · " + s.min + " min"));
+    : cap(relDate(s.date)) + " · " + s.min + " min"))
+    + (s.deload && !s.fait ? " · allégée" : "");
   return '<button class="sea' + (s.fait ? " off" : "") + '" data-act="ouvrir-seance" data-id="' + s.id + '">' +
     '<span class="sea-d ' + etat + '">' +
       (s.fait ? svg("check",18,2.4) : '<span class="j">' + d.getDate() + '</span><span class="m">' + MOIS[d.getMonth()] + '</span>') +
@@ -1848,9 +1962,9 @@ function vuePoids(){
       'La dépense quotidienne est estimée à partir du profil, le déficit est réparti sur la durée, et chaque écart de la veille se rattrape sur les jours restants.</div></div>';
   }
   const P = c.P, act = poidsActuel();
-  const perdu = P.depart - act, reste = act - P.cible;
-  const totalAPerdre = Math.max(1, P.depart - P.cible);
-  const pc = clamp(Math.round(perdu / totalAPerdre * 100), 0, 100);
+  const parcouru = act - P.depart, chemin = P.cible - P.depart;
+  const bonSens = chemin === 0 ? true : (parcouru / chemin) >= 0;
+  const pc = chemin === 0 ? 100 : clamp(Math.round(parcouru / chemin * 100), 0, 100);
   const prec = poidsPrecedent();
 
   let h = '<section class="total"><div class="total-lbl">Poids actuel</div>' +
@@ -1859,11 +1973,14 @@ function vuePoids(){
       '<span class="r">objectif ' + esc(kg(P.cible)) + ' kg</span></div>' +
       '<div class="bud-b"><i class="acc" style="width:' + pc + '%"></i></div></div>';
   const sub = [];
-  sub.push('<span>' + (perdu >= 0 ? "perdus " : "repris ") + '<b class="' + (perdu >= 0 ? "c-ok" : "c-dang") + '">' +
-    kg(Math.abs(perdu)) + ' kg</b></span>');
-  sub.push('<span>reste <b>' + kg(Math.max(0,reste)) + ' kg</b></span>');
-  if(prec) sub.push('<span>depuis la dernière pesée <b class="' + (act - prec <= 0 ? "c-ok" : "c-dang") + '">' +
-    kgSigne(act - prec) + '</b></span>');
+  sub.push('<span>depuis le départ <b class="' + (parcouru ? (bonSens ? "c-ok" : "c-dang") : "") + '">' +
+    kgSigne(parcouru) + ' kg</b></span>');
+  sub.push('<span>reste <b>' + kg(Math.abs(P.cible - act)) + ' kg</b></span>');
+  if(prec){
+    const d = act - prec;
+    const ok = c.sens === "prise" ? d >= 0 : (c.sens === "perte" ? d <= 0 : Math.abs(d) < 500);
+    sub.push('<span>dernière pesée <b class="' + (ok ? "c-ok" : "c-dang") + '">' + kgSigne(d) + '</b></span>');
+  }
   h += '<div class="total-sub">' + sub.join("") + '</div></section>';
 
   h += '<div class="btns grow">' +
@@ -1879,18 +1996,34 @@ function vuePoids(){
     '<div class="lig"><div class="l">Dépense estimée<div class="d">Métabolisme de repos ' + kcal(bmr()) +
       ' × ' + facteurActivite().toFixed(3).replace(".",",") + '</div></div>' +
       '<span class="mono">' + kcal(c.dep) + '</span></div>' +
-    '<div class="lig"><div class="l">Rythme visé<div class="d">' + esc(kg(Math.round(c.rythme*1000))) +
-      ' kg par semaine</div></div><span class="mono">−' + kcal(c.dep - c.base) + '/j</span></div>' +
+    '<div class="lig"><div class="l">Rythme visé<div class="d">' +
+      (c.sens === "maintien" ? "Maintien du poids" :
+        esc(kg(Math.round(Math.abs(c.rythme)*1000))) + ' kg ' + (c.sens === "perte" ? "perdus" : "pris") + ' par semaine') +
+      '</div></div><span class="mono">' + (c.dep === c.base ? "±0" :
+        (c.dep > c.base ? "−" : "+") + kcal(Math.abs(c.dep - c.base))) + '/j</span></div>' +
     '<div class="lig"><div class="l">Fin du plan<div class="d">' + esc(frDate(c.fin, true)) + '</div></div>' +
       '<span class="mono">' + c.restants + ' j</span></div>' +
     '</div></div>';
 
-  if(c.bride){
+  if(c.bride && c.sens === "perte"){
     h += '<div class="avert"><b>Objectif rogné.</b> Atteindre ' + esc(kg(P.cible)) + ' kg en ' + P.mois +
       ' mois demanderait ' + kcal(c.brute) + ' kcal par jour, sous le plancher de sécurité de ' + kcal(c.plancher) +
       ' kcal. Le plan s\'en tient au plancher : la perte sera plus lente que prévu. Allonge le délai pour retrouver un plan tenable.</div>';
-  }else if(c.rythme > 1.0 || (act && c.rythme > act/1000*0.01)){
+  }else if(c.bride && c.sens === "prise"){
+    h += '<div class="avert"><b>Surplus plafonné.</b> Ce délai demanderait ' + kcal(c.brute) +
+      ' kcal par jour. Au-delà de ' + kcal(c.plafond) + ', le surplus part en graisse plus qu\'en muscle : le plan s\'arrête là et la prise sera plus lente. Le muscle ne se construit pas plus vite que quelques centaines de grammes par semaine.</div>';
+  }else if(c.sens === "perte" && c.rythme > 1.0){
     h += '<div class="avert">Le rythme visé dépasse un kilo par semaine. C\'est possible au début, rarement tenable ensuite, et la masse musculaire en paie une partie. Un délai plus long donne un résultat qui dure.</div>';
+  }else if(c.sens === "prise" && -c.rythme > 0.5){
+    h += '<div class="avert">Plus de 500 g pris par semaine, c\'est surtout de la graisse. Une prise de muscle honnête tourne autour de 250 à 500 g par semaine la première année, moins ensuite.</div>';
+  }
+  /* Un plan alimentaire et un objectif d'entraînement peuvent se contredire :
+     mieux vaut le dire que laisser croire au miracle. */
+  const oe = (DB.prog && DB.prog.obj) || DB.settings.objectif;
+  if(oe === "muscle" && c.sens === "perte" && c.rythme > 0.5){
+    h += '<div class="avert">L\'objectif d\'entraînement est « prendre du muscle », mais le plan alimentaire creuse un déficit marqué. Les deux se contrarient : ralentis la perte, ou passe l\'entraînement sur « transformer le gras en muscle », qui accepte un léger déficit.</div>';
+  }else if((oe === "perte" || oe === "recomp") && c.sens === "prise"){
+    h += '<div class="avert">L\'objectif d\'entraînement vise la perte de graisse alors que le plan alimentaire prévoit un surplus. L\'un des deux doit céder.</div>';
   }
 
   /* ---- projection ---- */
@@ -1900,7 +2033,7 @@ function vuePoids(){
     if(pr.date){
       h += '<div class="bloc"><div class="bloc-b">' +
         '<div class="lig"><div class="l">Objectif atteint le<div class="d">' +
-          'Sur ' + pr.n + ' pesées · ' + kg(Math.round(-pr.semaine)) + ' kg par semaine</div></div>' +
+          'Sur ' + pr.n + ' pesées · ' + kgSigne(Math.round(pr.semaine)) + ' kg par semaine</div></div>' +
         '<span class="mono">' + esc(frDate(pr.date, true)) + '</span></div>' +
         '<div class="lig"><div class="l">Par rapport au plan<div class="d">' +
           (pr.date <= c.fin ? "En avance sur la date prévue." : "En retard sur la date prévue.") + '</div></div>' +
@@ -1991,7 +2124,11 @@ function vueSport(){
     '<div class="bud"><div class="bud-l"><span>Semaine ' + semCourante + ' sur ' + DB.prog.sem + '</span>' +
       (ass != null ? '<span class="r">assiduité ' + ass + ' %</span>' : "") + '</div>' +
       '<div class="bud-b"><i class="acc" style="width:' + Math.round(faites/Math.max(1,l.length)*100) + '%"></i></div></div>';
+  const blocCourant = Math.floor((semCourante - 1) / 4) + 1;
+  const allegee = ((semCourante - 1) % 4) === 3;
   const sub = [];
+  sub.push('<span><b>' + esc(objNom(DB.prog.obj)) + '</b></span>');
+  sub.push('<span>bloc <b>' + blocCourant + '</b>' + (allegee ? ' · semaine allégée' : "") + '</span>');
   sub.push('<span><b>' + DB.prog.jours.map(j => JOURS_A[j]).join(", ") + '</b></span>');
   if(nbRemplacements()) sub.push('<span><b>' + nbRemplacements() + '</b> exercice' + (nbRemplacements()>1?"s":"") + ' remplacé' + (nbRemplacements()>1?"s":"") + '</span>');
   h += '<div class="total-sub">' + sub.join("") + '</div></section>';
@@ -2028,8 +2165,16 @@ function vueSport(){
   });
   h += '</div>';
 
+  h += '<div class="btns grow" style="margin-top:6px">' +
+    '<button class="btn" data-act="modifier-objent">' + svg("cible",16) + esc(objNom(DB.prog.obj)) + '</button>' +
+    '<button class="btn" data-act="prolonger">' + svg("plus",16,2) + 'Prolonger</button></div>';
   h += '<div class="btns"><button class="btn" data-act="changer-programme">' + svg("echange",16) +
-    'Changer de programme</button></div>';
+    'Changer de programme</button>' +
+    '<button class="btn" data-act="ouvrir-guide">' + svg("info",16) + 'Guide</button></div>';
+  if(DB.prog.sem <= 12){
+    h += '<div class="aide" style="text-align:center">Ce programme court sur ' + DB.prog.sem +
+      ' semaines. Au bout, prolonge-le pour continuer la progression, ou bascule sur l\'objectif « Conserver ce que j\'ai » pour entretenir sans y passer ses semaines.</div>';
+  }
   return h;
 }
 
@@ -2180,6 +2325,14 @@ function vueReglages(){
       (DB.prog ? esc((prog(DB.prog.id)||{}).n || "") + ' · ' + DB.prog.jours.map(j => JOURS_A[j]).join(", ")
                : "Aucun programme en cours.") + '</div></div>' +
       '<button class="btn" data-act="changer-programme">' + (DB.prog ? "Changer" : "Choisir") + '</button></div>' +
+    '<div class="lig"><div class="l">Objectif d\'entraînement<div class="d">' +
+      esc(objEnt((DB.prog && DB.prog.obj) || s.objectif).d) + '</div></div>' +
+      '<button class="btn" data-act="modifier-objent">' + esc(objNom((DB.prog && DB.prog.obj) || s.objectif)) + '</button></div>' +
+    (DB.prog ? '<div class="lig"><div class="l">Durée<div class="d">' + DB.prog.sem + ' semaines, soit ' +
+      Math.ceil(DB.prog.sem/4) + ' blocs de quatre.</div></div>' +
+      '<button class="btn" data-act="prolonger">Prolonger</button></div>' : "") +
+    '<div class="lig"><div class="l">Guide du débutant<div class="d">Séries, répétitions, repos, effort, courbatures : le vocabulaire et les règles.</div></div>' +
+      '<button class="btn" data-act="ouvrir-guide">Lire</button></div>' +
     '<div class="lig" style="display:block"><div class="l">Matériel disponible' +
       '<div class="d">Détermine les remplacements proposés. Chaque cran comprend les précédents.</div></div>' +
       '<div class="seg" style="display:flex;width:100%;margin-top:8px">' + MATOS.map((m,i) =>
@@ -2269,7 +2422,70 @@ function hautPanneau(titre, act, droite){
     (droite || "") + '</div>';
 }
 
+const GUIDE = [
+  { t:"Une série, une répétition", l:[
+    "Une <b>répétition</b>, c'est un mouvement complet : descendre et remonter d'une pompe, une fois. Une <b>série</b>, c'est un paquet de répétitions enchaînées sans s'arrêter. « 3 × 12 » se lit donc : trois séries de douze répétitions.",
+    "Entre deux séries, on <b>récupère</b> : c'est le repos indiqué. Pendant ce temps on ne fait rien d'utile, et c'est exactement le but — le muscle a besoin de ce temps pour refaire son carburant.",
+    "Quand un exercice est donné en secondes — « 3 × 30 s » —, on tient la position ou on bouge pendant ce temps-là."
+  ]},
+  { t:"Quel effort mettre", l:[
+    "La bonne intensité, ce n'est ni la douleur ni la facilité : à la fin d'une série, il doit rester deux ou trois répétitions en réserve. Pas dix, pas zéro.",
+    "Si la technique se casse — dos qui s'arrondit, hanches qui tombent, mouvement raccourci —, la série est finie, même s'il restait des répétitions au programme. Une répétition mal faite ne construit rien et abîme quelque chose.",
+    "Il vaut mieux faire moins et bien. Le nombre monte tout seul au fil des semaines."
+  ]},
+  { t:"Comment on progresse", l:[
+    "Chaque exercice a une <b>fourchette</b> de répétitions, par exemple 8 à 12. On commence en bas de la fourchette, on monte semaine après semaine jusqu'en haut.",
+    "Une fois le haut atteint proprement, on n'ajoute plus de répétitions : on augmente la <b>difficulté</b>. Une charge, une variante plus dure, une descente plus lente — et on repart du bas de la fourchette.",
+    "C'est la méthode de la double progression. Elle est lente, ennuyeuse, et c'est la seule qui tienne sur un an."
+  ]},
+  { t:"Les blocs et la semaine allégée", l:[
+    "Le programme avance par blocs de quatre semaines : trois qui montent, une quatrième allégée.",
+    "La semaine allégée n'est pas une semaine perdue. Le muscle et les tendons se réparent pendant le repos, pas pendant l'effort : sans elle, la fatigue s'accumule jusqu'à la blessure ou l'abandon.",
+    "Le bloc suivant repart un cran au-dessus du précédent. C'est ce qui rend une année d'entraînement possible sans arriver à des séries absurdes."
+  ]},
+  { t:"L'échauffement et la fin", l:[
+    "La première ligne d'une séance est presque toujours un échauffement : quelques minutes pour monter la température, sans chercher l'effort.",
+    "Sur un exercice avec charge, fais une série légère avant la première série réelle. Elle ne compte pas dans le programme.",
+    "La dernière ligne est un retour au calme ou un étirement. Elle sert à faire redescendre le cœur, pas à gagner de la souplesse en une minute."
+  ]},
+  { t:"Courbatures, douleurs, fatigue", l:[
+    "Les courbatures arrivent un à deux jours après, surtout au début, et ne mesurent rien du tout : une bonne séance ne fait pas forcément mal.",
+    "Une gêne diffuse dans le muscle est normale. Une douleur vive, articulaire, ou qui pique dans une épaule ou un genou ne l'est pas : arrête l'exercice et remplace-le.",
+    "Fatigué au point de ne pas y arriver ? Fais la moitié de la séance plutôt que rien. La régularité pèse plus lourd que l'intensité."
+  ]},
+  { t:"À quel rythme", l:[
+    "Deux à trois séances par semaine suffisent pour progresser au début, quatre pour aller plus vite. Cinq n'apporte pas grand-chose de plus la première année.",
+    "Laisse au moins un jour entre deux séances qui travaillent les mêmes muscles.",
+    "Le muscle se construit pendant le sommeil et grâce à ce qu'on mange, pas pendant la séance. La séance ne fait que donner l'ordre."
+  ]},
+  { t:"Manger selon l'objectif", l:[
+    "Perdre du poids demande de manger moins que ce qu'on dépense. Le sport aide, l'assiette décide.",
+    "Prendre du muscle demande l'inverse : un léger surplus, et assez de protéines — autour de 1,6 gramme par kilo de poids de corps et par jour.",
+    "Faire les deux en même temps est possible quand on repart de loin, mais lentement. Dans ce cas la balance bouge peu : c'est le tour de taille et le miroir qu'il faut regarder."
+  ]},
+  { t:"Si un exercice ne va pas", l:[
+    "Un mouvement douloureux, impossible, ou pour lequel il manque le matériel se remplace : ouvre l'exercice, touche « Remplacer », choisis dans la liste proposée.",
+    "Les remplaçants proposés travaillent les mêmes muscles et respectent le matériel déclaré dans les réglages.",
+    "Le remplacement vaut pour toutes les séances du programme, et se défait aussi simplement."
+  ]}
+];
+function sheetGuide(){
+  let h = '<div class="sheet">' + hautPanneau("Guide du débutant");
+  h += '<div class="sheet-in">';
+  h += '<section class="total" style="padding:20px 0 14px">' +
+    '<div class="total-lbl">Tout ce qu\'il faut savoir</div>' +
+    '<span class="total-val num" style="font-size:clamp(26px,8vw,34px)">Avant<span class="u">la première séance</span></span>' +
+    '<div class="total-sub"><span>Dix minutes de lecture, et le vocabulaire ne fait plus barrage.</span></div></section>';
+  h += GUIDE.map(g => '<div class="bloc"><div class="bloc-h">' + esc(g.t) + '</div><div class="bloc-b">' +
+    '<ul class="conseils" style="margin:0">' + g.l.map(x => '<li>' + x + '</li>').join("") + '</ul></div></div>').join("");
+  h += '<div class="aide" style="text-align:center;margin:18px 0 0">' +
+    'En cas de douleur qui dure, de pathologie connue ou de traitement en cours, un avis médical passe avant tout ce qui est écrit ici.</div>';
+  h += '</div></div>';
+  return h;
+}
+
 function vueSheet(sh){
+  if(sh.type === "guide")     return sheetGuide();
   if(sh.type === "progs")     return sheetProgs(sh);
   if(sh.type === "seance")    return sheetSeance(sh);
   if(sh.type === "exo")       return sheetExo(sh);
@@ -2318,15 +2534,22 @@ function sheetSeance(sh){
   h += '<div class="sheet-in">';
 
   h += '<section class="total" style="padding:20px 0 16px">' +
-    '<div class="total-lbl">' + esc(cap(relDate(s.date))) + ' · semaine ' + s.sem + '</div>' +
+    '<div class="total-lbl">' + esc(cap(relDate(s.date))) + ' · semaine ' + s.sem +
+      (s.bloc ? ' · bloc ' + s.bloc : "") + '</div>' +
     '<span class="total-val num" style="font-size:clamp(26px,8vw,34px)">' + s.b.length + '<span class="u">exercices</span></span>' +
     '<div class="total-sub"><span><b>' + s.min + '</b> min environ</span>' +
       '<span>≈ <b>' + kcal(s.k) + '</b> kcal</span>' +
       (s.fait ? '<span class="c-ok"><b class="c-ok">terminée</b></span>' : "") +
       (!s.fait && s.date < t ? '<span class="c-att">passée</span>' : "") + '</div></section>';
 
+  if(s.deload){
+    h += '<div class="avert" style="border-color:var(--accB);background:var(--accF);color:var(--acc)">' +
+      '<b>Semaine allégée.</b> Une série de moins, le bas de la fourchette de répétitions. Ce n\'est pas une semaine perdue : c\'est là que le corps encaisse ce que les trois précédentes lui ont demandé. Ne la saute pas, et ne la charge pas.</div>';
+  }
   if(!s.fait){
-    h += '<div class="aide" style="margin:12px 0 0">Coche les exercices au fil de la séance. Touche un exercice pour voir le mouvement, les conseils, ou le remplacer.</div>';
+    h += '<div class="aide" style="margin:12px 0 0">Coche les exercices au fil de la séance. Touche un exercice pour voir le mouvement, les conseils, le dosage, ou le remplacer.' +
+      (s.obj ? ' Objectif en cours : ' + esc(objNom(s.obj)) + '.' : "") +
+      ' <button style="color:var(--acc);text-decoration:underline;text-underline-offset:3px" data-act="ouvrir-guide">Première séance ?</button></div>';
   }
 
   h += '<div class="ops" style="margin-top:10px">';
@@ -2388,6 +2611,19 @@ function sheetExo(sh){
     h += '<div class="repere"><span>Matériel <b>' + esc(MATOS[e.mat]) + '</b></span></div>';
   }
 
+  if(l && l.xmin){
+    const o = objEnt((s && s.obj) || DB.settings.objectif);
+    h += '<div class="sect"><h2>Comment doser</h2></div>' +
+      '<div class="bloc"><div class="bloc-b">' +
+      '<div class="lig"><div class="l">Fourchette visée<div class="d">Cette semaine : ' + l.s + ' séries de ' + l.x +
+        '. La fourchette de l\'exercice va de ' + l.xmin + ' à ' + l.xmax + ' répétitions.</div></div>' +
+        '<span class="mono" style="font-size:15px">' + l.xmin + '–' + l.xmax + '</span></div>' +
+      '<div class="lig"><div class="l">Le bon effort<div class="d">La dernière répétition doit être difficile mais propre. S\'il t\'en reste plus de deux ou trois en réserve, c\'est trop facile ; si la technique se dégrade, c\'est trop dur.</div></div></div>' +
+      '<div class="lig"><div class="l">Quand augmenter<div class="d">Le jour où tu passes ' + l.xmax +
+        ' répétitions propres sur toutes les séries, ce n\'est plus le nombre qu\'il faut augmenter : ajoute de la charge, ralentis la descente, ou remplace par une variante plus difficile.</div></div></div>' +
+      '<div class="lig"><div class="l">' + esc(o.n) + '<div class="d">' + esc(o.c) + '</div></div></div>' +
+      '</div></div>';
+  }
   h += '<div class="sect"><h2>Les conseils</h2></div><ul class="conseils">' +
     (e.c||[]).map(x => '<li>' + esc(x) + '</li>').join("") + '</ul>';
 
@@ -2473,7 +2709,7 @@ function vueModal(m){
   if(m.type === "objectif"){
     const edit = !!m.edit;
     c = '<h3>' + (edit ? "Modifier l'objectif" : "Définir un objectif") + '</h3>' +
-      '<div class="sous">Le déficit est réparti sur toute la durée, puis ajusté chaque jour selon ce qui a été mangé.</div>' +
+      '<div class="sous">Perdre, prendre ou maintenir : l\'écart est réparti sur toute la durée, puis ajusté chaque jour selon ce qui a été mangé.</div>' +
       '<div class="duo"><div class="champ" style="margin-top:0"><label for="m-depart">Poids de départ</label>' +
         grandChamp("m-depart", m.depart, "kg", "80") + '</div>' +
       '<div class="champ" style="margin-top:0"><label for="m-cible">Poids visé</label>' +
@@ -2552,16 +2788,51 @@ function vueModal(m){
       '<div class="sous">' + esc(p.d) + '</div>' +
       '<div class="prog-m" style="margin-bottom:12px"><span>' + p.sem + ' semaines</span><span>' + p.par + '×/sem conseillé</span>' +
         '<span>' + p.min + ' min</span><span>' + esc(MATOS[p.mat]) + '</span></div>' +
+      '<div class="champ"><label for="m-obj">Objectif d\'entraînement</label>' +
+        '<select id="m-obj">' + OBJECTIFS.map(o =>
+          '<option value="' + o.id + '"' + (m.obj === o.id ? " selected" : "") + '>' + esc(o.n) + '</option>').join("") + '</select>' +
+        '<div class="aide">' + esc(objEnt(m.obj).d) + ' — ' + esc(objEnt(m.obj).c) + '</div></div>' +
+      '<div class="champ"><label for="m-sem">Durée</label>' +
+        '<select id="m-sem">' + [p.sem,12,26,52].filter((v,i,a) => a.indexOf(v) === i).sort((a,b) => a-b).map(v =>
+          '<option value="' + v + '"' + (String(m.semaines) === String(v) ? " selected" : "") + '>' + v + ' semaines' +
+          (v === p.sem ? " · durée d'origine" : (v === 26 ? " · six mois" : (v === 52 ? " · un an" : ""))) + '</option>').join("") + '</select>' +
+        '<div class="aide">La progression se fait par blocs de quatre semaines : trois qui montent, une allégée pour récupérer. Un programme peut donc se suivre un an sans devenir absurde.</div></div>' +
       '<div class="champ"><label>Jours de la semaine</label><div class="jsem">' +
         [1,2,3,4,5,6,0].map(j => '<button class="' + (js.indexOf(j) !== -1 ? "on" : "") + '" data-act="m-jour" data-id="' + j + '">' +
           JOURS_C[j] + '</button>').join("") + '</div>' +
         '<div class="aide">' + (n ? n + ' séance' + (n>1?"s":"") + ' par semaine, soit ' + (n * p.sem) + ' au total.'
           : 'Choisis au moins un jour.') +
-        (n && n !== p.par ? ' Le programme est prévu pour ' + p.par + '.' : "") + '</div></div>' +
+        (n && n !== p.par ? ' Le programme est prévu pour ' + p.par + '.' : "") +
+        (n ? ' Soit ' + (n * (parseInt(m.semaines,10) || p.sem)) + ' séances en tout.' : "") + '</div></div>' +
       '<div class="champ"><label for="m-debut">Première séance</label>' +
         '<input type="date" id="m-debut" value="' + esc(m.debut || todayISO()) + '"></div>' +
       (m.remplace ? '<div class="avert">Un programme est déjà en cours. Les séances à venir seront remplacées ; les séances déjà validées restent dans l\'historique.</div>' : "") +
       boiteBoutons("Créer les séances", "programme-ok");
+  }
+
+  if(m.type === "objEnt"){
+    const cur = (DB.prog && DB.prog.obj) || DB.settings.objectif || "forme";
+    c = '<h3>Objectif d\'entraînement</h3>' +
+      '<div class="sous">Les exercices ne changent pas. Ce qui change, ce sont les séries, les répétitions et le repos — et donc ce que la séance construit.</div>' +
+      OBJECTIFS.map(o => '<button class="bascule ' + (cur === o.id ? "on" : "") + '" data-act="objent-ok" data-id="' + o.id + '">' +
+        '<span class="l">' + esc(o.n) + '<span class="d">' + esc(o.d) + '</span></span>' +
+        '<span class="k"></span></button>').join("") +
+      (DB.prog ? '<div class="aide">Les séances déjà validées ne bougent pas. Celles à venir sont recalculées avec les nouvelles fourchettes.</div>' : "") +
+      '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
+  }
+
+  if(m.type === "prolonger"){
+    const P = DB.prog;
+    c = '<h3>Prolonger le programme</h3>' +
+      '<div class="sous">Les semaines ajoutées reprennent la progression là où elle s\'arrête : les blocs continuent de monter, avec une semaine allégée sur quatre.</div>' +
+      '<div class="lig" style="border:0"><div class="l">Actuellement<div class="d">' + P.sem + ' semaines, dont ' +
+        Math.ceil(P.sem/4) + ' blocs</div></div></div>' +
+      [4,12,26].filter(n => P.sem + n <= 52).map(n =>
+        '<button class="bascule" data-act="prolonger-ok" data-id="' + n + '">' +
+        '<span class="l">+ ' + n + ' semaines<span class="d">Jusqu\'à la semaine ' + (P.sem + n) + '</span></span>' +
+        '<span class="k"></span></button>').join("") +
+      (P.sem >= 52 ? '<div class="aide">Le programme atteint déjà une année complète. Au-delà, mieux vaut en choisir un autre : changer de programme est en soi une forme de progression.</div>' : "") +
+      '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
   }
 
   if(m.type === "confirm"){
@@ -2593,27 +2864,35 @@ function majApercu(){
   const mois = parseInt(g("m-mois"), 10) || 3;
   const prof = { sexe:state.modal.sexe, age:parseInt(g("m-age"),10) || 35,
                  taille:parseInt(g("m-taille"),10) || 175, activite:g("m-activite") || "sedentaire" };
-  if(!depart || !cible || cible >= depart){
-    el.innerHTML = '<div class="aide" style="margin-top:14px">Renseigne un poids de départ et un poids visé plus bas pour voir le plan.</div>';
+  if(!depart || !cible){
+    el.innerHTML = '<div class="aide" style="margin-top:14px">Renseigne un poids de départ et un poids visé pour voir le plan.</div>';
     return;
   }
   const total = Math.max(7, Math.round(mois * 30.44));
-  const dep = tdeeDe(depart, prof), pl = plancherDe(depart, prof);
+  const dep = tdeeDe(depart, prof), pl = plancherDe(depart, prof), plaf = dep + 700;
   const brute = Math.round(dep - ((depart - cible)/1000 * KCAL_PAR_KG) / total);
-  const base = Math.max(pl, brute);
+  const base = clamp(brute, pl, plaf);
   const rythme = ((dep - base) * 7) / KCAL_PAR_KG;
+  const sens = depart - cible > 200 ? "perte" : (depart - cible < -200 ? "prise" : "maintien");
   let h = '<div class="bloc" style="margin-top:16px"><div class="bloc-b">' +
     '<div class="lig"><div class="l">Calories par jour<div class="d">Dépense estimée ' + kcal(dep) + ' kcal</div></div>' +
       '<span class="mono" style="font-size:16px;font-weight:500">' + kcal(base) + '</span></div>' +
-    '<div class="lig"><div class="l">Rythme<div class="d">' + esc(kg(Math.round(rythme*1000))) + ' kg par semaine</div></div>' +
-      '<span class="mono">−' + kg(depart - cible) + ' kg</span></div>' +
+    '<div class="lig"><div class="l">Rythme<div class="d">' +
+      (sens === "maintien" ? "Maintien du poids" :
+        esc(kg(Math.round(Math.abs(rythme)*1000))) + ' kg ' + (sens === "perte" ? "perdus" : "pris") + ' par semaine') +
+      '</div></div><span class="mono">' + kgSigne(cible - depart) + ' kg</span></div>' +
     '<div class="lig"><div class="l">Fin du plan<div class="d">' + total + ' jours</div></div>' +
       '<span class="mono">' + esc(frDate(plusJours(todayISO(), total), true)) + '</span></div></div></div>';
   if(base - brute > 50)
     h += '<div class="avert">Ce délai demanderait ' + kcal(brute) + ' kcal par jour, sous le plancher de ' + kcal(pl) +
          '. Le plan s\'y tiendra, mais l\'objectif arrivera plus tard que prévu — mieux vaut allonger la durée.</div>';
+  else if(brute - base > 50)
+    h += '<div class="avert">Ce délai demanderait ' + kcal(brute) + ' kcal par jour. Au-delà de ' + kcal(plaf) +
+         ', le surplus part en graisse plus qu\'en muscle : le plan plafonne là et la prise sera plus lente.</div>';
   else if(rythme > 1)
-    h += '<div class="avert">Plus d\'un kilo par semaine : tenable quelques semaines, rarement au-delà.</div>';
+    h += '<div class="avert">Plus d\'un kilo perdu par semaine : tenable quelques semaines, rarement au-delà.</div>';
+  else if(rythme < -0.5)
+    h += '<div class="avert">Plus de 500 g pris par semaine, c\'est surtout de la graisse. Une prise de muscle honnête va de 250 à 500 g par semaine.</div>';
   el.innerHTML = h;
 }
 
@@ -2627,6 +2906,7 @@ function ouvrirSheet(s){ state.sheet = s; render(); }
 /* Basculer un interrupteur redessine la fenêtre : sans relever les champs
    avant, un poids à moitié saisi disparaîtrait au moindre changement. */
 const CHAMPS = { "m-depart":"depart", "m-cible":"cible", "m-mois":"mois", "m-age":"age",
+  "m-obj":"obj", "m-sem":"semaines",
   "m-taille":"taille", "m-activite":"activite", "m-debut":"debut", "m-nom":"nom",
   "m-kcal":"kcal", "m-poids":"poids", "m-tour":"tour", "m-date":"date" };
 function capturerModal(){
@@ -2681,7 +2961,9 @@ document.addEventListener("click", async ev => {
     const depart = grammes(m.depart), cible = grammes(m.cible);
     const mois = parseInt(m.mois, 10) || 3;
     if(!depart){ toast("Il manque le poids de départ"); return; }
-    if(!cible || cible >= depart){ toast("Le poids visé doit être inférieur au départ"); return; }
+    if(!cible){ toast("Il manque le poids visé"); return; }
+    if(cible < 25000 || cible > 400000){ toast("Ce poids visé semble erroné"); return; }
+    if(Math.abs(cible - depart) > 60000){ toast("L'écart entre les deux poids est irréaliste"); return; }
     if(depart < 30000 || depart > 400000){ toast("Ce poids de départ semble erroné"); return; }
     DB.settings.sexe = m.sexe === "f" ? "f" : "h";
     DB.settings.age = clamp(parseInt(m.age,10) || 35, 14, 100);
@@ -2815,7 +3097,8 @@ document.addEventListener("click", async ev => {
     const p = prog(id);
     if(!p) return;
     const defaut = [[1,4],[1,3,5],[1,2,4,6],[1,2,4,5],[1,2,3,4,5]][clamp(p.par,1,5)-1] || [1,3,5];
-    ouvrirModal({ type:"programme", id:p.id, jours:defaut.slice(), debut:todayISO(), remplace:!!DB.prog });
+    ouvrirModal({ type:"programme", id:p.id, jours:defaut.slice(), debut:todayISO(),
+                  obj:DB.settings.objectif || "forme", semaines:p.sem, remplace:!!DB.prog });
     return;
   }
   if(act === "m-jour"){
@@ -2834,7 +3117,7 @@ document.addEventListener("click", async ev => {
     if(!m.jours || !m.jours.length){ toast("Choisis au moins un jour"); return; }
     const debut = (m.debut || "").trim() || todayISO();
     if(DB.prog) effacerProgramme();
-    const n = genererSeances(m.id, debut, m.jours);
+    const n = genererSeances(m.id, debut, m.jours, m.semaines, m.obj || "forme");
     fermerModal();
     state.tab = "sport"; state.passe = false; state.sheet = null;
     render(); window.scrollTo(0,0);
@@ -2906,6 +3189,21 @@ document.addEventListener("click", async ev => {
     sauver(); fermerModal(); toast("Profil enregistré");
     return;
   }
+  if(act === "modifier-objent"){ ouvrirModal({ type:"objEnt" }); return; }
+  if(act === "objent-ok"){
+    const n = DB.prog ? regenererFutur(id) : (DB.settings.objectif = id, sauver(), 0);
+    fermerModal();
+    toast(objNom(id) + (n ? " · " + n + " séances à venir recalculées" : ""));
+    return;
+  }
+  if(act === "prolonger"){ if(DB.prog) ouvrirModal({ type:"prolonger" }); return; }
+  if(act === "prolonger-ok"){
+    const n = prolongerProgramme(parseInt(id,10));
+    fermerModal(); render();
+    toast(n + " séances ajoutées · " + DB.prog.sem + " semaines au total");
+    return;
+  }
+  if(act === "ouvrir-guide"){ ouvrirSheet({ type:"guide" }); window.scrollTo(0,0); return; }
   if(act === "modifier-activite"){ ouvrirModal({ type:"activite" }); return; }
   if(act === "activite-ok"){ DB.settings.activite = id; sauver(); fermerModal(); return; }
   if(act === "sexe"){ DB.settings.sexe = id; sauver(); render(); return; }
@@ -2979,9 +3277,11 @@ document.addEventListener("input", ev => {
   majApercu();
 });
 document.addEventListener("change", ev => {
-  if(!state.modal || state.modal.type !== "objectif") return;
-  if(!ev.target || !ev.target.id) return;
-  majApercu();
+  if(!state.modal || !ev.target || !ev.target.id) return;
+  if(state.modal.type === "objectif"){ majApercu(); return; }
+  if(state.modal.type === "programme" && (ev.target.id === "m-obj" || ev.target.id === "m-sem")){
+    capturerModal(); render();
+  }
 });
 
 /* Entrée valide la modale ouverte, Échap referme ce qui est ouvert. */
