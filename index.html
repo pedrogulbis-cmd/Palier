@@ -307,6 +307,21 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
 .jrn li{font-size:13px;line-height:1.55;margin-bottom:3px;color:var(--gris)}
 .jrn li::marker{color:var(--acc)}
 
+/* ---------------- charges soulevées ---------------- */
+.chg{flex:0 0 auto;font-family:"IBM Plex Mono",monospace;font-size:12px;padding:5px 8px;
+  border-radius:8px;border:1px solid var(--trait);color:var(--gris);background:var(--carte);white-space:nowrap}
+.chg.on{color:var(--acc);border-color:var(--accB);background:var(--accF)}
+.chg.vide{border-style:dashed;color:var(--gris2)}
+
+/* ---------------- navigation par jour ---------------- */
+.jnav{display:flex;align-items:center;gap:10px;padding:12px 0 0}
+.jnav button{width:34px;height:34px;flex:0 0 34px;border-radius:9px;border:1px solid var(--trait);
+  display:grid;place-items:center;color:var(--texte);background:var(--carte)}
+.jnav button[disabled]{opacity:.35}
+.jnav .d{flex:1;text-align:center;font-size:13.5px;letter-spacing:-.01em}
+.jnav .d b{display:block;font-size:11.5px;color:var(--gris2);font-family:"IBM Plex Mono",monospace;font-weight:400}
+.jnav.hier .d{color:var(--att)}
+
 /* ---------------- catalogue d'aliments ---------------- */
 .alim{display:flex;gap:11px;align-items:center;width:100%;text-align:left;
   padding:11px 2px;border-bottom:1px solid var(--trait2)}
@@ -375,9 +390,16 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.5.0";
+const VERSION = "1.6.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"1.6.0", d:"2026-09-06", t:"Charges, repas types, jours passés", l:[
+    "Chaque exercice avec charge porte maintenant une pastille : on y note ce qu'on a soulevé, et la séance suivante rappelle la dernière valeur. La fiche de l'exercice garde l'historique des douze dernières fois.",
+    "La double progression devient concrète : la fiche rappelle qu'on ajoute de la charge une fois le haut de la fourchette atteint, et on voit d'un coup d'œil où on en était.",
+    "Un panier peut être enregistré comme repas type, sous le nom qu'on veut. Il revient ensuite en un geste depuis « Mes repas ».",
+    "L'onglet du jour se promène dans le passé : deux flèches pour remonter jusqu'à un an en arrière et rattraper un dîner noté trop tard. La barre se teinte pour qu'on ne note jamais sur le mauvais jour sans s'en apercevoir.",
+    "Repas, eau, pesée et journée conforme s'appliquent au jour affiché, pas systématiquement à aujourd'hui."
+  ]},
   { v:"1.5.0", d:"2026-09-06", t:"Un catalogue complet", l:[
     "Valider le panier referme le panneau et ramène là où on était : il fallait auparavant revenir en arrière à la main.",
     "Le catalogue passe de 446 à 778 entrées, réparties en seize catégories.",
@@ -480,6 +502,12 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
   ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const todayISO = () => { const d = new Date(); return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate()); };
+/* La journée affichée dans l'onglet du jour : aujourd'hui par défaut, mais on
+   peut remonter en arrière pour rattraper un dîner noté trop tard. */
+function jourVu(){
+  const t = todayISO();
+  return (state.jourVu && state.jourVu <= t) ? state.jourVu : t;
+}
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 
 /* ---------- poids ----------
@@ -1378,7 +1406,7 @@ const DEFAULTS = {
              sexe:"h", age:35, taille:175, activite:"sedentaire", matos:0,
              crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1,
              bTri:"90j" },
-  plan:null, prog:null,
+  plan:null, prog:null, charges:{}, repasTypes:[],
   meta:{ cree:Date.now(), modifie:0, exporte:0, vue:null }
 };
 let DB = JSON.parse(JSON.stringify(DEFAULTS));
@@ -1456,7 +1484,8 @@ async function ecouler(){
                  seances:[], supprSeances:[...sale.supprSeances], kv:{} };
   sale.jours.forEach(id => { const x = DB.jours[id]; if(x) lots.jours.push(x); });
   sale.seances.forEach(id => { const x = DB.seances[id]; if(x) lots.seances.push(x); });
-  if(sale.kv) lots.kv = { settings:DB.settings, meta:DB.meta, plan:DB.plan, prog:DB.prog, version:SCHEMA };
+  if(sale.kv) lots.kv = { settings:DB.settings, meta:DB.meta, plan:DB.plan, prog:DB.prog,
+                          charges:DB.charges, repasTypes:DB.repasTypes, version:SCHEMA };
   Object.values(sale).forEach(v => { if(v && v.clear) v.clear(); });
   sale.kv = false;
   try{ await IDB.ecrire(lots); }
@@ -1480,6 +1509,8 @@ function assembler(k){
   d.meta = { ...DEFAULTS.meta, ...(k.kv.meta || {}) };
   d.plan = k.kv.plan || null;
   d.prog = k.kv.prog || null;
+  d.charges = k.kv.charges || {};
+  d.repasTypes = k.kv.repasTypes || [];
   return d;
 }
 /* Fusion d'une sauvegarde, jamais destructive : rien n'est écrasé, seules les
@@ -1491,6 +1522,10 @@ function fusionnerSauvegarde(x){
   Object.entries(x.seances||{}).forEach(([k,v]) => { if(!DB.seances[k]){ DB.seances[k] = v; ns++; } });
   if(!DB.plan && x.plan) DB.plan = x.plan;
   if(!DB.prog && x.prog) DB.prog = x.prog;
+  if(x.charges) DB.charges = { ...(x.charges), ...DB.charges };
+  if(x.repasTypes) (x.repasTypes||[]).forEach(r => {
+    if(!DB.repasTypes.some(y => y.id === r.id)) DB.repasTypes.push(r);
+  });
   if(x.settings){
     ["sexe","age","taille","activite","matos"].forEach(k => {
       if(x.settings[k] != null) DB.settings[k] = x.settings[k];
@@ -2474,6 +2509,10 @@ function creditSport(iso){
 function objectifJour(iso){
   const c = planCalc();
   if(!c) return 0;
+  /* Une journée passée garde la cible qui était la sienne : le report des
+     écarts se calcule à partir d'aujourd'hui, pas rétroactivement. */
+  if(iso && iso < todayISO())
+    return Math.round(clamp(c.base + creditSport(iso), c.plancher, Math.max(c.base + 300, c.dep + 500)));
   const d = dette();
   const marge = c.base * 0.2;
   const ajust = clamp(-d.v / c.restants, -marge, marge);
@@ -2651,6 +2690,30 @@ function effacerProgramme(){
   return gardees.length;
 }
 
+/* ---------- les charges soulevées ----------
+   Une charge notée ne sert à rien si elle disparaît avec la séance : ce qui
+   compte, c'est de savoir ce qu'on a soulevé la dernière fois. La mémoire est
+   donc tenue par exercice, pas par séance. */
+function chargeable(eid){
+  const e = EXOS[eid];
+  return !!e && e.g !== "cardio" && e.g !== "mobilite";
+}
+function derniereCharge(eid){ return (DB.charges || {})[eid] || null; }
+function fmtKg(v){
+  if(v == null) return "";
+  return (Math.round(v * 2) / 2).toString().replace(".", ",") + " kg";
+}
+function noterCharge(eid, kg, reps){
+  if(!DB.charges) DB.charges = {};
+  const c = DB.charges[eid] || { hist:[] };
+  c.kg = kg; c.x = reps || c.x || 0; c.ts = Date.now(); c.d = todayISO();
+  c.hist = (c.hist || []).filter(h => h.d !== c.d);
+  c.hist.push({ d:c.d, kg, x:c.x });
+  if(c.hist.length > 12) c.hist = c.hist.slice(-12);
+  DB.charges[eid] = c;
+  sauver();
+}
+
 /* ---------- remplacements ----------
    Le remplacement est une correspondance globale, pas une retouche de séance :
    il vaut pour toutes les occurrences, passées et à venir, et se défait aussi
@@ -2747,7 +2810,7 @@ const TABS = [
 ];
 const state = { tab:"jour", sheet:null, modal:null, journal:false, neuf:false, quota:null,
                 passe:false, fZone:"tout", fMat:null, bPeriode:"90j",
-                q:"", fCat:null, panier:[], grouper:false };
+                q:"", fCat:null, panier:[], grouper:false, jourVu:null };
 
 function render(){
   const v = $("#view");
@@ -2835,11 +2898,23 @@ function carteSeance(s, compact){
 }
 
 function vueJour(){
-  const t = todayISO();
+  const t = jourVu();
+  const auj = t === todayISO();
   const c = planCalc();
   const conso = kcalJour(t);
   const j = jourLu(t);
   let h = "";
+
+  /* La barre de jour : discrète quand on est aujourd'hui, teintée dès qu'on
+     regarde en arrière, pour qu'on ne note jamais un repas sur le mauvais jour
+     sans s'en apercevoir. */
+  h += '<div class="jnav' + (auj ? "" : " hier") + '">' +
+    '<button data-act="jour-prec" aria-label="Jour précédent">' + svg("fleche",17) + '</button>' +
+    '<span class="d">' + esc(cap(relDate(t))) + '<b>' + esc(cap(JOURS[dObj(t).getDay()]) + " " + frDate(t, true)) + '</b></span>' +
+    '<button data-act="jour-suiv" aria-label="Jour suivant"' + (auj ? " disabled" : "") + '>' + svg("chev",17) + '</button>' +
+    '</div>';
+  if(!auj) h += '<div class="aide" style="text-align:center;margin:8px 0 0">' +
+    'Tu notes une journée passée. <button style="color:var(--acc);text-decoration:underline;text-underline-offset:3px" data-act="jour-auj">Revenir à aujourd\'hui</button></div>';
 
   if(!c){
     h += '<section class="total"><div class="total-lbl">Aucun objectif</div>' +
@@ -2853,7 +2928,7 @@ function vueJour(){
     const reste = cible - conso;
     const e = etatCal(conso, cible);
     h += '<section class="total">' +
-      '<div class="total-lbl">' + (reste >= 0 ? "Il reste aujourd'hui" : "Objectif dépassé de") + '</div>' +
+      '<div class="total-lbl">' + (reste >= 0 ? (auj ? "Il reste aujourd'hui" : "Il restait ce jour-là") : "Objectif dépassé de") + '</div>' +
       '<span class="total-val num ' + (e ? CL[e] : "") + '">' + kcal(Math.abs(reste)) +
         '<span class="u">kcal</span></span>';
     const pc = Math.min(100, Math.round(conso / cible * 100));
@@ -2864,7 +2939,7 @@ function vueJour(){
     const sub = [];
     const cs = creditSport(t);
     if(cs) sub.push('<span>dont <b class="c-ok">+' + kcal(cs) + '</b> gagnés au sport</span>');
-    const d = dette();
+    const d = auj ? dette() : { n:0, v:0 };   /* le report ne concerne qu'aujourd'hui */
     if(d.n && Math.abs(d.v) > 60){
       const dj = Math.round(-d.v / c.restants);
       sub.push('<span>report des jours passés <b class="' + (dj < 0 ? "c-dang" : "c-ok") + '">' +
@@ -2906,7 +2981,7 @@ function vueJour(){
   }
 
   /* ---- les repas ---- */
-  h += '<div class="sect"><h2>Les repas d\'aujourd\'hui</h2><div class="sp"></div>' +
+  h += '<div class="sect"><h2>' + (auj ? "Les repas d\'aujourd\'hui" : "Les repas du " + esc(frDate(t))) + '</h2><div class="sp"></div>' +
     (conso ? '<span class="cnt mono">' + kcal(conso) + ' kcal</span>' : "") + '</div>';
   const repas = (j && j.repas) ? j.repas.slice().sort((a,b) => (b.t||0) - (a.t||0)) : [];
   if(!repas.length){
@@ -2927,7 +3002,7 @@ function vueJour(){
   h += '<div class="ops"><button class="op" data-act="nouvelle-pesee">' +
     '<span class="op-ic">' + svg("balance",15,1.8) + '</span>' +
     '<span class="op-mid"><span class="op-lib">' + (pj ? kg(pj) + " kg" : "Se peser") + '</span>' +
-    '<span class="op-met">' + (pj ? "enregistré aujourd'hui" : "le matin, à jeun, c'est le plus fiable") + '</span></span>' +
+    '<span class="op-met">' + (pj ? "enregistré " + esc(relDate(t)) : "le matin, à jeun, c'est le plus fiable") + '</span></span>' +
     '<span class="sea-go">' + svg("chev",18) + '</span></button></div>';
   return h;
 }
@@ -3417,6 +3492,8 @@ function vueReglages(){
       '<button class="btn" data-act="importer">Importer</button></div>' +
     '<div class="lig"><div class="l">Contenu<div class="d">' +
       joursAll().length + " journées · " + seancesAll().length + " séances · " + pesees().length + " pesées" +
+      ((DB.repasTypes||[]).length ? " · " + DB.repasTypes.length + " repas types" : "") +
+      (Object.keys(DB.charges||{}).length ? " · " + Object.keys(DB.charges).length + " charges suivies" : "") +
       '</div></div><span class="mono" style="font-size:12px;color:var(--gris)">' +
       (DB.meta.exporte ? "export " + esc(quand(DB.meta.exporte)) : "jamais exporté") + '</span></div>' +
     (q && q.usage != null ? '<div class="lig" style="display:block"><div class="l">Espace utilisé<div class="d">' +
@@ -3544,6 +3621,22 @@ function listeAliments(){
   const cat = state.fCat;
   let liste, titre;
   if(trouves){ liste = trouves; titre = trouves.length + " résultat" + (trouves.length > 1 ? "s" : ""); }
+  else if(cat === "types"){
+    /* Les repas enregistrés : on mange le même petit-déjeuner trois cents fois
+       par an, il n'y a aucune raison de le ressaisir trois cents fois. */
+    const l = (DB.repasTypes || []).slice().sort((a,b) => (b.nb||0) - (a.nb||0) || (b.ts||0) - (a.ts||0));
+    return { titre:"Mes repas",
+      html: l.length ? l.map(r =>
+        '<div class="alim"><button class="alim-mid" style="text-align:left" data-act="type-add" data-id="' + esc(r.id) + '">' +
+        '<span class="alim-n">' + esc(r.n) + '</span>' +
+        '<span class="alim-p">' + r.items.length + ' élément' + (r.items.length > 1 ? "s" : "") +
+        (r.nb ? ' · repris ' + r.nb + ' fois' : "") + '</span></button>' +
+        '<span class="alim-k">' + kcal(r.k) + ' kcal</span>' +
+        '<button class="alim-add" data-act="type-add" data-id="' + esc(r.id) + '" aria-label="Ajouter">' + svg("plus",15,2.2) + '</button>' +
+        '<button class="alim-add" style="color:var(--gris2)" data-act="type-suppr" data-id="' + esc(r.id) + '" aria-label="Supprimer">' +
+        svg("croix",14,2) + '</button></div>').join("")
+        : '<div class="vide"><b>Aucun repas enregistré</b>Compose une assiette dans le panier, puis touche « Enregistrer ce repas ».</div>' };
+  }
   else if(cat != null){ liste = CATALOGUE.filter(a => a.cat === ALIMENTS[cat][0]); titre = ALIMENTS[cat][0]; }
   else{
     /* Sans recherche ni catégorie : ce qu'on mange d'habitude, puisque c'est
@@ -3571,6 +3664,8 @@ function listeAliments(){
 function chipsAliments(){
   const cat = state.fCat, q = state.q || "";
   return '<button class="chip ' + (cat == null && !q ? "on" : "") + '" data-act="a-cat" data-id="tout">Habitudes</button>' +
+    ((DB.repasTypes || []).length ? '<button class="chip ' + (cat === "types" && !q ? "on" : "") +
+      '" data-act="a-cat" data-id="types">Mes repas</button>' : "") +
     ALIMENTS.map(([n],i) => '<button class="chip ' + (cat === i && !q ? "on" : "") + '" data-act="a-cat" data-id="' + i + '">' +
       esc(n) + '</button>').join("");
 }
@@ -3646,6 +3741,8 @@ function sheetAliments(sh){
         svg("croix",14,2) + '</button></div>';
     });
     h += '</div>';
+    h += '<div class="btns" style="margin:12px 0 0"><button class="btn" style="flex:1" data-act="type-enregistrer">' +
+      svg("cible",16) + 'Enregistrer ce repas</button></div>';
     if(state.panier.length > 1){
       h += '<button class="bascule ' + (state.grouper ? "on" : "") + '" data-act="bascule-grouper">' +
         '<span class="l">Regrouper en un seul plat<span class="d">' +
@@ -3744,6 +3841,14 @@ function sheetSeance(sh){
         '<span class="exo-n">' + esc(e.n || l.e) +
           (estRemplace(l.e) ? '<span class="badge acc">remplacé</span>' : "") + '</span>' +
         '<span class="exo-s">' + esc(fmtLigne(l)) + '</span></button>' +
+      (chargeable(eid) ? (() => {
+        const mem = derniereCharge(eid);
+        const v = l.kg != null ? l.kg : (mem ? mem.kg : null);
+        const pose = l.kg != null;
+        return '<button class="chg ' + (pose ? "on" : (v != null ? "" : "vide")) + '" data-act="ouvrir-charge" ' +
+          'data-id="' + s.id + '" data-i="' + i + '" aria-label="Charge">' +
+          (v != null ? esc(fmtKg(v)) : "+ kg") + '</button>';
+      })() : "") +
       '<span class="sea-go">' + svg("chev",16) + '</span></div>';
   });
   h += '</div>';
@@ -3801,6 +3906,28 @@ function sheetExo(sh){
         ' répétitions propres sur toutes les séries, ce n\'est plus le nombre qu\'il faut augmenter : ajoute de la charge, ralentis la descente, ou remplace par une variante plus difficile.</div></div></div>' +
       '<div class="lig"><div class="l">' + esc(o.n) + '<div class="d">' + esc(o.c) + '</div></div></div>' +
       '</div></div>';
+  }
+  if(chargeable(eid)){
+    const mem = derniereCharge(eid);
+    h += '<div class="sect"><h2>Ta charge</h2>' + (s && sh.i != null ?
+      '<div class="sp"></div><button class="lien" data-act="ouvrir-charge" data-id="' + s.id + '" data-i="' + sh.i + '">Noter</button>' : "") + '</div>';
+    h += '<div class="bloc"><div class="bloc-b">';
+    if(mem){
+      h += '<div class="lig"><div class="l">La dernière fois<div class="d">' + esc(frDate(mem.d, true)) +
+        (mem.x ? ' · ' + mem.x + ' répétitions' : "") + '</div></div>' +
+        '<span class="mono" style="font-size:16px;font-weight:500">' + esc(fmtKg(mem.kg)) + '</span></div>';
+      const hist = (mem.hist || []).slice(-6).reverse();
+      if(hist.length > 1){
+        h += '<div class="lig" style="display:block"><div class="l">L\'historique</div>' +
+          '<div class="ops" style="margin-top:4px">' + hist.map(x =>
+            '<div class="op" style="padding:7px 0"><span class="op-mid"><span class="op-met">' + esc(frDate(x.d, true)) + '</span></span>' +
+            '<span class="op-mt">' + esc(fmtKg(x.kg)) + (x.x ? ' × ' + x.x : "") + '</span></div>').join("") + '</div></div>';
+      }
+    }else{
+      h += '<div class="lig"><div class="l">Aucune charge notée<div class="d">Note ce que tu soulèves : c\'est le seul moyen de savoir, la fois suivante, s\'il faut monter.</div></div></div>';
+    }
+    h += '<div class="lig"><div class="l">Quand monter<div class="d">Quand le haut de la fourchette passe proprement sur toutes les séries, ajoute la plus petite charge disponible et redescends au bas de la fourchette. Sans matériel, alourdis autrement : un sac à dos chargé, une variante plus difficile, une descente plus lente.</div></div></div>';
+    h += '</div></div>';
   }
   h += '<div class="sect"><h2>Les conseils</h2></div><ul class="conseils">' +
     (e.c||[]).map(x => '<li>' + esc(x) + '</li>').join("") + '</ul>';
@@ -4015,6 +4142,43 @@ function vueModal(m){
       '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
   }
 
+  if(m.type === "charge"){
+    const s = DB.seances[m.sid];
+    const l = s ? s.b[m.i] : null;
+    const eid = l ? resoudre(l.e) : m.e;
+    const e = EXOS[eid] || {};
+    const mem = derniereCharge(eid);
+    const v = m.kg;
+    c = '<h3>' + esc(e.n || "Charge") + '</h3>' +
+      '<div class="sous">' + (l ? l.s + ' séries de ' + (l.t ? l.t + ' s' : l.x) : "") +
+      (mem ? ' · la dernière fois ' + esc(fmtKg(mem.kg)) + (mem.x ? ' × ' + mem.x : "") : " · première fois") + '</div>' +
+      '<div class="pas" style="margin:16px 0 6px">' +
+        '<button data-act="charge-pas" data-d="-2.5" aria-label="Moins 2,5">−2,5</button>' +
+        '<button data-act="charge-pas" data-d="-0.5" aria-label="Moins 0,5">−0,5</button>' +
+        '<div class="v" style="font-size:24px;font-weight:600">' + esc(v ? fmtKg(v) : "—") + '</div>' +
+        '<button data-act="charge-pas" data-d="0.5" aria-label="Plus 0,5">+0,5</button>' +
+        '<button data-act="charge-pas" data-d="2.5" aria-label="Plus 2,5">+2,5</button>' +
+      '</div>' +
+      '<div class="raccourcis">' + [5,8,10,12,15,20,25,30,40,50].map(x =>
+        '<button data-act="charge-val" data-d="' + x + '">' + x + ' kg</button>').join("") + '</div>' +
+      '<div class="aide">Pour un élastique, note le repère que tu utilises plutôt qu\'un poids : l\'important est de retrouver le même la fois suivante. ' +
+      'Pour un exercice au poids du corps, note le lest ajouté.</div>' +
+      '<div class="btns" style="margin:18px 0 0">' +
+        (l && l.kg != null ? '<button class="btn dang" style="flex:0 0 auto" data-act="charge-retirer">Retirer</button>'
+                           : '<button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Renoncer</button>') +
+        '<button class="btn pri" style="flex:1" data-act="charge-ok">Enregistrer</button></div>';
+  }
+
+  if(m.type === "typeRepas"){
+    c = '<h3>Enregistrer ce repas</h3>' +
+      '<div class="sous">Il reviendra en un geste, dans « Mes repas ».</div>' +
+      '<div class="champ"><label for="m-nom">Nom du repas</label>' +
+        '<input type="text" id="m-nom" autocomplete="off" placeholder="Mon petit-déjeuner" value="' + esc(m.nom || "") + '"></div>' +
+      '<div class="aide">' + state.panier.length + ' élément' + (state.panier.length > 1 ? "s" : "") + ' · ' + kcal(totalPanier()) + ' kcal — ' +
+      esc(state.panier.map(l => l.n + (l.q !== 1 ? " (" + ligneQte(l.q) + ")" : "")).join(", ")) + '</div>' +
+      boiteBoutons("Enregistrer", "type-creer");
+  }
+
   if(m.type === "confirm"){
     c = '<h3>' + esc(m.titre) + '</h3><div class="sous">' + esc(m.texte) + '</div>' +
       '<div class="btns" style="margin:18px 0 0"><button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Renoncer</button>' +
@@ -4110,7 +4274,7 @@ document.addEventListener("click", async ev => {
   if(act === "rien"){ ev.stopPropagation(); return; }
 
   /* ---- navigation ---- */
-  if(act === "tab"){ state.tab = id; state.sheet = null; render(); window.scrollTo(0,0); return; }
+  if(act === "tab"){ state.tab = id; state.sheet = null; state.jourVu = null; render(); window.scrollTo(0,0); return; }
   if(act === "fermer-sheet"){
     if(state.sheet && state.sheet.type === "aliments"){ state.panier = []; state.q = ""; state.fCat = null; state.grouper = false; }
     state.sheet = null; render(); return;
@@ -4127,13 +4291,25 @@ document.addEventListener("click", async ev => {
     DB.meta.vue = VERSION; sauver(true); render(); window.scrollTo(0,0); return;
   }
   if(act === "basculer-passe"){ state.passe = !state.passe; render(); return; }
+  if(act === "jour-prec"){
+    const d = plusJours(jourVu(), -1);
+    /* Un an en arrière suffit : au-delà, c'est de l'archéologie. */
+    if(ecart(d, todayISO()) <= 365) state.jourVu = d;
+    render(); return;
+  }
+  if(act === "jour-suiv"){
+    const d = plusJours(jourVu(), 1);
+    state.jourVu = d >= todayISO() ? null : d;
+    render(); return;
+  }
+  if(act === "jour-auj"){ state.jourVu = null; render(); return; }
   if(act === "b-periode"){ state.bPeriode = id; DB.settings.bTri = id; sauver(true); render(); return; }
   /* Le « plus » du bandeau, qui n'ajoute pas la même chose selon l'onglet. */
   if(act === "plus"){
     if(state.tab === "sport"){ ouvrirChoixProgramme(); return; }
     if(state.tab === "poids"){ if(!DB.plan) ouvrirObjectif(false); else ouvrirPesee(null); return; }
     state.q = ""; state.fCat = null; state.panier = [];
-    ouvrirSheet({ type:"aliments", date:todayISO() });
+    ouvrirSheet({ type:"aliments", date:jourVu() });
     window.scrollTo(0,0);
     return;
   }
@@ -4192,12 +4368,12 @@ document.addEventListener("click", async ev => {
   /* ---- repas ---- */
   if(act === "ouvrir-aliments"){
     state.q = ""; state.fCat = null; state.panier = [];
-    ouvrirSheet({ type:"aliments", date:todayISO() });
+    ouvrirSheet({ type:"aliments", date:jourVu() });
     window.scrollTo(0,0);
     return;
   }
   if(act === "a-cat"){
-    state.fCat = id === "tout" ? null : parseInt(id,10);
+    state.fCat = id === "tout" ? null : (id === "types" ? "types" : parseInt(id,10));
     state.q = "";
     const ch = document.getElementById("a-q");
     if(ch) ch.value = "";
@@ -4225,6 +4401,39 @@ document.addEventListener("click", async ev => {
   if(act === "a-suppr"){ state.panier.splice(parseInt(el.dataset.i,10), 1); render(); return; }
   if(act === "vider-panier"){ state.panier = []; render(); return; }
   if(act === "a-manuel"){ ouvrirRepas(null); return; }
+  if(act === "type-enregistrer"){
+    if(!state.panier.length) return;
+    ouvrirModal({ type:"typeRepas", nom:nomGroupe().slice(0, 40), focus:"m-nom" });
+    return;
+  }
+  if(act === "type-creer"){
+    const nom = (val("m-nom") || "").trim() || nomGroupe().slice(0, 40);
+    if(!DB.repasTypes) DB.repasTypes = [];
+    DB.repasTypes.push({ id:uid(), n:nom, k:totalPanier(), nb:0, ts:Date.now(),
+      items:state.panier.map(l => ({ n:l.n, k:l.k, p:l.p, q:l.q })) });
+    sauver(); fermerModal();
+    toast("« " + nom + " » enregistré");
+    return;
+  }
+  if(act === "type-add"){
+    const r = (DB.repasTypes || []).filter(x => x.id === id)[0];
+    if(!r) return;
+    r.items.forEach(it => {
+      const dedans = state.panier.filter(x => x.n === it.n)[0];
+      if(dedans) dedans.q += it.q;
+      else state.panier.push({ n:it.n, k:it.k, p:it.p, q:it.q });
+    });
+    r.nb = (r.nb || 0) + 1;
+    sauver(); render();
+    toast(r.n + " ajouté au panier");
+    return;
+  }
+  if(act === "type-suppr"){
+    DB.repasTypes = (DB.repasTypes || []).filter(x => x.id !== id);
+    sauver(); render();
+    toast("Repas type supprimé");
+    return;
+  }
   if(act === "panier-ok"){
     if(!state.panier.length) return;
     const date = (state.sheet && state.sheet.date) || todayISO();
@@ -4247,9 +4456,9 @@ document.addEventListener("click", async ev => {
   }
   if(act === "nouveau-repas"){ ouvrirRepas(null); return; }
   if(act === "modifier-repas"){
-    const j = jourLu(todayISO());
+    const j = jourLu(jourVu());
     const r = j && (j.repas||[]).filter(x => x.i === id)[0];
-    if(r) ouvrirModal({ type:"repas", id:r.i, nom:r.n, kcal:String(r.k), date:todayISO(), focus:"m-kcal" });
+    if(r) ouvrirModal({ type:"repas", id:r.i, nom:r.n, kcal:String(r.k), date:jourVu(), focus:"m-kcal" });
     return;
   }
   if(act === "repas-favori"){
@@ -4285,7 +4494,7 @@ document.addEventListener("click", async ev => {
     return;
   }
   if(act === "objectif-tenu"){
-    const t = todayISO();
+    const t = jourVu();
     const c = planCalc();
     if(!c){ toast("Aucun objectif défini"); return; }
     const reste = objectifJour(t) - kcalJour(t);
@@ -4337,7 +4546,7 @@ document.addEventListener("click", async ev => {
 
   /* ---- eau ---- */
   if(act === "eau"){
-    const j = jour(todayISO());
+    const j = jour(jourVu());
     j.eau = clamp((j.eau||0) + parseInt(id,10), 0, 30);
     sauverJour(j); render();
     return;
@@ -4396,6 +4605,43 @@ document.addEventListener("click", async ev => {
     sauverSeance(s);
     if(s.fait){ state.sheet = null; render(); toast("Séance terminée" + (DB.settings.crediterSport && DB.plan ? " · +" + kcal(s.k) + " kcal aujourd'hui" : "")); }
     else render();
+    return;
+  }
+  if(act === "ouvrir-charge"){
+    const s = DB.seances[id];
+    const i = parseInt(el.dataset.i, 10);
+    const l = s ? s.b[i] : null;
+    if(!l) return;
+    const eid = resoudre(l.e);
+    const mem = derniereCharge(eid);
+    ouvrirModal({ type:"charge", sid:id, i, e:eid,
+                  kg: l.kg != null ? l.kg : (mem ? mem.kg : 0) });
+    return;
+  }
+  if(act === "charge-pas"){
+    const d = parseFloat(el.dataset.d);
+    state.modal.kg = Math.max(0, Math.round(((state.modal.kg || 0) + d) * 2) / 2);
+    render(); return;
+  }
+  if(act === "charge-val"){ state.modal.kg = parseFloat(el.dataset.d); render(); return; }
+  if(act === "charge-ok"){
+    const m = state.modal;
+    const s = DB.seances[m.sid];
+    const l = s ? s.b[m.i] : null;
+    if(!l || !m.kg){ toast("Choisis une charge"); return; }
+    l.kg = m.kg;
+    sauverSeance(s);
+    noterCharge(resoudre(l.e), m.kg, l.x || 0);
+    fermerModal();
+    toast(fmtKg(m.kg) + " noté" + ((derniereCharge(resoudre(l.e)).hist || []).length > 1 ? " · progression enregistrée" : ""));
+    return;
+  }
+  if(act === "charge-retirer"){
+    const m = state.modal;
+    const s = DB.seances[m.sid];
+    if(s && s.b[m.i]) delete s.b[m.i].kg;
+    if(s) sauverSeance(s);
+    fermerModal();
     return;
   }
   if(act === "cocher-exo"){
@@ -4532,13 +4778,14 @@ function ouvrirObjectif(edit){
     debut: P ? P.debut : todayISO(),
     sexe: s.sexe, age: s.age, taille: s.taille, activite: s.activite });
 }
-function ouvrirRepas(){ ouvrirModal({ type:"repas", date:todayISO(), focus:"m-kcal" }); }
+function ouvrirRepas(){ ouvrirModal({ type:"repas", date:jourVu(), focus:"m-kcal" }); }
 function ouvrirPesee(iso){
+  if(!iso && state.tab === "jour" && jourLu(jourVu()) && jourLu(jourVu()).poids) iso = jourVu();
   const j = iso ? jourLu(iso) : null;
   ouvrirModal({ type:"pesee", edit:!!j, origine:iso || null,
     poids: j && j.poids ? kg(j.poids) : (poidsActuel() ? kg(poidsActuel()) : ""),
     tour: j && j.tour ? String(j.tour) : "",
-    date: iso || todayISO(), focus:"m-poids" });
+    date: iso || (state.tab === "jour" ? jourVu() : todayISO()), focus:"m-poids" });
 }
 function ouvrirChoixProgramme(zone){
   state.tab = "sport";
@@ -4586,6 +4833,7 @@ document.addEventListener("keydown", ev => {
 function contenuSauvegarde(){
   return JSON.stringify({ app:"palier", appVersion:VERSION, schema:SCHEMA,
     jours:DB.jours, seances:DB.seances, plan:DB.plan, prog:DB.prog,
+    charges:DB.charges, repasTypes:DB.repasTypes,
     settings:DB.settings, meta:DB.meta }, null, 2);
 }
 function telecharger(nom, blob){
