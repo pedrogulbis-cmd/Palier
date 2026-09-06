@@ -307,6 +307,17 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
 .jrn li{font-size:13px;line-height:1.55;margin-bottom:3px;color:var(--gris)}
 .jrn li::marker{color:var(--acc)}
 
+/* ---------------- photographies d'exercice ---------------- */
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.photo{border:1px solid var(--trait);border-radius:var(--r);overflow:hidden;background:var(--fond2);position:relative}
+.photo img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#fff}
+html[data-theme="sombre"] .photo img{filter:brightness(.9) contrast(1.03)}
+.photo .l{font-size:11.5px;color:var(--gris);padding:7px 8px;text-align:center;
+  border-top:1px solid var(--trait2)}
+.photo .n{position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:6px;
+  background:var(--acc);color:var(--surAcc);font-size:11px;font-weight:600;
+  display:grid;place-items:center;font-family:"IBM Plex Mono",monospace}
+
 /* ---------------- planches d'exercice ---------------- */
 .bd{border:1px solid var(--trait);border-radius:var(--r);overflow:hidden;background:var(--carte);margin:12px 0}
 .bd-row{display:flex;gap:12px;align-items:center;padding:12px;border-top:1px solid var(--trait2)}
@@ -403,9 +414,15 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.9.0";
+const VERSION = "2.0.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"2.0.0", d:"2026-09-06", t:"Des photographies", l:[
+    "Les silhouettes ne suffisaient pas à comprendre un mouvement. Chaque exercice montre désormais deux photographies — position de départ, position d'arrivée — avant la planche dessinée.",
+    "Quatre-vingt-onze exercices sur quatre-vingt-douze sont illustrés, à partir de Free Exercise DB, un jeu de données de huit cents exercices versé au domaine public.",
+    "Les images se chargent depuis un CDN, avec un second hébergeur en secours. Hors réseau, le bloc disparaît de lui-même et les vignettes dessinées prennent le relais : l'application reste utilisable sans Internet.",
+    "Les photographies se coupent d'un interrupteur dans les réglages."
+  ]},
   { v:"1.9.0", d:"2026-09-06", t:"Plusieurs programmes, et la corde", l:[
     "Plusieurs programmes peuvent tourner en même temps : de la musculation le lundi, mercredi et vendredi, du cardio le samedi. Au moment de créer, on choisit de remplacer le programme en cours ou de l\'ajouter à côté — et l\'application prévient si un jour porte déjà une séance.",
     "L\'agenda range toutes les séances ensemble, semaine de calendrier par semaine de calendrier.",
@@ -996,6 +1013,42 @@ const SEQ = {
     FIGS.gainDyn,
     '<circle cx="20" cy="30" r="5"/><path d="M25 32 82 42"/><path d="M25 32 24 46M82 42 92 50"/><path d="M46 36 34 30" opacity=".55"/>' + SOL ] }
 };
+/* Les photographies viennent de Free Exercise DB, un jeu de données versé au
+   domaine public : deux prises de vue par exercice, départ et arrivée. Elles
+   se chargent depuis un CDN — donc seulement en ligne. Quand elles manquent,
+   la planche dessinée prend le relais, et l'application continue de marcher
+   hors réseau comme avant. */
+const PHOTO_CDN = "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/";
+const PHOTO_ALT = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+function photoRatee(img){
+  /* Premier échec : on tente le second hébergeur. Second échec : on retire le
+     bloc, sans laisser de cadre vide. */
+  if(img.dataset.essai !== "2"){
+    img.dataset.essai = "2";
+    img.src = PHOTO_ALT + img.dataset.ref;
+    return;
+  }
+  const bloc = img.closest(".photos");
+  if(bloc){
+    const t = bloc.previousElementSibling;
+    if(t && t.classList.contains("sect")) t.remove();
+    bloc.remove();
+  }
+}
+function photos(e){
+  if(!DB.settings.photos || !e.img) return "";
+  const lbl = ["Position de départ", "Position d'arrivée"];
+  return '<div class="photos">' + [0,1].map(i => {
+    const ref = e.img + "/" + i + ".jpg";
+    return '<div class="photo">' +
+      '<img src="' + PHOTO_CDN + ref + '" data-ref="' + ref + '" data-essai="1" ' +
+      'alt="' + esc(e.n) + ' — ' + lbl[i].toLowerCase() + '" loading="lazy" decoding="async" ' +
+      'onerror="photoRatee(this)">' +
+      '<span class="n">' + (i+1) + '</span>' +
+      '<span class="l">' + lbl[i] + '</span></div>';
+  }).join("") + '</div>';
+}
+
 function planche(figId){
   const q = SEQ[figId];
   if(!q) return "";
@@ -1032,309 +1085,309 @@ const MATOS = ["Sans matériel", "Élastique", "Haltères", "Salle de sport"];
 
 const EXOS = {
   /* ---- poussée horizontale ---- */
-  pompes:{ n:"Pompes", g:"pecs", g2:["bras","abdos"], pat:"pouh", mat:0, fig:"pompe",
+  pompes:{ n:"Pompes", g:"pecs", g2:["bras","abdos"], pat:"pouh", mat:0, img:"Pushups", fig:"pompe",
     d:"Mains au sol un peu plus larges que les épaules, corps aligné de la tête aux talons. On descend jusqu'à frôler le sol, on repousse.",
     c:["Serre les fessiers et le ventre : le bassin ne doit pas s'affaisser.","Coudes à environ 45° du buste, pas écartés en croix.","Descends lentement, remonte franchement."] },
-  pompesG:{ n:"Pompes sur les genoux", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompeG",
+  pompesG:{ n:"Pompes sur les genoux", g:"pecs", g2:["bras"], pat:"pouh", mat:0, img:"Pushups", fig:"pompeG",
     d:"Même mouvement que les pompes, mais en appui sur les genoux. Le buste reste aligné avec les cuisses.",
     c:["Avance les mains pour garder l'alignement épaules-hanches-genoux.","Un tapis ou une serviette sous les genoux évite l'inconfort.","Quand 15 répétitions passent bien, essaie les pompes inclinées."] },
-  pompesMur:{ n:"Pompes au mur", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompeInc",
+  pompesMur:{ n:"Pompes au mur", g:"pecs", g2:["bras"], pat:"pouh", mat:0, img:"Incline_Push-Up", fig:"pompeInc",
     d:"Debout face à un mur, mains à hauteur d'épaules. On plie les bras jusqu'à approcher le nez du mur, on repousse.",
     c:["Plus tu recules les pieds, plus c'est dur.","Le corps reste une planche : pas de cassure aux hanches."] },
-  pompesInc:{ n:"Pompes inclinées", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompeInc",
+  pompesInc:{ n:"Pompes inclinées", g:"pecs", g2:["bras"], pat:"pouh", mat:0, img:"Incline_Push-Up", fig:"pompeInc",
     d:"Mains sur une table, un plan de travail ou le rebord d'un canapé. L'inclinaison allège la charge sur les bras.",
     c:["Un support plus bas rend l'exercice plus difficile.","Garde les coudes près du corps."] },
-  pompesDia:{ n:"Pompes diamant", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompe",
+  pompesDia:{ n:"Pompes diamant", g:"pecs", g2:["bras"], pat:"pouh", mat:0, img:"Push-Ups_-_Close_Triceps_Position", fig:"pompe",
     d:"Mains jointes sous la poitrine, pouces et index formant un triangle. Le travail se déplace sur les triceps.",
     c:["Coudes serrés le long du buste.","Version genoux si le format complet est trop dur."] },
-  pompesDec:{ n:"Pompes déclinées", g:"pecs", g2:["epaules","bras"], pat:"pouh", mat:0, fig:"pompe",
+  pompesDec:{ n:"Pompes déclinées", g:"pecs", g2:["epaules","bras"], pat:"pouh", mat:0, img:"Decline_Push-Up", fig:"pompe",
     d:"Pieds surélevés sur une chaise, mains au sol. Le haut des pectoraux et les épaules prennent le relais.",
     c:["Plus les pieds sont hauts, plus l'épaule travaille.","Ne creuse pas le bas du dos."] },
-  dipsBanc:{ n:"Dips sur chaise", g:"bras", g2:["pecs","epaules"], pat:"pouh", mat:0, fig:"dips",
+  dipsBanc:{ n:"Dips sur chaise", g:"bras", g2:["pecs","epaules"], pat:"pouh", mat:0, img:"Bench_Dips", fig:"dips",
     d:"Assis au bord d'une chaise, mains de part et d'autre des hanches, fesses dans le vide. On descend en pliant les coudes, on remonte.",
     c:["Coudes vers l'arrière, pas vers l'extérieur.","Jambes tendues pour durcir, pliées pour alléger.","Descends jusqu'à 90° au coude, pas plus bas."] },
-  devHalt:{ n:"Développé couché haltères", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:2, fig:"developpe",
+  devHalt:{ n:"Développé couché haltères", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:2, img:"Dumbbell_Bench_Press", fig:"developpe",
     d:"Allongé sur un banc ou au sol, un haltère dans chaque main. On pousse vers le plafond jusqu'à tendre les bras sans les verrouiller.",
     c:["Omoplates serrées, poitrine ouverte.","Au sol, l'amplitude est limitée : c'est normal et plus sûr pour l'épaule."] },
-  ecarte:{ n:"Écarté avec haltères", g:"pecs", g2:["epaules"], pat:"pouh", mat:2, fig:"elevation",
+  ecarte:{ n:"Écarté avec haltères", g:"pecs", g2:["epaules"], pat:"pouh", mat:2, img:"Dumbbell_Flyes", fig:"elevation",
     d:"Allongé, bras légèrement fléchis, on ouvre les bras en arc de cercle puis on les ramène au-dessus de la poitrine.",
     c:["Charge légère : c'est un exercice d'étirement, pas de force.","Les coudes gardent le même angle du début à la fin."] },
-  devBarre:{ n:"Développé couché", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:3, fig:"developpe",
+  devBarre:{ n:"Développé couché", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:3, img:"Barbell_Bench_Press_-_Medium_Grip", fig:"developpe",
     d:"Sur le banc, barre descendue au milieu de la poitrine puis repoussée. L'exercice de référence pour les pectoraux.",
     c:["Pieds au sol, dos stable, omoplates serrées.","Un pareur ou les sécurités du rack quand tu charges lourd."] },
 
   /* ---- poussée verticale ---- */
-  pompesPiq:{ n:"Pompes piquées", g:"epaules", g2:["bras"], pat:"pouv", mat:0, fig:"pompeInc",
+  pompesPiq:{ n:"Pompes piquées", g:"epaules", g2:["bras"], pat:"pouv", mat:0, img:"Handstand_Push-Ups", fig:"pompeInc",
     d:"En V renversé, fesses hautes, tête entre les mains. On descend le sommet du crâne vers le sol et on repousse.",
     c:["Plus les pieds sont proches des mains, plus l'épaule est sollicitée.","Regarde entre tes mains, nuque longue."] },
-  elevBouteille:{ n:"Élévations latérales avec bouteilles", g:"epaules", g2:[], pat:"pouv", mat:0, fig:"elevation",
+  elevBouteille:{ n:"Élévations latérales avec bouteilles", g:"epaules", g2:[], pat:"pouv", mat:0, img:"Side_Lateral_Raise", fig:"elevation",
     d:"Deux bouteilles d'eau en guise d'haltères, bras le long du corps. On lève sur les côtés jusqu'à l'horizontale.",
     c:["Deux bouteilles d'un litre et demi suffisent largement.","Monte en une seconde, redescends en deux.","Épaules basses, pas de balancement du buste."] },
-  devMil:{ n:"Développé militaire haltères", g:"epaules", g2:["bras"], pat:"pouv", mat:2, fig:"developpe",
+  devMil:{ n:"Développé militaire haltères", g:"epaules", g2:["bras"], pat:"pouv", mat:2, img:"Standing_Dumbbell_Press", fig:"developpe",
     d:"Debout ou assis, haltères à hauteur d'épaules. On pousse au-dessus de la tête, on redescend contrôlé.",
     c:["Ventre gainé : le dos ne doit pas partir en arrière.","Ne verrouille pas les coudes en haut."] },
-  elevLat:{ n:"Élévations latérales", g:"epaules", g2:[], pat:"pouv", mat:2, fig:"elevation",
+  elevLat:{ n:"Élévations latérales", g:"epaules", g2:[], pat:"pouv", mat:2, img:"Side_Lateral_Raise", fig:"elevation",
     d:"Bras le long du corps, on lève les haltères sur les côtés jusqu'à l'horizontale, coudes à peine fléchis.",
     c:["Léger, toujours : l'épaule se blesse vite ici.","Monte en 1 seconde, descends en 2.","Pas d'élan avec le dos."] },
-  devEpauleM:{ n:"Développé épaules machine", g:"epaules", g2:["bras"], pat:"pouv", mat:3, fig:"developpe",
+  devEpauleM:{ n:"Développé épaules machine", g:"epaules", g2:["bras"], pat:"pouv", mat:3, img:"Machine_Shoulder_Military_Press", fig:"developpe",
     d:"Assis dans la machine, dos calé, on pousse les poignées au-dessus de la tête.",
     c:["Règle la hauteur du siège : les poignées partent à hauteur d'épaules.","Amplitude complète, sans à-coups."] },
 
   /* ---- tirage horizontal ---- */
-  rowTable:{ n:"Tirage australien sous table", g:"dos", g2:["bras"], pat:"tirh", mat:0, fig:"tractionAus",
+  rowTable:{ n:"Tirage australien sous table", g:"dos", g2:["bras"], pat:"tirh", mat:0, img:"Inverted_Row", fig:"tractionAus",
     d:"Allongé sous une table solide, on attrape le plateau et on tire la poitrine vers le bord.",
     c:["Plus les pieds sont loin, plus c'est difficile.","Serre les omoplates en fin de tirage.","Vérifie que la table ne bascule pas."] },
-  superman:{ n:"Superman", g:"dos", g2:["fessiers"], pat:"tirh", mat:0, fig:"superman",
+  superman:{ n:"Superman", g:"dos", g2:["fessiers"], pat:"tirh", mat:0, img:"Superman", fig:"superman",
     d:"À plat ventre, bras devant. On soulève simultanément le buste et les jambes, on tient une seconde, on relâche.",
     c:["Cherche la longueur plutôt que la hauteur.","Nuque dans le prolongement du dos, regard au sol."] },
-  rowHalt:{ n:"Rowing haltère", g:"dos", g2:["bras"], pat:"tirh", mat:2, fig:"rowing",
+  rowHalt:{ n:"Rowing haltère", g:"dos", g2:["bras"], pat:"tirh", mat:2, img:"One-Arm_Dumbbell_Row", fig:"rowing",
     d:"Un genou et une main en appui sur un banc, l'autre main tire l'haltère le long du corps jusqu'à la hanche.",
     c:["Dos plat, pas de rotation du buste.","Tire avec le coude, pas avec la main."] },
-  rowElast:{ n:"Tirage à l'élastique", g:"dos", g2:["bras"], pat:"tirh", mat:1, fig:"rowing",
+  rowElast:{ n:"Tirage à l'élastique", g:"dos", g2:["bras"], pat:"tirh", mat:1, img:"Seated_Cable_Rows", fig:"rowing",
     d:"Élastique fixé à hauteur de taille — poignée de porte, radiateur, pied de meuble lourd. On tire les poignées vers le ventre en serrant les omoplates.",
     c:["Recule pour augmenter la tension.","Épaules basses, loin des oreilles."] },
-  rowMachine:{ n:"Rowing assis machine", g:"dos", g2:["bras"], pat:"tirh", mat:3, fig:"rowing",
+  rowMachine:{ n:"Rowing assis machine", g:"dos", g2:["bras"], pat:"tirh", mat:3, img:"Seated_Cable_Rows", fig:"rowing",
     d:"Assis, poitrine contre le support, on tire la poignée vers le ventre.",
     c:["Le buste reste immobile : c'est le dos qui travaille.","Retiens la charge au retour."] },
 
   /* ---- tirage vertical ---- */
-  tractionsAssist:{ n:"Tractions assistées", g:"dos", g2:["bras"], pat:"tirv", mat:1, fig:"traction",
+  tractionsAssist:{ n:"Tractions assistées", g:"dos", g2:["bras"], pat:"tirv", mat:1, img:"Band_Assisted_Pull-Up", fig:"traction",
     d:"Barre fixe avec un gros élastique sous les pieds ou les genoux, qui rend une partie du poids du corps.",
     c:["Commence menton au-dessus de la barre, même avec beaucoup d'aide.","Descends jusqu'aux bras tendus à chaque répétition."] },
-  tractions:{ n:"Tractions", g:"dos", g2:["bras"], pat:"tirv", mat:3, fig:"traction",
+  tractions:{ n:"Tractions", g:"dos", g2:["bras"], pat:"tirv", mat:3, img:"Pullups", fig:"traction",
     d:"Suspendu à la barre, mains en pronation, on tire jusqu'à passer le menton au-dessus.",
     c:["Épaules basses avant de tirer : on ne part pas d'un dos relâché.","Pas de coup de reins."] },
-  tirageVert:{ n:"Tirage vertical poulie", g:"dos", g2:["bras"], pat:"tirv", mat:3, fig:"traction",
+  tirageVert:{ n:"Tirage vertical poulie", g:"dos", g2:["bras"], pat:"tirv", mat:3, img:"Wide-Grip_Lat_Pulldown", fig:"traction",
     d:"Assis, cuisses bloquées, on tire la barre vers le haut de la poitrine.",
     c:["Léger recul du buste, pas un balancement.","Barre devant la tête, jamais derrière la nuque."] },
 
   /* ---- flexion de jambes ---- */
-  squat:{ n:"Squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:0, fig:"squat",
+  squat:{ n:"Squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:0, img:"Bodyweight_Squat", fig:"squat",
     d:"Pieds largeur d'épaules, on descend en poussant les fesses vers l'arrière jusqu'à ce que les cuisses soient parallèles au sol.",
     c:["Les genoux suivent la pointe des pieds.","Talons au sol, poitrine haute.","Descends aussi bas que ta mobilité le permet, sans arrondir le bas du dos."] },
-  squatSumo:{ n:"Squat sumo", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, fig:"squat",
+  squatSumo:{ n:"Squat sumo", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, img:"Plie_Dumbbell_Squat", fig:"squat",
     d:"Pieds très écartés, pointes ouvertes vers l'extérieur. L'intérieur des cuisses et les fessiers travaillent davantage.",
     c:["Genoux poussés vers l'extérieur pendant toute la descente.","Buste le plus vertical possible."] },
-  chaise:{ n:"Chaise contre le mur", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, fig:"chaise",
+  chaise:{ n:"Chaise contre le mur", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, img:"Sit_Squats", fig:"chaise",
     d:"Dos plaqué au mur, cuisses parallèles au sol, on tient la position.",
     c:["Genoux à 90°, pas plus fermés.","Respire calmement : ne bloque pas ta respiration.","Le poids reste sur les talons."] },
-  squatSaute:{ n:"Squat sauté", g:"jambes", g2:["cardio","fessiers"], pat:"squat", imp:1, mat:0, fig:"jumping",
+  squatSaute:{ n:"Squat sauté", g:"jambes", g2:["cardio","fessiers"], pat:"squat", imp:1, mat:0, img:"Freehand_Jump_Squat", fig:"jumping",
     d:"Un squat classique suivi d'un saut. On amortit la réception en repartant directement en flexion.",
     c:["Réception souple, sur l'avant du pied puis le talon.","À éviter si les genoux sont douloureux : garde le squat simple."] },
-  squatBulg:{ n:"Squat bulgare", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, fig:"fente",
+  squatBulg:{ n:"Squat bulgare", g:"jambes", g2:["fessiers"], pat:"squat", mat:0, img:"One_Leg_Barbell_Squat", fig:"fente",
     d:"Pied arrière posé sur une chaise, on descend sur la jambe avant jusqu'à 90° au genou.",
     c:["Avance suffisamment le pied avant pour que le genou reste au-dessus de la cheville.","Tiens un mur du bout des doigts si l'équilibre manque."] },
-  gobelet:{ n:"Goblet squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:2, fig:"squat",
+  gobelet:{ n:"Goblet squat", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:2, img:"Dumbbell_Squat", fig:"squat",
     d:"Un haltère tenu verticalement contre la poitrine, on descend en squat. Le contrepoids aide à garder le buste droit.",
     c:["Coudes à l'intérieur des genoux en bas.","La charge reste collée au sternum."] },
-  presse:{ n:"Presse à cuisses", g:"jambes", g2:["fessiers"], pat:"squat", mat:3, fig:"squat",
+  presse:{ n:"Presse à cuisses", g:"jambes", g2:["fessiers"], pat:"squat", mat:3, img:"Leg_Press", fig:"squat",
     d:"Assis dans la machine, on pousse le chariot en tendant les jambes sans verrouiller les genoux.",
     c:["Ne décolle jamais le bas du dos du dossier.","Descends jusqu'à 90° au genou, pas plus."] },
 
   /* ---- charnière de hanche ---- */
-  pont:{ n:"Pont fessier", g:"fessiers", g2:["jambes","abdos"], pat:"charn", mat:0, fig:"pont",
+  pont:{ n:"Pont fessier", g:"fessiers", g2:["jambes","abdos"], pat:"charn", mat:0, img:"Butt_Lift_Bridge", fig:"pont",
     d:"Allongé sur le dos, genoux pliés, pieds à plat. On pousse dans les talons pour décoller le bassin jusqu'à aligner genoux, hanches et épaules.",
     c:["Serre les fessiers une seconde en haut.","Le bas du dos ne doit pas creuser : c'est le fessier qui monte le bassin.","Une jambe à la fois pour corser."] },
-  hipThrust:{ n:"Hip thrust sur canapé", g:"fessiers", g2:["jambes"], pat:"charn", mat:0, fig:"pont",
+  hipThrust:{ n:"Hip thrust sur canapé", g:"fessiers", g2:["jambes"], pat:"charn", mat:0, img:"Barbell_Hip_Thrust", fig:"pont",
     d:"Haut du dos calé sur un canapé, pieds au sol. On monte le bassin jusqu'à l'horizontale du buste.",
     c:["Menton légèrement rentré, regard vers les genoux.","Amplitude complète : monte haut, redescends sans poser."] },
-  goodMorning:{ n:"Good morning", g:"fessiers", g2:["dos"], pat:"charn", mat:0, fig:"souleve",
+  goodMorning:{ n:"Good morning", g:"fessiers", g2:["dos"], pat:"charn", mat:0, img:"Good_Morning", fig:"souleve",
     d:"Debout, mains sur la nuque, on penche le buste en avant en poussant les fesses vers l'arrière, dos plat, jusqu'à sentir l'arrière des cuisses.",
     c:["Genoux à peine fléchis, jamais tendus à bloc.","Le dos reste droit du début à la fin : si tu arrondis, tu descends trop bas."] },
-  donkey:{ n:"Kick-back fessier", g:"fessiers", g2:[], pat:"charn", mat:0, fig:"jambes",
+  donkey:{ n:"Kick-back fessier", g:"fessiers", g2:[], pat:"charn", mat:0, img:"Rear_Leg_Raises", fig:"jambes",
     d:"À quatre pattes, on tend une jambe vers l'arrière en poussant le talon vers le plafond.",
     c:["Bassin stable : pas de rotation.","Serre le fessier en haut plutôt que de monter plus haut."] },
-  souleveHalt:{ n:"Soulevé de terre jambes semi-tendues", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:2, fig:"souleve",
+  souleveHalt:{ n:"Soulevé de terre jambes semi-tendues", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:2, img:"Stiff-Legged_Dumbbell_Deadlift", fig:"souleve",
     d:"Haltères devant les cuisses, on descend en poussant les hanches vers l'arrière, dos plat, jusqu'à mi-tibia.",
     c:["Les haltères frôlent les jambes pendant toute la descente.","Le mouvement vient de la hanche, pas du bas du dos.","Charge modérée tant que la technique n'est pas solide."] },
 
   /* ---- fentes ---- */
-  fentes:{ n:"Fentes avant", g:"jambes", g2:["fessiers"], pat:"fente", mat:0, fig:"fente",
+  fentes:{ n:"Fentes avant", g:"jambes", g2:["fessiers"], pat:"fente", mat:0, img:"Bodyweight_Walking_Lunge", fig:"fente",
     d:"Un grand pas en avant, on descend jusqu'à ce que le genou arrière frôle le sol, on repousse pour revenir.",
     c:["Buste droit, regard devant.","Le genou avant ne dépasse pas la pointe du pied.","Alterne les jambes à chaque répétition."] },
-  fentesArr:{ n:"Fentes arrière", g:"jambes", g2:["fessiers"], pat:"fente", mat:0, fig:"fente",
+  fentesArr:{ n:"Fentes arrière", g:"jambes", g2:["fessiers"], pat:"fente", mat:0, img:"Dumbbell_Rear_Lunge", fig:"fente",
     d:"Même mouvement, mais le pas se fait vers l'arrière. Plus doux pour les genoux que la version avant.",
     c:["Pose la pointe du pied arrière, pas le talon.","Pousse dans le talon avant pour remonter."] },
-  fentesMarch:{ n:"Fentes marchées", g:"jambes", g2:["fessiers","cardio"], pat:"fente", mat:0, fig:"fente",
+  fentesMarch:{ n:"Fentes marchées", g:"jambes", g2:["fessiers","cardio"], pat:"fente", mat:0, img:"Bodyweight_Walking_Lunge", fig:"fente",
     d:"On enchaîne les fentes en avançant, comme une marche exagérée.",
     c:["Prévois quelques mètres devant toi.","Reste stable une seconde entre chaque pas."] },
-  monteeBanc:{ n:"Montées sur banc", g:"jambes", g2:["fessiers","cardio"], pat:"fente", mat:0, fig:"montee",
+  monteeBanc:{ n:"Montées sur banc", g:"jambes", g2:["fessiers","cardio"], pat:"fente", mat:0, img:"Dumbbell_Step_Ups", fig:"montee",
     d:"Face à une chaise ou une marche, on monte un pied puis l'autre, on redescend de la même façon.",
     c:["Pousse dans la jambe du haut, ne t'aide pas d'un élan du bas.","Une marche à mi-hauteur du tibia suffit pour commencer."] },
 
   /* ---- gainage ---- */
-  planche:{ n:"Gainage — planche", g:"abdos", g2:["dos","epaules"], pat:"gain", mat:0, fig:"planche",
+  planche:{ n:"Gainage — planche", g:"abdos", g2:["dos","epaules"], pat:"gain", mat:0, img:"Plank", fig:"planche",
     d:"En appui sur les avant-bras et les pointes de pieds, corps parfaitement aligné. On tient.",
     c:["Coudes sous les épaules.","Rentre le nombril, serre les fessiers.","Mieux vaut 20 secondes parfaites que 60 avec les fesses en l'air."] },
-  plancheLat:{ n:"Gainage latéral", g:"abdos", g2:["dos"], pat:"gain", mat:0, fig:"plancheLat",
+  plancheLat:{ n:"Gainage latéral", g:"abdos", g2:["dos"], pat:"gain", mat:0, img:"Side_Bridge", fig:"plancheLat",
     d:"Sur le côté, en appui sur un avant-bras, hanches décollées. On tient, puis on change de côté.",
     c:["Coude sous l'épaule.","Le bassin monte haut et ne redescend pas.","Version genoux fléchis pour alléger."] },
-  hollow:{ n:"Hollow body", g:"abdos", g2:[], pat:"gain", mat:0, fig:"crunch",
+  hollow:{ n:"Hollow body", g:"abdos", g2:[], pat:"gain", mat:0, img:"Flat_Bench_Lying_Leg_Raise", fig:"crunch",
     d:"Allongé sur le dos, bas du dos plaqué au sol, épaules et jambes décollées. On tient la position en bateau.",
     c:["Si le bas du dos décolle, remonte les jambes.","Bras le long du corps pour une version plus facile."] },
-  gainDyn:{ n:"Planche épaule-touchée", g:"abdos", g2:["epaules"], pat:"gain", mat:0, fig:"gainDyn",
+  gainDyn:{ n:"Planche épaule-touchée", g:"abdos", g2:["epaules"], pat:"gain", mat:0, img:"Push_Up_to_Side_Plank", fig:"gainDyn",
     d:"En position de planche bras tendus, on vient toucher l'épaule opposée avec une main, en alternant.",
     c:["Écarte les pieds pour plus de stabilité.","Le bassin ne doit pas balancer : c'est là que se fait le travail."] },
 
   /* ---- flexion du tronc ---- */
-  crunch:{ n:"Crunch", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"crunch",
+  crunch:{ n:"Crunch", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Crunches", fig:"crunch",
     d:"Allongé, genoux pliés, on enroule le haut du dos vers les cuisses sans tirer sur la nuque.",
     c:["Mains sur les tempes, pas derrière la tête.","Expire en montant.","Amplitude courte : les omoplates décollent, c'est tout."] },
-  releveJambes:{ n:"Relevé de jambes", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"jambes",
+  releveJambes:{ n:"Relevé de jambes", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Flat_Bench_Lying_Leg_Raise", fig:"jambes",
     d:"Allongé, mains sous les fesses, on lève les jambes tendues jusqu'à la verticale puis on redescend sans toucher le sol.",
     c:["Le bas du dos reste collé au sol : plie les genoux si ce n'est pas le cas.","Descends lentement, c'est la partie utile."] },
-  mountain:{ n:"Mountain climbers", g:"abdos", g2:["cardio","epaules"], pat:"abdo", mat:0, fig:"mountain",
+  mountain:{ n:"Mountain climbers", g:"abdos", g2:["cardio","epaules"], pat:"abdo", mat:0, img:"Mountain_Climbers", fig:"mountain",
     d:"En position de planche bras tendus, on ramène alternativement un genou vers la poitrine, en rythme.",
     c:["Les hanches restent basses.","Accélère seulement quand la position tient."] },
-  twist:{ n:"Russian twist", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"twist",
+  twist:{ n:"Russian twist", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Russian_Twist", fig:"twist",
     d:"Assis, buste incliné en arrière, pieds décollés ou non, on fait passer les mains d'un côté à l'autre.",
     c:["La rotation vient du buste, pas seulement des bras.","Pieds au sol si le dos tire."] },
-  bicyclette:{ n:"Crunch bicyclette", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"crunch",
+  bicyclette:{ n:"Crunch bicyclette", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Air_Bike", fig:"crunch",
     d:"Allongé, on amène le coude vers le genou opposé en alternant, jambes en mouvement de pédalage.",
     c:["Lentement : la vitesse fait perdre tout le travail.","Ne tire pas sur la nuque."] },
 
   /* ---- mollets ---- */
-  mollets:{ n:"Mollets debout", g:"mollets", g2:[], pat:"mollet", mat:0, fig:"mollets",
+  mollets:{ n:"Mollets debout", g:"mollets", g2:[], pat:"mollet", mat:0, img:"Standing_Calf_Raises", fig:"mollets",
     d:"Debout, on monte sur la pointe des pieds le plus haut possible, on redescend lentement.",
     c:["Sur une marche, talons dans le vide, l'amplitude double.","Une seconde de pause en haut."] },
 
-  molletsUn:{ n:"Mollets sur une jambe", g:"mollets", g2:[], pat:"mollet", mat:0, fig:"mollets",
+  molletsUn:{ n:"Mollets sur une jambe", g:"mollets", g2:[], pat:"mollet", mat:0, img:"Standing_Dumbbell_Calf_Raise", fig:"mollets",
     d:"Sur un pied, on monte sur la pointe le plus haut possible. Tout le poids du corps sur un seul mollet.",
     c:["Appuie une main au mur pour l'équilibre, pas pour t'aider à monter.","Redescends lentement, c'est la partie qui compte."] },
 
   /* ---- cardio ---- */
-  marche:{ n:"Marche rapide", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, fig:"marche", type:"temps",
+  marche:{ n:"Marche rapide", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, img:"Walking_Treadmill", fig:"marche", type:"temps",
     d:"Une allure soutenue, où l'on peut encore parler mais plus chanter. Le meilleur point d'entrée quand on repart de loin.",
     c:["Vise une cadence régulière plutôt qu'un sprint suivi d'un arrêt.","Un terrain vallonné remplace avantageusement la course."] },
-  course:{ n:"Course à pied", g:"cardio", g2:["jambes"], pat:"cardio", imp:1, mat:0, fig:"course", type:"temps",
+  course:{ n:"Course à pied", g:"cardio", g2:["jambes"], pat:"cardio", imp:1, mat:0, img:"Running_Treadmill", fig:"course", type:"temps",
     d:"Course en endurance fondamentale : le rythme où la conversation reste possible.",
     c:["Alterne 2 minutes de course et 1 minute de marche si le souffle manque.","Pose le pied sous le bassin, pas devant."] },
-  corde:{ n:"Corde à sauter", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"corde", type:"temps",
+  corde:{ n:"Corde à sauter", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, img:"Rope_Jumping", fig:"corde", type:"temps",
     d:"Petits sauts sur place, la corde passant sous les pieds. Très dense en dépense pour le temps passé.",
     c:["Sauts bas : deux centimètres suffisent.","Coudes près du corps, ce sont les poignets qui tournent.","Sans corde, imite le mouvement : l'effet cardio reste."] },
-  cordeAlt:{ n:"Corde — pas alternés", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeAlt", type:"temps",
+  cordeAlt:{ n:"Corde — pas alternés", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, img:"Rope_Jumping", fig:"cordeAlt", type:"temps",
     d:"Saut à la corde en passant d'un pied sur l'autre, comme une course sur place. La version qui tient le plus longtemps.",
     c:["Sauts bas, poignets actifs, coudes près du corps.","C'est le pas le plus économique : idéal pour les longues séries.","Garde une cadence régulière plutôt que rapide."] },
-  cordeGenoux:{ n:"Corde — montées de genoux", g:"cardio", g2:["abdos","mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeGen", type:"temps",
+  cordeGenoux:{ n:"Corde — montées de genoux", g:"cardio", g2:["abdos","mollets"], pat:"cardio", imp:1, cor:1, mat:0, img:"Rope_Jumping", fig:"cordeGen", type:"temps",
     d:"Un genou monte à hauteur de hanche à chaque tour de corde. Le rythme ralentit, le cœur monte.",
     c:["Buste droit, ne te penche pas en arrière.","Vingt secondes suffisent au début : c'est très exigeant.","Reviens au pas alterné dès que la corde accroche."] },
-  cordeDouble:{ n:"Corde — double tour", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeDouble", type:"temps",
+  cordeDouble:{ n:"Corde — double tour", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, img:"Rope_Jumping", fig:"cordeDouble", type:"temps",
     d:"La corde passe deux fois sous les pieds pour un seul saut. Coordination d'abord, condition ensuite.",
     c:["Accélère les poignets plutôt que de sauter plus haut.","Un double tour tous les cinq sauts, puis deux, puis trois.","Corde légèrement plus longue pour apprendre."] },
-  cordeUnPied:{ n:"Corde — cloche-pied", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeUn", type:"temps",
+  cordeUnPied:{ n:"Corde — cloche-pied", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, img:"Rope_Jumping", fig:"cordeUn", type:"temps",
     d:"Sauts sur un seul pied, l'autre replié. Le mollet et la cheville encaissent tout le travail.",
     c:["Change de jambe à la moitié du temps.","Sauts bas et réguliers.","À éviter si la cheville est douloureuse."] },
-  cordeSprint:{ n:"Corde — sprint", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeDouble", type:"temps",
+  cordeSprint:{ n:"Corde — sprint", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, img:"Rope_Jumping", fig:"cordeDouble", type:"temps",
     d:"Le plus vite possible pendant un temps court, puis récupération complète. La façon la plus dense de dépenser.",
     c:["Trente secondes à fond valent mieux que trois minutes molles.","Récupère vraiment entre les séries : c'est ce qui permet de repartir vite.","Arrête la série si la technique se délite."] },
-  jumping:{ n:"Jumping jacks", g:"cardio", g2:["epaules"], pat:"cardio", imp:1, mat:0, fig:"jumping", type:"temps",
+  jumping:{ n:"Jumping jacks", g:"cardio", g2:["epaules"], pat:"cardio", imp:1, mat:0, img:"Star_Jump", fig:"jumping", type:"temps",
     d:"Saut avec écartement simultané des jambes et des bras. L'échauffement universel.",
     c:["Réception souple, genoux déverrouillés.","Version sans saut : un pied de côté après l'autre."] },
-  burpees:{ n:"Burpees", g:"cardio", g2:["pecs","jambes"], pat:"cardio", imp:1, mat:0, fig:"burpee",
+  burpees:{ n:"Burpees", g:"cardio", g2:["pecs","jambes"], pat:"cardio", imp:1, mat:0, img:"Rocket_Jump", fig:"burpee",
     d:"Debout, on descend en planche, on fait une pompe, on ramène les pieds et on saute. L'exercice le plus complet, et le plus exigeant.",
     c:["Retire la pompe ou le saut pour alléger, garde le rythme.","Mieux vaut 5 propres que 15 en désordre."] },
-  genoux:{ n:"Montées de genoux", g:"cardio", g2:["abdos"], pat:"cardio", mat:0, fig:"genoux", type:"temps",
+  genoux:{ n:"Montées de genoux", g:"cardio", g2:["abdos"], pat:"cardio", mat:0, img:"Knee_Tuck_Jump", fig:"genoux", type:"temps",
     d:"Sur place, on monte alternativement les genoux à hauteur de hanches, bras actifs.",
     c:["Buste droit, ne te penche pas en arrière.","Appuis sur l'avant du pied.","Sans sauter, un pied toujours au sol : la version marchée ne cogne pas les articulations."] },
-  talons:{ n:"Talons-fesses", g:"cardio", g2:["jambes"], pat:"cardio", imp:1, mat:0, fig:"course", type:"temps",
+  talons:{ n:"Talons-fesses", g:"cardio", g2:["jambes"], pat:"cardio", imp:1, mat:0, img:"Double_Leg_Butt_Kick", fig:"course", type:"temps",
     d:"Course sur place en ramenant les talons vers les fesses.",
     c:["Reste sur l'avant du pied.","Bassin gainé, sans cambrure."] },
-  velo:{ n:"Vélo", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, fig:"velo", type:"temps",
+  velo:{ n:"Vélo", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, img:"Bicycling_Stationary", fig:"velo", type:"temps",
     d:"Sur route ou sur home-trainer, à une intensité où l'on garde le souffle.",
     c:["Cadence de pédalage plutôt élevée, braquet modéré.","Excellent choix quand les articulations encaissent mal les impacts."] },
-  rameur:{ n:"Rameur", g:"cardio", g2:["dos","jambes"], pat:"cardio", mat:3, fig:"rowing", type:"temps",
+  rameur:{ n:"Rameur", g:"cardio", g2:["dos","jambes"], pat:"cardio", mat:3, img:"Rowing_Stationary", fig:"rowing", type:"temps",
     d:"L'enchaînement jambes, buste, bras — puis le retour dans l'ordre inverse.",
     c:["La poussée vient des jambes, pas des bras.","Dos droit, pas d'arrondi en fin de tirage."] },
 
   /* ---- bras ---- */
-  curl:{ n:"Curl biceps", g:"bras", g2:[], pat:"tirh", mat:2, fig:"curl",
+  curl:{ n:"Curl biceps", g:"bras", g2:[], pat:"tirh", mat:2, img:"Dumbbell_Bicep_Curl", fig:"curl",
     d:"Debout, haltères le long du corps, on fléchit les coudes sans bouger les épaules.",
     c:["Les coudes restent collés au buste.","Pas d'élan du dos : allège plutôt la charge."] },
 
   /* ---- poids du corps, haut du corps ---- */
-  pompesLarges:{ n:"Pompes prise large", g:"pecs", g2:["epaules"], pat:"pouh", mat:0, fig:"pompe",
+  pompesLarges:{ n:"Pompes prise large", g:"pecs", g2:["epaules"], pat:"pouh", mat:0, img:"Pushups_Close_and_Wide_Hand_Positions", fig:"pompe",
     d:"Mains nettement plus larges que les épaules. L'amplitude est plus courte, l'étirement du pectoral plus marqué.",
     c:["Ne descends pas plus bas que ce que l'épaule accepte sans pincement.","Garde le corps aligné, fessiers serrés."] },
-  pompesExc:{ n:"Pompes excentriques", g:"pecs", g2:["bras"], pat:"pouh", mat:0, fig:"pompe",
+  pompesExc:{ n:"Pompes excentriques", g:"pecs", g2:["bras"], pat:"pouh", mat:0, img:"Pushups", fig:"pompe",
     d:"On descend en cinq secondes, on remonte comme on peut — genoux au sol si nécessaire. La méthode la plus rapide pour arriver à sa première pompe complète.",
     c:["Compte réellement les cinq secondes de descente.","Cinq répétitions lentes valent mieux que quinze rapides."] },
-  dipsChaises:{ n:"Dips entre deux chaises", g:"bras", g2:["pecs","epaules"], pat:"pouh", mat:0, fig:"dips",
+  dipsChaises:{ n:"Dips entre deux chaises", g:"bras", g2:["pecs","epaules"], pat:"pouh", mat:0, img:"Bench_Dips", fig:"dips",
     d:"Une main sur chaque chaise, pieds au sol ou sur une troisième chaise. On descend jusqu'à 90° au coude.",
     c:["Vérifie la stabilité des chaises avant de charger dessus.","Buste légèrement penché en avant pour les pectoraux, vertical pour les triceps.","Ne descends pas plus bas que l'horizontale de l'épaule."] },
-  rowServiette:{ n:"Rowing à la serviette", g:"dos", g2:["bras"], pat:"tirh", mat:0, fig:"rowing",
+  rowServiette:{ n:"Rowing à la serviette", g:"dos", g2:["bras"], pat:"tirh", mat:0, img:"Inverted_Row", fig:"rowing",
     d:"Une serviette passée autour d'une poignée de porte, on s'assoit en arrière bras tendus et on tire le buste vers la porte.",
     c:["Ouvre la porte et cale-la : on tire du côté des gonds.","Plus les pieds avancent, plus c'est difficile.","Serre les omoplates en fin de tirage."] },
-  yWall:{ n:"Élévations en Y", g:"dos", g2:["epaules"], pat:"tirh", mat:0, fig:"superman",
+  yWall:{ n:"Élévations en Y", g:"dos", g2:["epaules"], pat:"tirh", mat:0, img:"Superman", fig:"superman",
     d:"À plat ventre, bras tendus en Y au-dessus de la tête, pouces vers le plafond. On décolle les bras sans bouger le buste.",
     c:["Le mouvement est minuscule : deux centimètres suffisent.","Épaules loin des oreilles.","L'exercice qui répare le dos rond des journées de bureau."] },
   birdDog:{ n:"Bird dog", g:"abdos", g2:["dos","fessiers"], pat:"gain", mat:0, fig:"chat",
     d:"À quatre pattes, on tend simultanément un bras et la jambe opposée, on tient deux secondes, on change.",
     c:["Le bassin ne bascule pas : imagine un verre d'eau posé sur le bas du dos.","Cherche la longueur, pas la hauteur."] },
-  plancheMD:{ n:"Planche montée-descente", g:"abdos", g2:["epaules","bras"], pat:"gain", mat:0, fig:"gainDyn",
+  plancheMD:{ n:"Planche montée-descente", g:"abdos", g2:["epaules","bras"], pat:"gain", mat:0, img:"Plank", fig:"gainDyn",
     d:"De la planche sur les avant-bras à la planche bras tendus, un bras après l'autre, puis retour.",
     c:["Écarte les pieds pour limiter le roulis du bassin.","Alterne le bras qui monte en premier."] },
-  vups:{ n:"V-ups", g:"abdos", g2:[], pat:"abdo", mat:0, fig:"crunch",
+  vups:{ n:"V-ups", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Jackknife_Sit-Up", fig:"crunch",
     d:"Allongé bras tendus derrière la tête, on plie le corps en V en amenant mains et pieds au-dessus du bassin.",
     c:["Genoux pliés pour une version plus accessible.","Redescends sans laisser retomber les jambes."] },
-  pontUn:{ n:"Pont fessier une jambe", g:"fessiers", g2:["jambes"], pat:"charn", mat:0, fig:"pont",
+  pontUn:{ n:"Pont fessier une jambe", g:"fessiers", g2:["jambes"], pat:"charn", mat:0, img:"Single_Leg_Glute_Bridge", fig:"pont",
     d:"Un pont fessier classique, mais une jambe tendue en l'air. Tout le travail passe sur un seul côté.",
     c:["Le bassin reste horizontal : ne laisse pas la hanche libre s'affaisser.","Pousse dans le talon, pas dans la pointe."] },
-  abdCouche:{ n:"Abduction couchée", g:"fessiers", g2:[], pat:"charn", mat:0, fig:"jambes",
+  abdCouche:{ n:"Abduction couchée", g:"fessiers", g2:[], pat:"charn", mat:0, img:"Side_Leg_Raises", fig:"jambes",
     d:"Allongé sur le côté, jambes superposées, on lève la jambe du dessus sans basculer en arrière.",
     c:["Pointe du pied vers l'avant, légèrement vers le sol.","Amplitude modeste, brûlure garantie."] },
 
   /* ---- élastique ---- */
-  elastDeveloppe:{ n:"Développé couché élastique", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:1, fig:"developpe",
+  elastDeveloppe:{ n:"Développé couché élastique", g:"pecs", g2:["bras","epaules"], pat:"pouh", mat:1, img:"Bench_Press_-_With_Bands", fig:"developpe",
     d:"Élastique passé dans le dos, poignées au niveau des aisselles, on pousse vers l'avant jusqu'à tendre les bras.",
     c:["Debout ou à genoux, le buste reste gainé.","Fais un tour d'élastique autour des mains pour augmenter la tension.","Retiens le retour, c'est là que le muscle travaille."] },
-  elastEpaules:{ n:"Développé épaules élastique", g:"epaules", g2:["bras"], pat:"pouv", mat:1, fig:"developpe",
+  elastEpaules:{ n:"Développé épaules élastique", g:"epaules", g2:["bras"], pat:"pouv", mat:1, img:"Shoulder_Press_-_With_Bands", fig:"developpe",
     d:"Debout sur l'élastique, poignées à hauteur d'épaules, on pousse au-dessus de la tête.",
     c:["Écarte les pieds sur l'élastique pour augmenter la résistance.","Ne cambre pas le bas du dos en fin de poussée."] },
-  elastTirageV:{ n:"Tirage vertical élastique", g:"dos", g2:["bras"], pat:"tirv", mat:1, fig:"traction",
+  elastTirageV:{ n:"Tirage vertical élastique", g:"dos", g2:["bras"], pat:"tirv", mat:1, img:"Band_Assisted_Pull-Up", fig:"traction",
     d:"Élastique fixé en hauteur — une porte, une barre —, on tire les poignées vers la poitrine, coudes vers le bas.",
     c:["Recule d'un pas pour mettre l'élastique en tension avant de commencer.","Pense à descendre les coudes plutôt qu'à tirer avec les mains."] },
-  elastFacePull:{ n:"Face pull élastique", g:"epaules", g2:["dos"], pat:"tirh", mat:1, fig:"rowing",
+  elastFacePull:{ n:"Face pull élastique", g:"epaules", g2:["dos"], pat:"tirh", mat:1, img:"Face_Pull", fig:"rowing",
     d:"Élastique à hauteur de visage, on tire les poignées vers le front en écartant les coudes.",
     c:["Le meilleur exercice contre les épaules enroulées vers l'avant.","Léger et lent : ce n'est pas un exercice de force."] },
-  elastCurl:{ n:"Curl élastique", g:"bras", g2:[], pat:"tirh", mat:1, fig:"curl",
+  elastCurl:{ n:"Curl élastique", g:"bras", g2:[], pat:"tirh", mat:1, img:"Close-Grip_EZ-Bar_Curl_with_Band", fig:"curl",
     d:"Debout sur l'élastique, paumes vers le haut, on fléchit les coudes sans bouger les épaules.",
     c:["Coudes collés au buste.","La tension augmente en fin de mouvement : ralentis à ce moment-là."] },
-  elastTriceps:{ n:"Extension triceps élastique", g:"bras", g2:[], pat:"pouh", mat:1, fig:"dips",
+  elastTriceps:{ n:"Extension triceps élastique", g:"bras", g2:[], pat:"pouh", mat:1, img:"Triceps_Pushdown_-_Rope_Attachment", fig:"dips",
     d:"Élastique accroché en hauteur, coudes fixes près du corps, on tend les avant-bras vers le bas.",
     c:["Seuls les avant-bras bougent.","Une seconde de contraction en bas."] },
-  elastSquat:{ n:"Squat avec élastique", g:"jambes", g2:["fessiers"], pat:"squat", mat:1, fig:"squat",
+  elastSquat:{ n:"Squat avec élastique", g:"jambes", g2:["fessiers"], pat:"squat", mat:1, img:"Squats_-_With_Bands", fig:"squat",
     d:"Debout sur l'élastique, poignées aux épaules, on descend en squat contre la résistance.",
     c:["La tension est maximale en haut : ne relâche pas en fin de montée.","Genoux dans l'axe des pointes de pieds."] },
-  elastSouleve:{ n:"Soulevé de terre élastique", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:1, fig:"souleve",
+  elastSouleve:{ n:"Soulevé de terre élastique", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:1, img:"Deadlift_with_Bands", fig:"souleve",
     d:"Pieds sur l'élastique, on se penche en poussant les hanches en arrière, dos plat, puis on se redresse en serrant les fessiers.",
     c:["Le dos ne s'arrondit jamais.","Le mouvement vient de la hanche, pas des genoux."] },
-  elastAbduction:{ n:"Abduction hanche élastique", g:"fessiers", g2:[], pat:"charn", mat:1, fig:"jambes",
+  elastAbduction:{ n:"Abduction hanche élastique", g:"fessiers", g2:[], pat:"charn", mat:1, img:"Band_Hip_Adductions", fig:"jambes",
     d:"Mini-bande autour des cuisses, allongé sur le côté ou debout, on écarte la jambe contre la résistance.",
     c:["Bassin stable, pas de rotation du buste.","Retiens le retour."] },
-  elastMonster:{ n:"Marche latérale élastique", g:"fessiers", g2:["jambes"], pat:"charn", mat:1, fig:"marche",
+  elastMonster:{ n:"Marche latérale élastique", g:"fessiers", g2:["jambes"], pat:"charn", mat:1, img:"Band_Hip_Adductions", fig:"marche",
     d:"Élastique autour des chevilles ou des genoux, demi-squat, on avance en pas chassés sans laisser les genoux rentrer.",
     c:["Reste bas pendant toute la série.","Une dizaine de pas dans chaque sens compte pour une série."] },
 
   /* ---- mobilité ---- */
-  etirPecs:{ n:"Étirement des pectoraux", g:"mobilite", g2:["pecs"], pat:"mob", mat:0, fig:"etirement", type:"temps",
+  etirPecs:{ n:"Étirement des pectoraux", g:"mobilite", g2:["pecs"], pat:"mob", mat:0, img:"Behind_Head_Chest_Stretch", fig:"etirement", type:"temps",
     d:"Avant-bras contre un montant de porte, coude à hauteur d'épaule, on avance le buste jusqu'à sentir l'avant de l'épaule s'ouvrir.",
     c:["Trente secondes de chaque côté.","Ne force pas : l'épaule aime la douceur."] },
-  rotThor:{ n:"Rotation thoracique", g:"mobilite", g2:["dos"], pat:"mob", mat:0, fig:"chat", type:"temps",
+  rotThor:{ n:"Rotation thoracique", g:"mobilite", g2:["dos"], pat:"mob", mat:0, img:"Spinal_Stretch", fig:"chat", type:"temps",
     d:"À quatre pattes, une main derrière la nuque, on ouvre le coude vers le plafond en suivant du regard.",
     c:["Le bassin reste face au sol.","Inspire en ouvrant, expire en refermant."] },
-  chatVache:{ n:"Chat-vache", g:"mobilite", g2:["dos"], pat:"mob", mat:0, fig:"chat", type:"temps",
+  chatVache:{ n:"Chat-vache", g:"mobilite", g2:["dos"], pat:"mob", mat:0, img:"Cat_Stretch", fig:"chat", type:"temps",
     d:"À quatre pattes, on alterne dos rond et dos creux au rythme de la respiration.",
     c:["Inspire en creusant, expire en arrondissant.","Mouvement lent, vertèbre par vertèbre."] },
-  etirIsch:{ n:"Étirement ischio-jambiers", g:"mobilite", g2:["jambes"], pat:"mob", mat:0, fig:"etirement", type:"temps",
+  etirIsch:{ n:"Étirement ischio-jambiers", g:"mobilite", g2:["jambes"], pat:"mob", mat:0, img:"Standing_Hamstring_and_Calf_Stretch", fig:"etirement", type:"temps",
     d:"Assis ou debout, une jambe tendue, on penche le buste vers l'avant dos plat jusqu'à sentir l'arrière de la cuisse.",
     c:["Ça doit tirer, jamais faire mal.","Respire : ne bloque pas le souffle pendant l'étirement."] },
-  etirQuad:{ n:"Étirement quadriceps", g:"mobilite", g2:["jambes"], pat:"mob", mat:0, fig:"marche", type:"temps",
+  etirQuad:{ n:"Étirement quadriceps", g:"mobilite", g2:["jambes"], pat:"mob", mat:0, img:"Quad_Stretch", fig:"marche", type:"temps",
     d:"Debout, on attrape le pied derrière soi et on rapproche le talon de la fesse, bassin rentré.",
     c:["Genoux côte à côte.","Appuie-toi à un mur pour l'équilibre."] },
-  rotEp:{ n:"Rotations d'épaules", g:"mobilite", g2:["epaules"], pat:"mob", mat:0, fig:"marche", type:"temps",
+  rotEp:{ n:"Rotations d'épaules", g:"mobilite", g2:["epaules"], pat:"mob", mat:0, img:"Arm_Circles", fig:"marche", type:"temps",
     d:"Grands cercles des bras, en avant puis en arrière, pour réveiller l'articulation avant l'effort.",
     c:["Amplitude maximale, lentement.","Change de sens à mi-temps."] },
-  respiration:{ n:"Retour au calme", g:"mobilite", g2:[], pat:"mob", mat:0, fig:"etirement", type:"temps",
+  respiration:{ n:"Retour au calme", g:"mobilite", g2:[], pat:"mob", mat:0, img:"Childs_Pose", fig:"etirement", type:"temps",
     d:"Assis ou allongé, on respire lentement : inspiration par le nez, expiration longue par la bouche.",
     c:["Compte 4 temps à l'inspiration, 6 à l'expiration.","C'est la partie de la séance où le cœur redescend."] }
 };
@@ -1814,7 +1867,7 @@ const DEFAULTS = {
   version:SCHEMA, jours:{}, seances:{},
   settings:{ theme:"clair", accent:ACCENTS[0][0], objectif:"forme",
              sexe:"h", age:35, taille:175, activite:"sedentaire", matos:0,
-             crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1, niveau:"debutant", corde:false,
+             crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1, niveau:"debutant", corde:false, photos:true,
              bTri:"90j" },
   plan:null, progs:[], charges:{}, repasTypes:[],
   meta:{ cree:Date.now(), modifie:0, exporte:0, vue:null }
@@ -4033,6 +4086,10 @@ function vueReglages(){
     (nbRemplacements() ? '<div class="lig"><div class="l">Exercices remplacés<div class="d">' +
       Object.keys(s.subs).map(k => (EXOS[k]||{}).n + " → " + (EXOS[s.subs[k]]||{}).n).join(" · ") +
       '</div></div><button class="btn" data-act="raz-subs">Tout rétablir</button></div>' : "") +
+    '<button class="bascule ' + (s.photos ? "on" : "") + '" data-act="bascule" data-id="photos">' +
+      '<span class="l">Photographies des exercices<span class="d">Deux prises de vue par exercice, départ et arrivée, en plus du mouvement dessiné. ' +
+      'Elles se chargent depuis Internet : sans réseau, il ne reste que les dessins.</span></span>' +
+      '<span class="k"></span></button>' +
     '<button class="bascule ' + (s.corde ? "on" : "") + '" data-act="bascule-corde">' +
       '<span class="l">J\'ai une corde à sauter<span class="d">Ouvre cinq exercices de corde, un programme dédié, et la corde cesse d\'être remplacée dans les séances.</span></span>' +
       '<span class="k"></span></button>' +
@@ -4097,7 +4154,8 @@ function vueReglages(){
   h += '</div>';
 
   h += '<div class="aide" style="text-align:center;margin:18px 0 0">' +
-    'Tout reste sur cet appareil. Rien ne part sur un serveur.<br>' +
+    'Photographies : <b>Free Exercise DB</b>, jeu de données versé au domaine public.<br>' +
+    'Tout le reste demeure sur cet appareil. Rien ne part sur un serveur.<br>' +
     'Palier estime, il ne diagnostique pas : un avis médical reste la référence, surtout en cas de traitement ou de pathologie.</div>';
   return h;
 }
@@ -4171,6 +4229,11 @@ const GUIDE = [
     "Le matériel déclaré dans les réglages décide de deux choses : les programmes proposés dans le catalogue, et les remplaçants suggérés pour un exercice.",
     "Les crans se cumulent : « haltères » comprend tout ce qui se fait à l'élastique et sans matériel, « salle » comprend tout.",
     "La corde à sauter se déclare à part. Sans elle, les exercices de corde deviennent des jumping jacks ou des montées de genoux ; avec elle, cinq variantes s'ouvrent — pas alternés, montées de genoux, double tour, cloche-pied, sprint — et un programme entier."
+  ]},
+  { t:"Comprendre un mouvement", l:[
+    "Chaque fiche d'exercice montre deux photographies — la position de départ et la position d'arrivée — puis la même chose dessinée en trois vignettes légendées.",
+    "Les photographies viennent de Free Exercise DB, un jeu de données versé au domaine public. Elles se chargent depuis Internet : sans réseau, seules les vignettes dessinées restent, et elles suffisent à retrouver la position.",
+    "Les photos peuvent être coupées dans les réglages, avec le reste du fonctionnement inchangé."
   ]},
   { t:"Si un exercice ne va pas", l:[
     "Un mouvement douloureux, impossible, ou pour lequel il manque le matériel se remplace : ouvre l'exercice, touche « Remplacer », choisis dans la liste proposée.",
@@ -4478,6 +4541,9 @@ function sheetExo(sh){
     '<span class="mus">' + esc(PATS[e.pat] || "") + '</span></div>';
 
   h += '<p style="font-size:14.5px;line-height:1.6;color:var(--gris);margin:14px 0 0">' + esc(e.d) + '</p>';
+
+  const ph = photos(e);
+  if(ph) h += '<div class="sect"><h2>En photo</h2></div>' + ph;
 
   const bd = planche(e.fig);
   if(bd){
