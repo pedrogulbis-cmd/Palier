@@ -307,6 +307,28 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
 .jrn li{font-size:13px;line-height:1.55;margin-bottom:3px;color:var(--gris)}
 .jrn li::marker{color:var(--acc)}
 
+/* ---------------- catalogue d'aliments ---------------- */
+.alim{display:flex;gap:11px;align-items:center;width:100%;text-align:left;
+  padding:11px 2px;border-bottom:1px solid var(--trait2)}
+.alim-mid{flex:1;min-width:0}
+.alim-n{display:block;font-size:14.5px;letter-spacing:-.01em}
+.alim-p{display:block;font-size:11.5px;color:var(--gris2);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alim-k{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:var(--gris);white-space:nowrap}
+.alim-add{width:28px;height:28px;flex:0 0 28px;border-radius:9px;border:1px solid var(--trait);
+  display:grid;place-items:center;color:var(--acc)}
+.c-acc{color:var(--acc)}
+.pan{position:sticky;bottom:0;z-index:6;background:var(--voile);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border-top:1px solid var(--trait);
+  margin:14px -18px 0;padding:11px 18px calc(11px + env(safe-area-inset-bottom));
+  display:flex;gap:11px;align-items:center}
+.pan .t{flex:1;min-width:0;font-size:12.5px;color:var(--gris)}
+.pan .t b{display:block;color:var(--texte);font-size:17px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums}
+.qte{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.qte button{width:28px;height:28px;border-radius:8px;border:1px solid var(--trait);display:grid;place-items:center;color:var(--gris)}
+.qte .v{min-width:34px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+
 /* ---------------- toast ---------------- */
 .toast{position:fixed;left:50%;transform:translate(-50%,90px);bottom:calc(var(--tab) + 14px);z-index:70;
   background:var(--texte);color:var(--fond);border-radius:11px;padding:11px 14px;font-size:13.5px;
@@ -353,9 +375,17 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.2.0";
+const VERSION = "1.3.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"1.3.0", d:"2026-09-05", t:"Estimer plutôt que deviner", l:[
+    "Un catalogue de 183 plats, desserts, fromages, boissons et extras, avec des portions courantes : on choisit ce qu'on a mangé, les calories sont estimées.",
+    "Les éléments s'empilent dans un panier avec leur quantité — une demi-portion, deux parts — et le total du jour se met à jour avant même de valider.",
+    "Recherche sans accents, catégories, et une liste « tes habitudes » construite à partir de ce que tu notes le plus souvent.",
+    "La saisie manuelle reste accessible en haut à droite pour les chiffres exacts.",
+    "Palier compare maintenant ce que tu manges à ce que la balance constate, et en déduit ta dépense réelle. Quand elle s'écarte de plus de cent kilocalories de la formule, il propose de recaler le plan : c'est la balance qui a raison, pas l'équation.",
+    "Quand l'objectif est atteint ou le plan arrivé à son terme, Palier le dit et propose de basculer en maintien."
+  ]},
   { v:"1.2.0", d:"2026-09-05", t:"Tenir une année", l:[
     "Un objectif d'entraînement se choisit avec le programme : se remettre en forme, perdre du poids, prendre du muscle, transformer le gras en muscle, ou conserver ce qu'on a. Il ne change pas les exercices, il change les séries, les répétitions et le repos.",
     "L'objectif se change en cours de route : les séances déjà faites ne bougent pas, celles à venir sont recalculées avec les nouvelles fourchettes.",
@@ -1282,7 +1312,7 @@ const DEFAULTS = {
   version:SCHEMA, jours:{}, seances:{},
   settings:{ theme:"clair", accent:ACCENTS[0][0], objectif:"forme",
              sexe:"h", age:35, taille:175, activite:"sedentaire", matos:0,
-             crediterSport:true, eau:true, eauCible:8, subs:{},
+             crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1,
              bTri:"90j" },
   plan:null, prog:null,
   meta:{ cree:Date.now(), modifie:0, exporte:0, vue:null }
@@ -1408,6 +1438,237 @@ function fusionnerSauvegarde(x){
 }
 
 /* ============================================================
+   LE CATALOGUE D'ALIMENTS
+   Personne ne connaît le nombre de calories d'une part de lasagnes, et
+   personne n'a envie de peser son assiette. Le catalogue donne des portions
+   courantes et des ordres de grandeur : à cent kilocalories près, le plan
+   tient — l'oubli, lui, le fait dérailler.
+   Chaque ligne : nom, kilocalories de la portion, portion décrite.
+   ============================================================ */
+const ALIMENTS = [
+["Petit-déjeuner", [
+  ["Croissant", 240, "1 pièce"],
+  ["Pain au chocolat", 280, "1 pièce"],
+  ["Tartines beurre et confiture", 300, "2 tranches"],
+  ["Bol de céréales au lait", 320, "60 g + 200 ml"],
+  ["Muesli et yaourt", 350, "1 bol"],
+  ["Bol de lait", 130, "250 ml"],
+  ["Yaourt nature", 60, "1 pot"],
+  ["Yaourt aux fruits", 110, "1 pot"],
+  ["Fromage blanc", 100, "150 g"],
+  ["Œufs brouillés", 220, "2 œufs"],
+  ["Pancakes", 350, "3 pièces"],
+  ["Jus d'orange", 100, "1 verre (200 ml)"],
+  ["Brioche", 250, "2 tranches"],
+  ["Porridge", 280, "1 bol"],
+  ["Pain perdu", 320, "2 tranches"]
+]],
+["Plats", [
+  ["Pâtes bolognaise", 600, "1 assiette (350 g)"],
+  ["Pâtes carbonara", 700, "1 assiette"],
+  ["Pâtes au pesto", 550, "1 assiette"],
+  ["Lasagnes", 650, "1 part généreuse"],
+  ["Pizza", 800, "1 pizza entière (300 g)"],
+  ["Part de pizza", 270, "1 part"],
+  ["Poulet frites", 750, "1 assiette"],
+  ["Steak frites", 800, "1 assiette"],
+  ["Hachis parmentier", 550, "1 part"],
+  ["Gratin dauphinois", 400, "1 part"],
+  ["Quiche lorraine", 450, "1 part"],
+  ["Croque-monsieur", 500, "1 pièce"],
+  ["Sandwich jambon-beurre", 450, "1 demi-baguette"],
+  ["Sandwich poulet crudités", 480, "1 pièce"],
+  ["Kebab", 900, "1 pièce avec frites"],
+  ["Burger maison", 600, "1 pièce"],
+  ["Menu burger-frites", 1100, "burger, frites, soda"],
+  ["Couscous", 700, "1 assiette"],
+  ["Tajine", 550, "1 assiette"],
+  ["Paella", 600, "1 assiette"],
+  ["Risotto", 550, "1 assiette"],
+  ["Curry de poulet et riz", 600, "1 assiette"],
+  ["Chili con carne", 500, "1 assiette"],
+  ["Blanquette de veau", 550, "1 assiette"],
+  ["Bœuf bourguignon", 550, "1 assiette"],
+  ["Poulet rôti et légumes", 450, "1 assiette"],
+  ["Poisson et riz", 450, "1 assiette"],
+  ["Raclette", 1000, "1 repas complet"],
+  ["Tartiflette", 750, "1 part"],
+  ["Choucroute", 700, "1 assiette"],
+  ["Sushi", 500, "12 pièces"],
+  ["Wok de nouilles", 550, "1 assiette"],
+  ["Riz cantonais", 500, "1 assiette"],
+  ["Salade César", 450, "1 saladier"],
+  ["Salade composée", 350, "1 saladier"],
+  ["Soupe de légumes", 150, "1 bol"],
+  ["Velouté de potiron", 200, "1 bol"],
+  ["Omelette", 300, "3 œufs"],
+  ["Galette complète", 400, "1 pièce"],
+  ["Bol de pâtes nature", 400, "1 assiette"],
+  ["Nuggets", 350, "6 pièces"],
+  ["Plat préparé surgelé", 450, "1 barquette"],
+  ["Repas de restaurant", 900, "entrée-plat estimés"],
+  ["Repas de fête", 1400, "apéritif, plat, dessert"]
+]],
+["Viandes, poissons, œufs", [
+  ["Blanc de poulet", 165, "150 g"],
+  ["Cuisse de poulet", 250, "1 pièce"],
+  ["Steak haché 5 %", 200, "150 g"],
+  ["Steak haché 15 %", 320, "150 g"],
+  ["Côte de porc", 300, "1 pièce"],
+  ["Saucisse", 250, "1 pièce"],
+  ["Merguez", 220, "1 pièce"],
+  ["Jambon blanc", 60, "1 tranche"],
+  ["Saumon", 300, "150 g"],
+  ["Cabillaud", 120, "150 g"],
+  ["Thon en boîte", 150, "1 boîte égouttée"],
+  ["Crevettes", 120, "150 g"],
+  ["Œuf", 80, "1 pièce"],
+  ["Steak de soja", 180, "1 pièce"],
+  ["Lardons", 250, "80 g"]
+]],
+["Féculents et pain", [
+  ["Riz cuit", 200, "150 g"],
+  ["Pâtes cuites", 220, "150 g"],
+  ["Semoule", 200, "150 g"],
+  ["Quinoa", 180, "150 g"],
+  ["Pommes de terre", 180, "200 g"],
+  ["Purée", 250, "200 g"],
+  ["Frites", 450, "1 portion (150 g)"],
+  ["Frites au four", 250, "150 g"],
+  ["Lentilles", 200, "150 g"],
+  ["Haricots blancs", 220, "150 g"],
+  ["Baguette", 250, "1 demi-baguette"],
+  ["Tranche de pain", 90, "1 tranche"],
+  ["Pain complet", 80, "1 tranche"],
+  ["Pain de mie", 70, "1 tranche"],
+  ["Wrap ou tortilla", 180, "1 pièce"]
+]],
+["Légumes", [
+  ["Haricots verts", 60, "200 g"],
+  ["Ratatouille", 150, "200 g"],
+  ["Poêlée de légumes", 180, "200 g"],
+  ["Salade verte", 30, "1 bol"],
+  ["Carottes râpées", 120, "150 g"],
+  ["Brocolis", 60, "200 g"],
+  ["Courgettes", 50, "200 g"],
+  ["Tomates", 40, "2 pièces"],
+  ["Épinards", 60, "200 g"],
+  ["Crudités", 100, "1 assiette"],
+  ["Avocat", 250, "1 pièce"]
+]],
+["Fromages", [
+  ["Camembert", 150, "1/4 de boîte (50 g)"],
+  ["Comté", 200, "50 g"],
+  ["Emmental râpé", 150, "40 g"],
+  ["Chèvre", 140, "50 g"],
+  ["Roquefort", 180, "50 g"],
+  ["Brie", 160, "50 g"],
+  ["Mozzarella", 180, "1/2 boule"],
+  ["Fromage à raclette", 350, "100 g"],
+  ["Vache qui rit", 50, "1 portion"],
+  ["Parmesan", 60, "15 g râpé"],
+  ["Plateau de fromages", 400, "3 morceaux"]
+]],
+["Desserts", [
+  ["Mousse au chocolat", 250, "1 pot"],
+  ["Tarte aux pommes", 300, "1 part"],
+  ["Tarte au citron", 350, "1 part"],
+  ["Éclair au chocolat", 280, "1 pièce"],
+  ["Fondant au chocolat", 400, "1 part"],
+  ["Crème brûlée", 300, "1 pot"],
+  ["Tiramisu", 400, "1 part"],
+  ["Glace", 250, "2 boules"],
+  ["Glace en pot", 500, "1/2 pot"],
+  ["Crêpe au sucre", 180, "1 pièce"],
+  ["Crêpe au Nutella", 350, "1 pièce"],
+  ["Gaufre", 300, "1 pièce"],
+  ["Riz au lait", 200, "1 pot"],
+  ["Compote", 90, "1 gourde"],
+  ["Île flottante", 200, "1 part"],
+  ["Part de gâteau", 350, "1 part"],
+  ["Yaourt sucré", 120, "1 pot"],
+  ["Fromage blanc et miel", 180, "1 bol"]
+]],
+["Fruits", [
+  ["Pomme", 80, "1 pièce"],
+  ["Banane", 105, "1 pièce"],
+  ["Orange", 70, "1 pièce"],
+  ["Clémentines", 70, "3 pièces"],
+  ["Poire", 90, "1 pièce"],
+  ["Fraises", 50, "150 g"],
+  ["Raisin", 120, "150 g"],
+  ["Kiwi", 50, "1 pièce"],
+  ["Ananas", 80, "2 tranches"],
+  ["Salade de fruits", 120, "1 bol"],
+  ["Fruits secs", 200, "30 g"]
+]],
+["Snacks et apéritif", [
+  ["Chips", 270, "1 poignée (50 g)"],
+  ["Paquet de chips", 700, "1 paquet (130 g)"],
+  ["Cacahuètes", 300, "50 g"],
+  ["Saucisson", 200, "5 tranches"],
+  ["Olives", 60, "10 pièces"],
+  ["Biscuits apéritif", 250, "1 bol"],
+  ["Carré de chocolat", 55, "1 carré"],
+  ["Tablette de chocolat", 550, "1 tablette (100 g)"],
+  ["Barre chocolatée", 250, "1 barre"],
+  ["Cookies", 200, "2 pièces"],
+  ["Biscuits secs", 150, "4 pièces"],
+  ["Barre de céréales", 110, "1 barre"],
+  ["Pain au chocolat (goûter)", 280, "1 pièce"],
+  ["Poignée d'amandes", 180, "30 g"],
+  ["Tartine de pâte à tartiner", 200, "1 tranche"],
+  ["Popcorn", 200, "1 bol"]
+]],
+["Boissons", [
+  ["Café noir", 2, "1 tasse"],
+  ["Café au lait", 60, "1 tasse"],
+  ["Thé nature", 0, "1 tasse"],
+  ["Chocolat chaud", 200, "1 tasse"],
+  ["Verre de vin", 120, "12 cl"],
+  ["Bière", 150, "1 demi (25 cl)"],
+  ["Pinte de bière", 250, "50 cl"],
+  ["Soda", 90, "1 verre (25 cl)"],
+  ["Canette de soda", 140, "33 cl"],
+  ["Soda sans sucre", 1, "1 canette"],
+  ["Jus de fruits", 110, "1 verre"],
+  ["Sirop à l'eau", 60, "1 verre"],
+  ["Cocktail", 250, "1 verre"],
+  ["Apéritif fort", 110, "1 verre (4 cl)"],
+  ["Smoothie", 180, "1 verre"],
+  ["Boisson protéinée", 130, "1 dose"]
+]],
+["Sauces et extras", [
+  ["Huile d'olive", 90, "1 cuillère à soupe"],
+  ["Beurre", 75, "10 g"],
+  ["Mayonnaise", 100, "1 cuillère à soupe"],
+  ["Ketchup", 20, "1 cuillère à soupe"],
+  ["Vinaigrette", 90, "1 cuillère à soupe"],
+  ["Crème fraîche", 110, "2 cuillères à soupe"],
+  ["Sauce tomate", 40, "100 g"],
+  ["Sucre", 20, "1 morceau"],
+  ["Miel", 65, "1 cuillère à soupe"],
+  ["Confiture", 50, "1 cuillère à café"],
+  ["Pâte à tartiner", 160, "1 cuillère à soupe"]
+]]
+];
+/* Le catalogue mis à plat, avec une clé de recherche sans accents : chercher
+   « creme » doit trouver « crème ». */
+const CATALOGUE = (() => {
+  const l = [];
+  ALIMENTS.forEach(([cat, items], ci) => items.forEach(([n, k, p], ii) => {
+    l.push({ id:"a" + ci + "_" + ii, n, k, p, cat,
+             q:(n + " " + cat).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") });
+  }));
+  return l;
+})();
+function chercherAliments(q){
+  const t = String(q||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if(!t) return null;
+  return CATALOGUE.filter(a => a.q.indexOf(t) !== -1).slice(0, 60);
+}
+
+/* ============================================================
    MODÈLE — LES JOURS
    Une journée porte ce qu'on a mangé, ce qu'on pèse, et l'eau bue. Rien
    n'est stocké en total : tout se recalcule, donc rien ne peut diverger.
@@ -1470,7 +1731,13 @@ function facteurDe(s){
   const a = ACTIVITES.filter(x => x[0] === s.activite)[0];
   return a ? a[2] : 1.2;
 }
-function tdeeDe(poidsG, s){ return Math.round(bmrDe(poidsG, s) * facteurDe(s)); }
+/* La correction : le rapport entre ce que la formule prédit et ce que la
+   balance a réellement constaté. Mifflin-St Jeor se trompe couramment de dix
+   pour cent ; au bout de quelques semaines de données, on n'a plus besoin
+   d'elle pour deviner. */
+function tdeeDe(poidsG, s){
+  return Math.round(bmrDe(poidsG, s) * facteurDe(s) * (s.corr || 1));
+}
 function plancherDe(poidsG, s){
   const mini = s.sexe === "f" ? 1200 : 1500;
   return Math.max(mini, Math.round(tdeeDe(poidsG, s) * 0.65));
@@ -1544,6 +1811,32 @@ function etatCal(consomme, cible){
   return "ok";
 }
 const CL = { ok:"c-ok", att:"c-att", dang:"c-dang" };
+
+/* La dépense observée, déduite des faits plutôt que d'une formule : ce qu'on
+   a mangé en moyenne, plus ce que la balance a rendu ou pris. Trente jours de
+   recul, deux pesées espacées d'au moins deux semaines, et une majorité de
+   journées renseignées — en dessous, le calcul dirait n'importe quoi. */
+function bilanEnergie(){
+  const fin = todayISO();
+  const l = pesees().filter(x => x.d >= plusJours(fin, -35));
+  if(l.length < 2) return null;
+  const a = l[0], b = l[l.length-1];
+  const jours = ecart(a.d, b.d);
+  if(jours < 14) return null;
+  let n = 0, somme = 0;
+  for(let i = 0; i <= jours; i++){
+    const d = plusJours(a.d, i);
+    if(!renseigne(d)) continue;
+    n++; somme += kcalJour(d);
+  }
+  if(n < Math.round(jours * 0.6)) return { insuffisant:true, n, jours, requis:Math.round(jours*0.6) };
+  const moy = somme / n;
+  const varKcal = ((a.p - b.p) / 1000) * KCAL_PAR_KG;   /* positif si le poids a baissé */
+  const obs = Math.round(moy + varKcal / jours);
+  const est = tdee();
+  return { obs, moy:Math.round(moy), jours, n, est, ecart:obs - est,
+           corr:clamp((DB.settings.corr || 1) * (obs / Math.max(1, est)), 0.75, 1.30) };
+}
 
 /* Projection : le rythme réellement constaté sur les pesées des huit
    dernières semaines, extrapolé jusqu'au poids visé. Deux pesées suffisent
@@ -1774,7 +2067,8 @@ const TABS = [
   { id:"reglages", l:"Réglages",    i:"cog" }
 ];
 const state = { tab:"jour", sheet:null, modal:null, journal:false, neuf:false, quota:null,
-                passe:false, fZone:"tout", fMat:null, bPeriode:"90j" };
+                passe:false, fZone:"tout", fMat:null, bPeriode:"90j",
+                q:"", fCat:null, panier:[] };
 
 function render(){
   const v = $("#view");
@@ -1791,6 +2085,12 @@ function render(){
 }
 
 function dessiner(){
+  /* Le champ de recherche se redessine à chaque touche : sans relever le
+     focus et la position du curseur, le clavier se refermerait au premier
+     caractère tapé. */
+  const avant = document.activeElement;
+  const fid = avant && avant.id ? avant.id : null;
+  const curs = fid && avant.selectionStart != null ? avant.selectionStart : null;
   $("#tabs").innerHTML = TABS.map(t =>
     '<button class="tab ' + (state.tab === t.id ? "on" : "") + '" data-act="tab" data-id="' + t.id + '">' +
     svg(t.i, 20) + '<span>' + t.l + '</span></button>').join("");
@@ -1823,6 +2123,12 @@ function dessiner(){
   if(state.modal && state.modal.focus){
     const el = document.getElementById(state.modal.focus);
     if(el && document.activeElement !== el){ el.focus(); if(el.select) el.select(); }
+  }else if(fid){
+    const el = document.getElementById(fid);
+    if(el && document.activeElement !== el){
+      el.focus();
+      if(curs != null && el.setSelectionRange){ try{ el.setSelectionRange(curs, curs); }catch(e){} }
+    }
   }
 }
 
@@ -1889,7 +2195,7 @@ function vueJour(){
     h += '<div class="total-sub">' + sub.join("") + '</div></section>';
 
     h += '<div class="btns grow">' +
-      '<button class="btn pri" data-act="nouveau-repas">' + svg("plus",16,2) + 'Ajouter</button>' +
+      '<button class="btn pri" data-act="ouvrir-aliments">' + svg("plus",16,2) + 'J\'ai mangé</button>' +
       '<button class="btn" data-act="objectif-tenu">' + svg("check",16,2) + 'Journée conforme</button></div>';
   }
 
@@ -1926,7 +2232,7 @@ function vueJour(){
   const repas = (j && j.repas) ? j.repas.slice().sort((a,b) => (b.t||0) - (a.t||0)) : [];
   if(!repas.length){
     h += '<div class="ops"><div class="vide"><b>Rien de noté</b>' +
-      'Chaque repas ajouté affine le compte. Une estimation vaut mieux qu\'un oubli.</div></div>';
+      'Touche « J\'ai mangé » et choisis tes plats dans le catalogue : les calories sont estimées pour toi.</div></div>';
   }else{
     h += '<div class="ops">' + repas.map(r =>
       '<button class="op" data-act="modifier-repas" data-id="' + r.i + '">' +
@@ -1987,6 +2293,20 @@ function vuePoids(){
     '<button class="btn pri" data-act="nouvelle-pesee">' + svg("plus",16,2) + 'Peser</button>' +
     '<button class="btn" data-act="modifier-objectif">' + svg("cible",16) + 'L\'objectif</button></div>';
 
+  /* ---- l'objectif est atteint, ou le plan est arrivé à son terme ---- */
+  const atteint = c.sens === "perte" ? act <= P.cible : (c.sens === "prise" ? act >= P.cible : false);
+  const fini = todayISO() >= c.fin;
+  if(atteint || fini){
+    h += '<div class="avert" style="border-color:var(--okF);background:var(--okF);color:var(--ok)">' +
+      (atteint ? '<b>Objectif atteint.</b> ' + esc(kg(P.cible)) + ' kg, comme prévu. La suite compte autant que le chemin : ' +
+        'un plan de maintien fixe les calories à ta dépense actuelle et vérifie, semaine après semaine, que le poids tient.'
+              : '<b>Plan terminé.</b> Les ' + P.mois + ' mois sont écoulés. Passe en maintien pour stabiliser, ' +
+        'ou fixe un nouvel objectif si tu veux continuer.') + '</div>';
+    h += '<div class="btns grow">' +
+      '<button class="btn pri" data-act="passer-maintien">' + svg("check",16,2.2) + 'Passer en maintien</button>' +
+      '<button class="btn" data-act="modifier-objectif">Nouvel objectif</button></div>';
+  }
+
   /* ---- le plan ---- */
   h += '<div class="sect"><h2>Le plan</h2><div class="sp"></div>' +
     '<span class="cnt mono">J' + (c.ecoule+1) + '/' + c.total + '</span></div>';
@@ -2024,6 +2344,29 @@ function vuePoids(){
     h += '<div class="avert">L\'objectif d\'entraînement est « prendre du muscle », mais le plan alimentaire creuse un déficit marqué. Les deux se contrarient : ralentis la perte, ou passe l\'entraînement sur « transformer le gras en muscle », qui accepte un léger déficit.</div>';
   }else if((oe === "perte" || oe === "recomp") && c.sens === "prise"){
     h += '<div class="avert">L\'objectif d\'entraînement vise la perte de graisse alors que le plan alimentaire prévoit un surplus. L\'un des deux doit céder.</div>';
+  }
+
+  /* ---- la dépense réellement constatée ---- */
+  const be = bilanEnergie();
+  if(be && !be.insuffisant){
+    const gros = Math.abs(be.ecart) > 100;
+    h += '<div class="sect"><h2>Ta dépense réelle</h2></div>';
+    h += '<div class="bloc"><div class="bloc-b">' +
+      '<div class="lig"><div class="l">Constatée sur ' + (be.jours + 1) + ' jours<div class="d">' +
+        be.n + ' journées renseignées, ' + kcal(be.moy) + ' kcal par jour en moyenne, et ce que la balance a rendu.</div></div>' +
+        '<span class="mono" style="font-size:16px;font-weight:500">' + kcal(be.obs) + '</span></div>' +
+      '<div class="lig"><div class="l">Estimée par la formule<div class="d">' +
+        (gros ? (be.ecart > 0 ? "Tu dépenses plus que la formule ne le croit : le plan est plus sévère que nécessaire."
+                              : "Tu dépenses moins que la formule ne le croit : le plan est trop généreux, la perte traîne.")
+              : "L\'estimation et les faits concordent. Rien à corriger.") + '</div></div>' +
+        '<span class="mono ' + (gros ? "c-att" : "c-ok") + '">' + (be.ecart > 0 ? "+" : "−") + kcal(Math.abs(be.ecart)) + '</span></div>' +
+      (gros ? '<div class="lig"><div class="l">Recaler le plan<div class="d">Les calories du jour seront recalculées sur ' +
+        kcal(be.obs) + ' kcal de dépense, et le plan se réajustera tout seul ensuite.</div></div>' +
+        '<button class="btn pri" data-act="calibrer" data-id="' + be.corr.toFixed(4) + '">Recaler</button></div>' : "") +
+      '</div></div>';
+  }else if(be && be.insuffisant){
+    h += '<div class="aide" style="margin-top:14px">Encore ' + Math.max(0, be.requis - be.n) +
+      ' journées à renseigner sur les ' + be.jours + ' derniers jours, et Palier pourra comparer ta dépense réelle à celle qu\'il estime, puis recaler le plan.</div>';
   }
 
   /* ---- projection ---- */
@@ -2300,8 +2643,11 @@ function vueReglages(){
       '<button class="btn" data-act="modifier-profil">Modifier</button></div>' +
     '<div class="lig"><div class="l">Niveau d\'activité<div class="d">' + esc(a[3]) + '</div></div>' +
       '<button class="btn" data-act="modifier-activite">' + esc(a[1]) + '</button></div>' +
-    '<div class="lig"><div class="l">Dépense estimée<div class="d">Repos ' + kcal(bmr()) + ' kcal · plancher ' + kcal(plancher()) + ' kcal</div></div>' +
-      '<span class="mono" style="font-size:15px">' + kcal(tdee()) + '</span></div>' +
+    '<div class="lig"><div class="l">Dépense estimée<div class="d">Repos ' + kcal(bmr()) + ' kcal · plancher ' + kcal(plancher()) + ' kcal' +
+      ((s.corr || 1) !== 1 ? ' · corrigée de ' + (s.corr > 1 ? "+" : "−") + Math.round(Math.abs(s.corr-1)*100) + ' %' : "") +
+      '</div></div><span class="mono" style="font-size:15px">' + kcal(tdee()) + '</span></div>' +
+    ((s.corr || 1) !== 1 ? '<div class="lig"><div class="l">Correction<div class="d">Recalée sur ce que la balance a constaté.</div></div>' +
+      '<button class="btn" data-act="raz-corr">Annuler</button></div>' : "") +
     '</div></div>';
 
   /* ---- objectif ---- */
@@ -2484,7 +2830,108 @@ function sheetGuide(){
   return h;
 }
 
+/* Le panier : ce qu'on vient de manger, en portions. Une portion et demie de
+   frites est une réponse plus honnête qu'un chiffre tapé de mémoire. */
+function totalPanier(){ return state.panier.reduce((t,l) => t + Math.round(l.k * l.q), 0); }
+function ligneQte(q){ return q === 0.5 ? "½" : (q % 1 ? String(q).replace(".",",") + " ×" : q + " ×"); }
+
+function sheetAliments(sh){
+  const date = sh.date || todayISO();
+  const q = state.q || "";
+  const trouves = chercherAliments(q);
+  const cat = state.fCat;
+  const conso = kcalJour(date);
+  const c = planCalc();
+  const cible = c ? objectifJour(date) : 0;
+  const apres = conso + totalPanier();
+
+  let h = '<div class="sheet">' + hautPanneau("Qu'as-tu mangé ?", "fermer-sheet",
+    '<button class="iconbtn" data-act="a-manuel" aria-label="Saisie manuelle" title="Saisie manuelle">' +
+    svg("crayon",17) + '</button>');
+  h += '<div class="sheet-in">';
+
+  h += '<section class="total" style="padding:18px 0 14px">' +
+    '<div class="total-lbl">' + (cible ? "Journée estimée" : "Total de la journée") + '</div>' +
+    '<span class="total-val num" style="font-size:clamp(30px,10vw,42px)">' + kcal(apres) +
+      '<span class="u">kcal</span></span>';
+  if(cible){
+    const pc = Math.min(100, Math.round(apres / cible * 100));
+    const e = etatCal(apres, cible);
+    h += '<div class="bud"><div class="bud-l"><span class="' + CL[e] + '">' +
+      (apres <= cible ? "il resterait " + kcal(cible - apres) : "dépasserait de " + kcal(apres - cible)) +
+      '</span><span class="r">cible ' + kcal(cible) + '</span></div>' +
+      '<div class="bud-b"><i class="' + e + '" style="width:' + pc + '%"></i></div></div>';
+  }
+  h += '<div class="total-sub"><span>déjà noté <b>' + kcal(conso) + '</b></span>' +
+    (totalPanier() ? '<span>panier <b class="c-acc">+' + kcal(totalPanier()) + '</b></span>' : "") + '</div></section>';
+
+  if(state.panier.length){
+    h += '<div class="sect"><h2>Le panier</h2><div class="sp"></div>' +
+      '<button class="lien" data-act="vider-panier">Vider</button></div><div class="ops">';
+    state.panier.forEach((l,i) => {
+      h += '<div class="alim"><span class="alim-mid"><span class="alim-n">' + esc(l.n) + '</span>' +
+        '<span class="alim-p">' + esc(l.p || "") + ' · ' + kcal(Math.round(l.k * l.q)) + ' kcal</span></span>' +
+        '<span class="qte"><button data-act="a-qte" data-i="' + i + '" data-d="-1" aria-label="Moins">' + svg("moins",14,2.4) + '</button>' +
+        '<span class="v">' + ligneQte(l.q) + '</span>' +
+        '<button data-act="a-qte" data-i="' + i + '" data-d="1" aria-label="Plus">' + svg("plus",14,2.4) + '</button></span>' +
+        '<button class="alim-add" style="color:var(--gris2)" data-act="a-suppr" data-i="' + i + '" aria-label="Retirer">' +
+        svg("croix",14,2) + '</button></div>';
+    });
+    h += '</div>';
+  }
+
+  h += '<div class="champ" style="margin-top:16px">' +
+    '<input type="text" id="a-q" autocomplete="off" placeholder="Chercher un plat, un dessert, un fromage…" value="' + esc(q) + '"></div>';
+
+  if(!q){
+    h += '<div class="chips" style="margin-top:4px">' +
+      '<button class="chip ' + (cat == null ? "on" : "") + '" data-act="a-cat" data-id="tout">Habitudes</button>' +
+      ALIMENTS.map(([n],i) => '<button class="chip ' + (cat === i ? "on" : "") + '" data-act="a-cat" data-id="' + i + '">' +
+        esc(n) + '</button>').join("") + '</div>';
+  }
+
+  let liste, titre;
+  if(trouves){ liste = trouves; titre = trouves.length + " résultat" + (trouves.length > 1 ? "s" : ""); }
+  else if(cat != null){ liste = CATALOGUE.filter(a => a.cat === ALIMENTS[cat][0]); titre = ALIMENTS[cat][0]; }
+  else{
+    /* Sans recherche ni catégorie : ce qu'on mange d'habitude, puisque c'est
+       ce qu'on mangera encore demain. */
+    const f = favoris();
+    liste = f.map((x,i) => ({ id:"f"+i, n:x.n, k:x.k, p:"noté " + x.nb + " fois", cat:"Habitudes" }));
+    titre = liste.length ? "Tes habitudes" : "";
+  }
+
+  if(!liste.length){
+    h += '<div class="ops"><div class="vide"><b>' + (trouves ? "Rien trouvé" : "Pas encore d\'habitudes") + '</b>' +
+      (trouves ? "Essaie un mot plus court, ou passe par la saisie manuelle en haut à droite."
+               : "Choisis une catégorie ci-dessus. Les plats que tu notes le plus souvent apparaîtront ici.") +
+      '</div></div>';
+  }else{
+    h += '<div class="sect"><h2>' + esc(titre) + '</h2></div><div class="ops">';
+    liste.forEach(a => {
+      h += '<button class="alim" data-act="a-add" data-id="' + esc(a.id) + '" data-n="' + esc(a.n) +
+        '" data-k="' + a.k + '" data-p="' + esc(a.p || "") + '">' +
+        '<span class="alim-mid"><span class="alim-n">' + esc(a.n) + '</span>' +
+        '<span class="alim-p">' + esc(a.p || "") + '</span></span>' +
+        '<span class="alim-k">' + kcal(a.k) + ' kcal</span>' +
+        '<span class="alim-add">' + svg("plus",15,2.2) + '</span></button>';
+    });
+    h += '</div>';
+  }
+
+  h += '<div class="aide" style="margin-top:14px">Ce sont des portions courantes, pas des pesées : à cent kilocalories près le plan tient, alors qu\'un repas oublié le fait dérailler. Pour un chiffre exact, la saisie manuelle est en haut à droite.</div>';
+
+  if(state.panier.length){
+    h += '<div class="pan"><div class="t">' + state.panier.length + ' élément' + (state.panier.length > 1 ? "s" : "") +
+      '<b>+' + kcal(totalPanier()) + ' kcal</b></div>' +
+      '<button class="btn pri" data-act="panier-ok">' + svg("check",16,2.2) + 'Ajouter</button></div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
 function vueSheet(sh){
+  if(sh.type === "aliments")  return sheetAliments(sh);
   if(sh.type === "guide")     return sheetGuide();
   if(sh.type === "progs")     return sheetProgs(sh);
   if(sh.type === "seance")    return sheetSeance(sh);
@@ -2863,7 +3310,8 @@ function majApercu(){
   const depart = grammes(g("m-depart")), cible = grammes(g("m-cible"));
   const mois = parseInt(g("m-mois"), 10) || 3;
   const prof = { sexe:state.modal.sexe, age:parseInt(g("m-age"),10) || 35,
-                 taille:parseInt(g("m-taille"),10) || 175, activite:g("m-activite") || "sedentaire" };
+                 taille:parseInt(g("m-taille"),10) || 175, activite:g("m-activite") || "sedentaire",
+                 corr:DB.settings.corr || 1 };
   if(!depart || !cible){
     el.innerHTML = '<div class="aide" style="margin-top:14px">Renseigne un poids de départ et un poids visé pour voir le plan.</div>';
     return;
@@ -2930,7 +3378,10 @@ document.addEventListener("click", async ev => {
 
   /* ---- navigation ---- */
   if(act === "tab"){ state.tab = id; state.sheet = null; render(); window.scrollTo(0,0); return; }
-  if(act === "fermer-sheet"){ state.sheet = null; render(); return; }
+  if(act === "fermer-sheet"){
+    if(state.sheet && state.sheet.type === "aliments"){ state.panier = []; state.q = ""; state.fCat = null; }
+    state.sheet = null; render(); return;
+  }
   if(act === "fermer-modal"){ fermerModal(); return; }
   if(act === "retour-seance"){ ouvrirSheet({ type:"seance", id:state.sheet.sid }); return; }
   if(act === "retour-exo"){
@@ -2948,7 +3399,10 @@ document.addEventListener("click", async ev => {
   if(act === "plus"){
     if(state.tab === "sport"){ ouvrirChoixProgramme(); return; }
     if(state.tab === "poids"){ if(!DB.plan) ouvrirObjectif(false); else ouvrirPesee(null); return; }
-    ouvrirRepas(null); return;
+    state.q = ""; state.fCat = null; state.panier = [];
+    ouvrirSheet({ type:"aliments", date:todayISO() });
+    window.scrollTo(0,0);
+    return;
   }
 
   /* ---- objectif ---- */
@@ -2978,6 +3432,23 @@ document.addEventListener("click", async ev => {
     toast("Plan créé : " + kcal(planCalc().base) + " kcal par jour");
     return;
   }
+  if(act === "calibrer"){
+    const v = parseFloat(id);
+    if(!v || !isFinite(v)) return;
+    DB.settings.corr = clamp(v, 0.75, 1.30);
+    sauver(); render();
+    toast("Plan recalé sur " + kcal(tdee()) + " kcal de dépense");
+    return;
+  }
+  if(act === "raz-corr"){ DB.settings.corr = 1; sauver(); render(); toast("Correction remise à zéro"); return; }
+  if(act === "passer-maintien"){
+    const act2 = poidsActuel();
+    if(!act2){ toast("Il faut au moins une pesée"); return; }
+    DB.plan = { debut:todayISO(), depart:act2, cible:act2, mois:3, cree:Date.now() };
+    sauver(); render(); window.scrollTo(0,0);
+    toast("Maintien à " + kcal(planCalc().base) + " kcal par jour");
+    return;
+  }
   if(act === "retirer-objectif"){
     ouvrirModal({ type:"confirm", titre:"Retirer l'objectif", valider:"Retirer", ok:"retirer-objectif-ok", dang:true,
       texte:"Le plafond de calories disparaît. Les pesées, les repas et les séances sont conservés." });
@@ -2986,6 +3457,48 @@ document.addEventListener("click", async ev => {
   if(act === "retirer-objectif-ok"){ DB.plan = null; sauver(); fermerModal(); toast("Objectif retiré"); return; }
 
   /* ---- repas ---- */
+  if(act === "ouvrir-aliments"){
+    state.q = ""; state.fCat = null; state.panier = [];
+    ouvrirSheet({ type:"aliments", date:todayISO() });
+    window.scrollTo(0,0);
+    return;
+  }
+  if(act === "a-cat"){ state.fCat = id === "tout" ? null : parseInt(id,10); state.q = ""; render(); return; }
+  if(act === "a-add"){
+    const n = el.dataset.n, k = parseInt(el.dataset.k,10) || 0, p = el.dataset.p || "";
+    const dedans = state.panier.filter(x => x.n === n)[0];
+    if(dedans) dedans.q += 1;
+    else state.panier.push({ n, k, p, q:1 });
+    render();
+    return;
+  }
+  if(act === "a-qte"){
+    const i = parseInt(el.dataset.i,10), d = parseInt(el.dataset.d,10);
+    const l = state.panier[i];
+    if(!l) return;
+    l.q = Math.round((l.q + d * (l.q <= 1 && d < 0 ? 0.5 : (l.q < 1 ? 0.5 : 1))) * 2) / 2;
+    if(l.q <= 0) state.panier.splice(i,1);
+    render();
+    return;
+  }
+  if(act === "a-suppr"){ state.panier.splice(parseInt(el.dataset.i,10), 1); render(); return; }
+  if(act === "vider-panier"){ state.panier = []; render(); return; }
+  if(act === "a-manuel"){ ouvrirRepas(null); return; }
+  if(act === "panier-ok"){
+    if(!state.panier.length) return;
+    const date = (state.sheet && state.sheet.date) || todayISO();
+    const j = jour(date);
+    const t = totalPanier(), n = state.panier.length;
+    state.panier.forEach(l => {
+      j.repas.push({ i:uid(), n:l.n + (l.q !== 1 ? " (" + ligneQte(l.q) + ")" : ""),
+                     k:Math.round(l.k * l.q), t:Date.now() });
+    });
+    state.panier = []; state.q = ""; state.fCat = null;
+    state.sheet = null;
+    sauverJour(j);
+    toast(n + (n > 1 ? " éléments ajoutés · " : " élément ajouté · ") + kcal(t) + " kcal");
+    return;
+  }
   if(act === "nouveau-repas"){ ouvrirRepas(null); return; }
   if(act === "modifier-repas"){
     const j = jourLu(todayISO());
@@ -3272,6 +3785,12 @@ function ouvrirChoixProgramme(zone){
 
 /* Les champs de l'objectif rafraîchissent l'aperçu sans redessiner. */
 document.addEventListener("input", ev => {
+  if(ev.target && ev.target.id === "a-q" && state.sheet && state.sheet.type === "aliments"){
+    state.q = ev.target.value;
+    if(state.q) state.fCat = null;
+    render();
+    return;
+  }
   if(!state.modal || state.modal.type !== "objectif") return;
   if(!ev.target || !ev.target.id || ev.target.id.indexOf("m-") !== 0) return;
   majApercu();
