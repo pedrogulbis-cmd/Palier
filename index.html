@@ -415,9 +415,15 @@ html[data-theme="sombre"] .photo img{filter:brightness(.9) contrast(1.03)}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "2.2.0";
+const VERSION = "2.3.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"2.3.0", d:"2026-09-06", t:"Comment on enchaîne", l:[
+    "Chaque séance annonce désormais son déroulement en tête de liste : « Un exercice à la fois » ou « En circuit », avec le nombre de tours quand il y en a.",
+    "Le repos affiché sur chaque ligne indique ce qu'il sépare : « 100 s entre séries » dans une séance classique, « 30 s avant le suivant » dans un circuit.",
+    "Le temps à prendre entre deux exercices différents est enfin écrit : une à deux minutes, le temps de s'installer.",
+    "Cinq séances du catalogue sont en circuit — cardio intense, circuit vingt minutes, intervalles courts, circuit court et corde en intervalles. Toutes les autres se font un exercice à la fois."
+  ]},
   { v:"2.2.0", d:"2026-09-06", t:"Le sport dans le compte des calories", l:[
     "L'écran du jour affiche désormais une section « Le sport du jour » : les séances prévues, celles qui sont validées, les activités notées, et le total rendu à ta cible de calories.",
     "Cinquante activités libres peuvent être ajoutées — marche, course, vélo, natation, foot, boxe, escalade, danse, ménage, jardinage, promenade du chien — avec leur durée.",
@@ -1662,7 +1668,7 @@ const PROGS = [
       { n:"Ceinture complète", k:130, b:[
         { e:"plancheMD", s:3, x:10, r:40 }, { e:"mountain", s:3, t:30, r:35 },
         { e:"vups", s:3, x:10, r:40 }, { e:"plancheLat", s:3, t:25, r:40 } ] },
-      { n:"Circuit court", k:140, b:[
+      { n:"Circuit court", k:140, f:"circuit", b:[
         { e:"jumping", s:1, t:60 }, { e:"gainDyn", s:3, t:30, r:35 },
         { e:"crunch", s:3, x:20, r:35 }, { e:"superman", s:3, x:12, r:35 },
         { e:"planche", s:3, t:30, r:40 } ] }
@@ -1703,7 +1709,7 @@ const PROGS = [
   { id:"brule", n:"Perte de poids — cardio & renfort", z:"cardio", mat:0, sem:8, par:4, min:30, niv:"Intermédiaire",
     d:"Quatre rendez-vous par semaine : deux séances denses en cardio, une de renfort, une sortie longue. Conçu pour creuser la dépense sans matériel.",
     mod:[
-      { n:"Cardio intense", k:340, b:[
+      { n:"Cardio intense", k:340, f:"circuit", b:[
         { e:"jumping", s:1, t:90 }, { e:"burpees", s:4, x:8, r:45 },
         { e:"genoux", s:4, t:30, r:30 }, { e:"squatSaute", s:4, x:10, r:45 },
         { e:"mountain", s:4, t:30, r:30 }, { e:"planche", s:3, t:30, r:40 },
@@ -1725,11 +1731,11 @@ const PROGS = [
   { id:"cardio20", n:"Cardio express — 20 minutes", z:"cardio", mat:0, sem:6, par:4, min:20, niv:"Intermédiaire",
     d:"Quatre séances courtes et denses, sans matériel ni sortie. Le meilleur rapport dépense sur temps passé quand les journées sont pleines.",
     mod:[
-      { n:"Circuit 20 minutes", k:250, b:[
+      { n:"Circuit 20 minutes", k:250, f:"circuit", b:[
         { e:"jumping", s:1, t:60 }, { e:"burpees", s:4, x:8, r:40 },
         { e:"genoux", s:4, t:30, r:30 }, { e:"squatSaute", s:3, x:12, r:40 },
         { e:"mountain", s:4, t:30, r:30 } ] },
-      { n:"Intervalles courts", k:240, b:[
+      { n:"Intervalles courts", k:240, f:"circuit", b:[
         { e:"jumping", s:1, t:60 }, { e:"talons", s:4, t:30, r:20 },
         { e:"corde", s:4, t:45, r:30 }, { e:"genoux", s:4, t:30, r:20 },
         { e:"planche", s:2, t:30, r:40 } ] },
@@ -1749,7 +1755,7 @@ const PROGS = [
         { e:"cordeAlt", s:1, t:120 }, { e:"cordeAlt", s:4, t:120, r:45 },
         { e:"cordeGenoux", s:3, t:30, r:45 }, { e:"planche", s:3, t:30, r:40 },
         { e:"etirIsch", s:1, t:60 } ] },
-      { n:"Corde — intervalles", k:300, b:[
+      { n:"Corde — intervalles", k:300, f:"circuit", b:[
         { e:"cordeAlt", s:1, t:120 }, { e:"cordeSprint", s:6, t:30, r:45 },
         { e:"squat", s:3, x:15, r:45 }, { e:"mountain", s:3, t:30, r:40 },
         { e:"respiration", s:1, t:90 } ] },
@@ -3411,7 +3417,7 @@ function poserSemaines(p, run, lundi, ordre, debut, w0, w1, objId, k){
       k++;
       const s = { id:uid(), prog:p.id, run, obj:objId, sem:w,
                   bloc:Math.floor((w-1)/4) + 1, deload:((w-1) % 4) === 3,
-                  mod:p.mod.indexOf(m), date, n:m.n, k:m.k, min:p.min,
+                  mod:p.mod.indexOf(m), date, n:m.n, k:m.k, min:p.min, fmt:m.f || "classique",
                   b:m.b.map(l => progresser(l, w, objId, ad)),
                   fait:false, faitLe:0, done:[] };
       DB.seances[s.id] = s;
@@ -3463,6 +3469,7 @@ function regenererFutur(run, objId){
     if(s.fait || s.date < t) return;
     const m = p.mod[s.mod % p.mod.length];
     s.obj = objId;
+    s.fmt = m.f || "classique";
     s.b = m.b.map(l => progresser(l, s.sem, objId, ad));
     s.done = [];
     sauverSeance(s);
@@ -4417,12 +4424,13 @@ function vueReglages(){
 /* ============================================================
    LES PANNEAUX — SÉANCE, EXERCICE, REMPLACEMENT
    ============================================================ */
-function fmtLigne(l){
+function fmtLigne(l, circuit){
   const p = [];
   if(l.t && l.s <= 1) p.push(duree(l.t));
   else if(l.t) p.push(l.s + " × " + l.t + " s");
   else p.push(l.s + " × " + l.x);
-  if(l.r) p.push("repos " + l.r + " s");
+  /* « repos 100 s » ne dit pas de quoi il s'agit : on le précise. */
+  if(l.r) p.push(l.r + " s " + (circuit ? "avant le suivant" : "entre séries"));
   return p.join(" · ");
 }
 function hautPanneau(titre, act, droite){
@@ -4434,7 +4442,9 @@ function hautPanneau(titre, act, droite){
 const GUIDE = [
   { t:"Une série, une répétition", l:[
     "Une <b>répétition</b>, c'est un mouvement complet : descendre et remonter d'une pompe, une fois. Une <b>série</b>, c'est un paquet de répétitions enchaînées sans s'arrêter. « 3 × 12 » se lit donc : trois séries de douze répétitions.",
-    "Entre deux séries, on <b>récupère</b> : c'est le repos indiqué. Pendant ce temps on ne fait rien d'utile, et c'est exactement le but — le muscle a besoin de ce temps pour refaire son carburant.",
+    "Entre deux séries, on <b>récupère</b> : c'est le repos indiqué sur la ligne. Pendant ce temps on ne fait rien d'utile, et c'est exactement le but — le muscle a besoin de ce temps pour refaire son carburant.",
+    "Par défaut, une séance se fait <b>un exercice à la fois</b> : toutes les séries de la première ligne, puis la deuxième ligne. Entre deux exercices, compte une à deux minutes, le temps de t'installer.",
+    "Certaines séances sont en <b>circuit</b> — une série de chaque exercice à la suite, puis on recommence. C'est écrit en haut de la séance, et le repos indiqué s'y applique entre deux exercices au lieu d'entre deux séries.",
     "Quand un exercice est donné en secondes — « 3 × 30 s » —, on tient la position ou on bouge pendant ce temps-là."
   ]},
   { t:"Quel effort mettre", l:[
@@ -4736,6 +4746,37 @@ function sheetSeance(sh){
       (s.fait ? '<span class="c-ok"><b class="c-ok">terminée</b></span>' : "") +
       (!s.fait && s.date < t ? '<span class="c-att">passée</span>' : "") + '</div></section>';
 
+  /* Comment on enchaîne : la question que tout le monde se pose devant une
+     liste d'exercices, et à laquelle « repos 100 s » ne répond pas. */
+  const circuit = s.fmt === "circuit";
+  const reposMax = Math.max.apply(null, s.b.map(l => l.r || 0).concat([0]));
+  const tours = (function(){
+    const ser = s.b.filter(l => l.s > 1).map(l => l.s);
+    return ser.length ? Math.max.apply(null, ser) : 1;
+  })();
+  h += '<div class="bloc" style="margin-top:14px"><div class="bloc-h">' +
+      (circuit ? "En circuit" : "Un exercice à la fois") + '</div><div class="bloc-b">';
+  if(circuit){
+    h += '<div class="lig"><div class="l">L\'enchaînement<div class="d">' +
+      'Une série de chaque exercice, à la suite, en enchaînant sans traîner. Arrivé au bout de la liste, tu as bouclé un tour : ' +
+      'tu recommences depuis le début, ' + tours + ' tours au total.</div></div></div>' +
+      '<div class="lig"><div class="l">Le repos<div class="d">' +
+      'Les ' + (reposMax || 30) + ' secondes indiquées se prennent entre deux exercices du circuit. ' +
+      'Prends une à deux minutes de plus à la fin de chaque tour si le souffle ne redescend pas.</div></div></div>';
+  }else{
+    h += '<div class="lig"><div class="l">L\'enchaînement<div class="d">' +
+      'Un exercice à la fois : tu fais toutes les séries de la première ligne, puis tu passes à la deuxième. ' +
+      'On ne mélange pas les exercices.</div></div></div>' +
+      '<div class="lig"><div class="l">Entre deux séries<div class="d">' +
+      'Le temps affiché sur chaque ligne — ' + (reposMax ? "jusqu'à " + reposMax + " secondes ici" : "quand il y en a un") +
+      '. Il commence à la fin d\'une série et se termine au début de la suivante.</div></div></div>' +
+      '<div class="lig"><div class="l">Entre deux exercices<div class="d">' +
+      'Une à deux minutes, le temps de ranger, de t\'installer et de récupérer. Rien n\'oblige à enchaîner.</div></div></div>';
+  }
+  h += '<div class="lig"><div class="l">L\'échauffement et la fin<div class="d">' +
+    'La première ligne sert à monter en température, la dernière à redescendre : ni l\'une ni l\'autre ne se répète.</div></div></div>';
+  h += '</div></div>';
+
   if(s.deload){
     h += '<div class="avert" style="border-color:var(--accB);background:var(--accF);color:var(--acc)">' +
       '<b>Semaine allégée.</b> Une série de moins, le bas de la fourchette de répétitions. Ce n\'est pas une semaine perdue : c\'est là que le corps encaisse ce que les trois précédentes lui ont demandé. Ne la saute pas, et ne la charge pas.</div>';
@@ -4759,7 +4800,7 @@ function sheetSeance(sh){
       '<button class="exo-mid" style="text-align:left" data-act="ouvrir-exo" data-id="' + l.e + '" data-sid="' + s.id + '" data-i="' + i + '">' +
         '<span class="exo-n">' + esc(e.n || l.e) +
           (estRemplace(l.e) ? '<span class="badge acc">remplacé</span>' : "") + '</span>' +
-        '<span class="exo-s">' + esc(fmtLigne(l)) + '</span></button>' +
+        '<span class="exo-s">' + esc(fmtLigne(l, circuit)) + '</span></button>' +
       (chargeable(eid) ? (() => {
         const mem = derniereCharge(eid);
         const v = l.kg != null ? l.kg : (mem ? mem.kg : null);
@@ -4775,8 +4816,11 @@ function sheetSeance(sh){
   h += '<div class="btns grow" style="margin-top:18px">' +
     '<button class="btn ' + (s.fait ? "" : "pri") + '" data-act="basculer-seance" data-id="' + s.id + '">' +
       svg("check",16,2.2) + (s.fait ? "Annuler la validation" : "Terminer la séance") + '</button></div>';
-  if(!s.fait && done.length)
-    h += '<div class="aide" style="text-align:center">' + done.length + ' exercice' + (done.length>1?"s":"") + ' sur ' + s.b.length + ' coché' + (done.length>1?"s":"") + '.</div>';
+  h += '<div class="aide" style="text-align:center">' +
+    (circuit ? 'Circuit : une série de chaque exercice à la suite, puis on recommence.'
+             : 'Toutes les séries d\'un exercice, puis on passe au suivant.') +
+    (!s.fait && done.length ? ' ' + done.length + ' exercice' + (done.length>1?"s":"") + ' sur ' + s.b.length +
+      ' coché' + (done.length>1?"s":"") + '.' : "") + '</div>';
   h += '</div></div>';
   return h;
 }
@@ -4821,7 +4865,7 @@ function sheetExo(sh){
     h += '<div class="repere">' +
       (l.t && l.s <= 1 ? '<span>Durée <b>' + esc(duree(l.t)) + '</b></span>'
         : '<span>Séries <b>' + l.s + '</b></span><span>' + (l.t ? 'Temps <b>' + l.t + ' s</b>' : 'Répétitions <b>' + l.x + '</b>') + '</span>') +
-      (l.r ? '<span>Repos <b>' + l.r + ' s</b></span>' : "") +
+      (l.r ? '<span>Repos entre séries <b>' + l.r + ' s</b></span>' : "") +
       '<span>Matériel <b>' + esc(MATOS[e.mat]) + '</b></span></div>';
   }else{
     h += '<div class="repere"><span>Matériel <b>' + esc(MATOS[e.mat]) + '</b></span></div>';
@@ -4834,6 +4878,7 @@ function sheetExo(sh){
       '<div class="lig"><div class="l">Fourchette visée<div class="d">Cette semaine : ' + l.s + ' séries de ' + l.x +
         '. La fourchette de l\'exercice va de ' + l.xmin + ' à ' + l.xmax + ' répétitions.</div></div>' +
         '<span class="mono" style="font-size:15px">' + l.xmin + '–' + l.xmax + '</span></div>' +
+      '<div class="lig"><div class="l">Le repos<div class="d">Les ' + (l.r || 60) + ' secondes indiquées séparent deux séries du même exercice. Entre deux exercices différents, compte une à deux minutes de plus.</div></div></div>' +
       '<div class="lig"><div class="l">Le bon effort<div class="d">La dernière répétition doit être difficile mais propre. S\'il t\'en reste plus de deux ou trois en réserve, c\'est trop facile ; si la technique se dégrade, c\'est trop dur.</div></div></div>' +
       '<div class="lig"><div class="l">Quand augmenter<div class="d">Le jour où tu passes ' + l.xmax +
         ' répétitions propres sur toutes les séries, ce n\'est plus le nombre qu\'il faut augmenter : ajoute de la charge, ralentis la descente, ou remplace par une variante plus difficile.</div></div></div>' +
