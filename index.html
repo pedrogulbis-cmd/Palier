@@ -218,6 +218,7 @@ html[data-theme="sombre"] .chip.on{color:#0d0d10;background:var(--texte);border-
 .btn.pri{background:var(--acc);border-color:var(--acc);color:var(--surAcc)}
 .btn.dang{color:var(--dang);border-color:var(--dangF)}
 .btn[disabled]{opacity:.45;pointer-events:none}
+a.btn{text-decoration:none;color:var(--texte)}
 .btns{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
 .btns.grow>*{flex:1}
 .pas{display:flex;gap:9px;align-items:center;margin:12px 0}
@@ -414,9 +415,14 @@ html[data-theme="sombre"] .photo img{filter:brightness(.9) contrast(1.03)}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "2.0.0";
+const VERSION = "2.1.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"2.1.0", d:"2026-09-06", t:"Quarante-huit exercices de plus", l:[
+    "La bibliothèque passe de 92 à 140 exercices, tous photographiés : développé incliné, pull-over, rowing barre, soulevé de terre, haussements d'épaules, extensions lombaires, oiseau, développé Arnold, curl marteau, barre au front, squat barre, front squat, leg extension, leg curl, soulevé roumain, machines adducteurs et abducteurs, swing kettlebell, marche du fermier, box jumps, relevé de jambes suspendu, crunch à la poulie, roulette abdominale, elliptique, stepper, battle ropes, et cinq étirements de plus.",
+    "Chacun a sa description, ses conseils, son schéma de mouvement et son matériel : ils apparaissent donc dans les remplacements proposés dès qu'ils correspondent.",
+    "Un bouton « Voir une vidéo » sous les photographies ouvre une recherche avec le nom de l'exercice. Le jeu de données n'héberge pas de vidéos ; plutôt que d'en inventer, l'application envoie les chercher."
+  ]},
   { v:"2.0.0", d:"2026-09-06", t:"Des photographies", l:[
     "Les silhouettes ne suffisaient pas à comprendre un mouvement. Chaque exercice montre désormais deux photographies — position de départ, position d'arrivée — avant la planche dessinée.",
     "Quatre-vingt-onze exercices sur quatre-vingt-douze sont illustrés, à partir de Free Exercise DB, un jeu de données de huit cents exercices versé au domaine public.",
@@ -1367,6 +1373,166 @@ const EXOS = {
   elastMonster:{ n:"Marche latérale élastique", g:"fessiers", g2:["jambes"], pat:"charn", mat:1, img:"Band_Hip_Adductions", fig:"marche",
     d:"Élastique autour des chevilles ou des genoux, demi-squat, on avance en pas chassés sans laisser les genoux rentrer.",
     c:["Reste bas pendant toute la série.","Une dizaine de pas dans chaque sens compte pour une série."] },
+
+  /* ---- pectoraux, suite ---- */
+  devIncline:{ n:"Développé incliné haltères", g:"pecs", g2:["epaules","bras"], pat:"pouh", mat:2, img:"Incline_Dumbbell_Press", fig:"developpe",
+    d:"Banc incliné à 30°, haltères à hauteur de poitrine. On pousse vers le plafond. Le haut des pectoraux, celui qui manque le plus souvent.",
+    c:["Au-delà de 45° d'inclinaison, ce sont les épaules qui prennent le travail.","Omoplates serrées, poitrine ouverte.","Les haltères se rejoignent en haut sans s'entrechoquer."] },
+  pullover:{ n:"Pull-over haltère", g:"pecs", g2:["dos"], pat:"pouh", mat:2, img:"Bent-Arm_Dumbbell_Pullover", fig:"elevation",
+    d:"Allongé, un haltère tenu à deux mains au-dessus de la poitrine. On l'emmène derrière la tête bras semi-fléchis, puis on le ramène.",
+    c:["Charge modérée : l'épaule est en position vulnérable.","Ne descends que jusqu'où l'épaule reste confortable.","Le bassin ne se cambre pas."] },
+  cableCross:{ n:"Écarté à la poulie", g:"pecs", g2:["epaules"], pat:"pouh", mat:3, img:"Cable_Crossover", fig:"elevation",
+    d:"Debout entre deux poulies hautes, on ramène les mains devant la poitrine en arc de cercle.",
+    c:["Léger buste penché en avant, un pied devant l'autre.","Serre une seconde en fin de mouvement.","Coudes fixes, l'angle ne change pas."] },
+  devMachine:{ n:"Développé couché machine", g:"pecs", g2:["bras"], pat:"pouh", mat:3, img:"Machine_Bench_Press", fig:"developpe",
+    d:"Assis dans la machine, dos calé, on pousse les poignées vers l'avant. Le plus sûr des exercices de poussée quand on charge lourd seul.",
+    c:["Règle le siège pour que les poignées partent au niveau de la poitrine.","Ne verrouille pas les coudes en fin de poussée."] },
+
+  /* ---- dos, suite ---- */
+  rowBarre:{ n:"Rowing barre penché", g:"dos", g2:["bras"], pat:"tirh", mat:3, img:"Bent_Over_Barbell_Row", fig:"rowing",
+    d:"Buste penché à 45°, dos plat, on tire la barre vers le nombril puis on la redescend contrôlée.",
+    c:["Le buste ne se redresse pas pendant la série.","Tire avec les coudes, serre les omoplates en haut.","Charge modérée tant que le dos n'est pas solide."] },
+  souleveTerre:{ n:"Soulevé de terre", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:3, img:"Barbell_Deadlift", fig:"souleve",
+    d:"Barre au sol contre les tibias, on se redresse en poussant dans les jambes, dos plat du début à la fin. L'exercice de force le plus complet.",
+    c:["La barre frôle les jambes pendant toute la montée.","Le dos ne s'arrondit jamais : allège plutôt que d'insister.","Verrouille en serrant les fessiers, sans partir en arrière."] },
+  shrug:{ n:"Haussements d'épaules", g:"dos", g2:["epaules"], pat:"tirh", mat:2, img:"Dumbbell_Shrug", fig:"rowing",
+    d:"Debout, un haltère dans chaque main, on hausse les épaules vers les oreilles puis on redescend.",
+    c:["Pas de rotation des épaules : c'est un mouvement vertical.","Une seconde de contraction en haut.","Les bras restent tendus et passifs."] },
+  hyperext:{ n:"Extensions lombaires", g:"dos", g2:["fessiers"], pat:"charn", mat:3, img:"Hyperextensions_Back_Extensions", fig:"superman",
+    d:"Sur le banc à lombaires, on descend le buste puis on remonte jusqu'à l'alignement du corps.",
+    c:["On s'arrête à l'horizontale : inutile de partir en arrière.","Fessiers serrés à la remontée.","Mains sur la poitrine avant d'ajouter une charge."] },
+  tirageSerre:{ n:"Tirage vertical prise serrée", g:"dos", g2:["bras"], pat:"tirv", mat:3, img:"Close-Grip_Front_Lat_Pulldown", fig:"traction",
+    d:"Poignée serrée en supination ou neutre, on tire vers le haut de la poitrine. Plus de biceps, plus d'amplitude.",
+    c:["Poitrine haute, léger recul du buste.","Descends les coudes vers les hanches.","Retiens le retour jusqu'aux bras tendus."] },
+  facePullM:{ n:"Face pull à la poulie", g:"epaules", g2:["dos"], pat:"tirh", mat:3, img:"Face_Pull", fig:"rowing",
+    d:"Corde à hauteur de visage, on tire vers le front en écartant les coudes. L'assurance santé des épaules.",
+    c:["Léger, lent, en fin de séance.","Coudes hauts, mains qui passent de part et d'autre de la tête.","Deux à trois séries suffisent."] },
+
+  /* ---- épaules, suite ---- */
+  elevFront:{ n:"Élévations frontales", g:"epaules", g2:[], pat:"pouv", mat:2, img:"Front_Dumbbell_Raise", fig:"elevation",
+    d:"Bras tendus devant les cuisses, on lève jusqu'à hauteur des yeux, une main après l'autre ou les deux ensemble.",
+    c:["Pas d'élan du dos : si le buste bouge, la charge est trop lourde.","Monte en une seconde, descends en deux."] },
+  oiseau:{ n:"Oiseau — deltoïde postérieur", g:"epaules", g2:["dos"], pat:"tirh", mat:2, img:"Reverse_Flyes", fig:"rowing",
+    d:"Buste penché à l'horizontale, on écarte les bras sur les côtés, pouces vers le haut.",
+    c:["Charge très légère : c'est un muscle petit et lent.","Serre les omoplates sans hausser les épaules.","Excellent contrepoids aux exercices de poussée."] },
+  rowMenton:{ n:"Rowing menton", g:"epaules", g2:["bras"], pat:"pouv", mat:2, img:"Standing_Dumbbell_Upright_Row", fig:"elevation",
+    d:"Haltères devant les cuisses, on tire vers le haut en gardant les coudes au-dessus des mains.",
+    c:["Ne monte pas au-delà des clavicules : au-delà, l'épaule pince.","Prise un peu large, plus confortable.","À éviter en cas de gêne à l'épaule."] },
+  arnold:{ n:"Développé Arnold", g:"epaules", g2:["bras"], pat:"pouv", mat:2, img:"Arnold_Dumbbell_Press", fig:"developpe",
+    d:"Départ paumes vers soi devant la poitrine, on pivote les mains en poussant au-dessus de la tête.",
+    c:["Rotation progressive, pas à la fin du mouvement.","Ventre gainé, dos droit.","Charge plus légère qu'au développé militaire classique."] },
+
+  /* ---- bras, suite ---- */
+  curlMarteau:{ n:"Curl marteau", g:"bras", g2:[], pat:"tirh", mat:2, img:"Hammer_Curls", fig:"curl",
+    d:"Paumes face à face, on fléchit les coudes. Le brachial et l'avant-bras travaillent davantage qu'au curl classique.",
+    c:["Coudes collés au buste.","Alterne les bras si la charge est lourde.","Pas de balancement."] },
+  curlConc:{ n:"Curl concentration", g:"bras", g2:[], pat:"tirh", mat:2, img:"Concentration_Curls", fig:"curl",
+    d:"Assis, coude calé contre l'intérieur de la cuisse, on monte l'haltère jusqu'à l'épaule.",
+    c:["Le coude ne quitte pas la cuisse.","Contracte une seconde en haut.","La descente lente vaut la montée."] },
+  extNuque:{ n:"Extension nuque haltère", g:"bras", g2:[], pat:"pouv", mat:2, img:"Dumbbell_One-Arm_Triceps_Extension", fig:"developpe",
+    d:"Haltère tenu derrière la tête, coude vers le plafond, on tend le bras sans bouger le coude.",
+    c:["Le coude reste fixe et proche de la tête.","Charge légère : l'articulation est en position fragile.","Ventre gainé, pas de cambrure."] },
+  kickTriceps:{ n:"Kickback triceps", g:"bras", g2:[], pat:"pouh", mat:2, img:"Tricep_Dumbbell_Kickback", fig:"rowing",
+    d:"Buste penché, coude remonté à hauteur du buste, on tend l'avant-bras vers l'arrière.",
+    c:["Seul l'avant-bras bouge.","Serre le triceps une seconde bras tendu.","Charge légère, l'exercice est court en amplitude."] },
+  barreFront:{ n:"Barre au front", g:"bras", g2:[], pat:"pouh", mat:3, img:"Lying_Triceps_Press", fig:"developpe",
+    d:"Allongé, barre au-dessus du front, on plie les coudes puis on retend les bras.",
+    c:["Les coudes restent orientés vers le plafond.","Barre EZ plus confortable pour les poignets.","Un pareur pour les charges lourdes."] },
+  pushdown:{ n:"Extension triceps à la poulie", g:"bras", g2:[], pat:"pouh", mat:3, img:"Triceps_Pushdown", fig:"dips",
+    d:"Poulie haute, coudes collés au corps, on pousse la barre vers les cuisses.",
+    c:["Le buste ne se penche pas pour aider.","Amplitude complète, bras tendus en bas.","Retiens le retour."] },
+
+  /* ---- jambes, suite ---- */
+  squatBarre:{ n:"Squat barre", g:"jambes", g2:["fessiers","abdos"], pat:"squat", mat:3, img:"Barbell_Squat", fig:"squat",
+    d:"Barre sur le haut du dos, on descend jusqu'aux cuisses parallèles puis on remonte en poussant dans les talons.",
+    c:["Toujours dans un rack, sécurités réglées.","Genoux dans l'axe des pieds, dos gainé.","Descends à l'amplitude que ta mobilité permet, sans arrondir le bas du dos."] },
+  frontSquat:{ n:"Front squat", g:"jambes", g2:["abdos"], pat:"squat", mat:3, img:"Front_Barbell_Squat", fig:"squat",
+    d:"Barre posée sur le devant des épaules. Le buste reste plus vertical, les quadriceps prennent davantage.",
+    c:["Coudes hauts pendant toute la série.","Charge plus légère qu'au squat classique.","Excellent pour qui a mal au bas du dos avec la barre derrière."] },
+  legExt:{ n:"Leg extension", g:"jambes", g2:[], pat:"squat", mat:3, img:"Leg_Extensions", fig:"chaise",
+    d:"Assis dans la machine, on tend les jambes contre la résistance.",
+    c:["Ne verrouille pas brutalement en haut.","Charge modérée : le genou n'aime pas les à-coups ici.","Une seconde de contraction jambes tendues."] },
+  legCurl:{ n:"Leg curl allongé", g:"jambes", g2:["fessiers"], pat:"charn", mat:3, img:"Lying_Leg_Curls", fig:"jambes",
+    d:"À plat ventre sur la machine, on ramène les talons vers les fesses.",
+    c:["Le bassin reste collé au banc.","Descends lentement, c'est la partie utile.","Complète bien les soulevés de terre."] },
+  souleveRoum:{ n:"Soulevé de terre roumain", g:"fessiers", g2:["dos","jambes"], pat:"charn", mat:3, img:"Romanian_Deadlift", fig:"souleve",
+    d:"Barre en main, genoux à peine fléchis, on pousse les hanches en arrière jusqu'à mi-tibia puis on se redresse.",
+    c:["La barre frôle les cuisses.","Le mouvement vient de la hanche, jamais du bas du dos.","Arrête la descente quand le dos veut s'arrondir."] },
+  fentesHalt:{ n:"Fentes avec haltères", g:"jambes", g2:["fessiers"], pat:"fente", mat:2, img:"Dumbbell_Lunges", fig:"fente",
+    d:"Un haltère dans chaque main, bras le long du corps, on enchaîne les fentes.",
+    c:["Buste droit, regard devant.","Le genou avant ne dépasse pas la pointe du pied.","Commence léger : l'équilibre se travaille avant la charge."] },
+  adducteurs:{ n:"Machine adducteurs", g:"jambes", g2:[], pat:"charn", mat:3, img:"Thigh_Adductor", fig:"jambes",
+    d:"Assis, on referme les cuisses contre la résistance. L'intérieur des cuisses, rarement travaillé ailleurs.",
+    c:["Amplitude complète mais sans forcer l'écartement de départ.","Retiens le retour."] },
+  abducteurs:{ n:"Machine abducteurs", g:"fessiers", g2:[], pat:"charn", mat:3, img:"Thigh_Abductor", fig:"jambes",
+    d:"Assis, on écarte les cuisses contre la résistance. Le moyen fessier, celui qui stabilise le bassin à la marche.",
+    c:["Buste légèrement penché en avant pour mieux cibler.","Une seconde de contraction en fin d'écartement."] },
+  molletsAssis:{ n:"Mollets assis", g:"mollets", g2:[], pat:"mollet", mat:3, img:"Seated_Calf_Raise", fig:"mollets",
+    d:"Assis, genoux pliés à 90°, charge sur les cuisses, on monte sur la pointe des pieds.",
+    c:["Genou plié : c'est le soléaire qui travaille, pas le jumeau.","Amplitude complète, talon bien bas au départ.","Séries longues, ce muscle encaisse beaucoup."] },
+  gluteKick:{ n:"Kickback à la poulie", g:"fessiers", g2:[], pat:"charn", mat:3, img:"One-Legged_Cable_Kickback", fig:"jambes",
+    d:"Sangle à la cheville, on pousse la jambe vers l'arrière en serrant le fessier.",
+    c:["Bassin stable, pas de cambrure du bas du dos.","Serre en fin de mouvement plutôt que de monter plus haut."] },
+  swingKB:{ n:"Swing kettlebell", g:"fessiers", g2:["dos","cardio"], pat:"charn", mat:2, img:"One-Arm_Kettlebell_Swings", fig:"souleve",
+    d:"Balancier de la kettlebell entre les jambes puis à hauteur de poitrine, propulsé par les hanches. Force et cardio dans le même mouvement.",
+    c:["Ce sont les hanches qui projettent, pas les bras.","Dos plat, regard devant.","Apprends le mouvement à vide avant de charger."] },
+  farmer:{ n:"Marche du fermier", g:"dos", g2:["bras","jambes"], pat:"tirh", mat:2, img:"Farmers_Walk", fig:"marche",
+    d:"Une charge lourde dans chaque main, on marche droit sur une distance donnée. Grip, gainage et posture d'un coup.",
+    c:["Épaules basses et en arrière, buste droit.","Petits pas réguliers.","Repose les charges avant que la posture ne se dégrade."] },
+  boxJump:{ n:"Box jumps", g:"jambes", g2:["cardio"], pat:"squat", imp:1, mat:0, img:"Front_Box_Jump", fig:"jumping",
+    d:"Saut à pieds joints sur une caisse ou une marche haute, réception souple, on redescend en marchant.",
+    c:["Redescends en posant le pied, jamais en sautant.","Une hauteur où la réception reste franche : l'ego se casse les tibias ici.","À éviter si les genoux sont sensibles."] },
+
+  /* ---- abdos, suite ---- */
+  releveSusp:{ n:"Relevé de jambes suspendu", g:"abdos", g2:["bras"], pat:"abdo", mat:3, img:"Hanging_Leg_Raise", fig:"traction",
+    d:"Suspendu à la barre, on monte les genoux ou les jambes tendues vers la poitrine.",
+    c:["Genoux pliés d'abord, jambes tendues quand ça passe.","Pas de balancement : on monte, on retient.","Épaules actives, pas relâchées."] },
+  crunchPoulie:{ n:"Crunch à la poulie", g:"abdos", g2:[], pat:"abdo", mat:3, img:"Cable_Crunch", fig:"crunch",
+    d:"À genoux face à la poulie haute, corde derrière la nuque, on enroule le buste vers les cuisses.",
+    c:["Ce sont les abdos qui enroulent, pas les bras qui tirent.","Les hanches ne bougent pas.","Expire à fond en bas du mouvement."] },
+  situp:{ n:"Sit-up complet", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Sit-Up", fig:"crunch",
+    d:"Allongé, genoux pliés, on remonte tout le buste jusqu'à la verticale puis on redescend contrôlé.",
+    c:["Ne bloque les pieds que si le dos reste droit.","Descends vertèbre par vertèbre.","Plus exigeant pour le dos que le crunch : à réserver quand la ceinture est solide."] },
+  crunchInv:{ n:"Crunch inversé", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Reverse_Crunch", fig:"jambes",
+    d:"Allongé, genoux au-dessus des hanches, on décolle le bassin en amenant les genoux vers la poitrine.",
+    c:["Mouvement court : le bassin décolle de quelques centimètres.","Pas d'élan avec les jambes.","Le bas du dos reste au sol."] },
+  crunchOblique:{ n:"Crunch oblique", g:"abdos", g2:[], pat:"abdo", mat:0, img:"Oblique_Crunches", fig:"twist",
+    d:"Allongé sur le dos, jambes basculées d'un côté, on enroule le buste vers le plafond.",
+    c:["Change de côté à mi-série.","Amplitude courte, contraction franche.","Ne tire pas sur la nuque."] },
+  roulette:{ n:"Roulette abdominale", g:"abdos", g2:["dos","epaules"], pat:"gain", mat:2, img:"Barbell_Ab_Rollout_-_On_Knees", fig:"gainDyn",
+    d:"À genoux, on fait rouler la roue ou la barre vers l'avant en gardant le dos plat, puis on revient.",
+    c:["Ne descends que jusqu'où le bas du dos ne creuse pas.","Fessiers serrés pendant tout le mouvement.","Trois répétitions propres valent mieux que dix cassées."] },
+
+  /* ---- cardio, suite ---- */
+  elliptique:{ n:"Vélo elliptique", g:"cardio", g2:["jambes"], pat:"cardio", mat:3, img:"Elliptical_Trainer", fig:"velo", type:"temps",
+    d:"Mouvement complet sans impact, bras et jambes ensemble. Le compromis quand la course cogne trop.",
+    c:["Pousse aussi avec les bras : la dépense monte nettement.","Cadence régulière plutôt que résistance maximale."] },
+  stepper:{ n:"Stepper", g:"cardio", g2:["jambes","fessiers"], pat:"cardio", mat:3, img:"Step_Mill", fig:"montee", type:"temps",
+    d:"Une montée d'escalier sans fin. Très efficace, et sévère pour les cuisses.",
+    c:["Ne t'appuie pas sur les barres : cela divise l'effort par deux.","Pose le pied entier sur la marche."] },
+  battleRope:{ n:"Battle ropes", g:"cardio", g2:["dos","bras"], pat:"cardio", mat:3, img:"Battling_Ropes", fig:"corde", type:"temps",
+    d:"Ondulations à deux cordes lourdes, en position de demi-squat. Le haut du corps et le souffle ensemble.",
+    c:["Genoux fléchis, dos droit pendant toute la série.","Vingt à trente secondes suffisent.","Alterne vagues simples et vagues simultanées."] },
+  jogging:{ n:"Jogging léger", g:"cardio", g2:["jambes"], pat:"cardio", mat:0, imp:1, img:"Jogging_Treadmill", fig:"marche", type:"temps",
+    d:"Course lente, à l'allure où la conversation reste facile. Le socle de l'endurance.",
+    c:["Si le souffle manque, alterne course et marche.","Trois sorties par semaine valent mieux qu'une longue.","Chaussures adaptées : c'est le seul matériel qui compte."] },
+
+  /* ---- mobilité, suite ---- */
+  etirFessier:{ n:"Étirement fessier", g:"mobilite", g2:["fessiers"], pat:"mob", mat:0, img:"Seated_Glute", fig:"etirement", type:"temps",
+    d:"Assis, une cheville posée sur le genou opposé, on penche le buste en avant dos plat.",
+    c:["Trente secondes de chaque côté.","Respire : le muscle lâche à l'expiration.","Idéal après les jours de jambes ou de longue station assise."] },
+  etirEpaule:{ n:"Étirement des épaules", g:"mobilite", g2:["epaules"], pat:"mob", mat:0, img:"Shoulder_Stretch", fig:"etirement", type:"temps",
+    d:"Un bras tendu en travers de la poitrine, l'autre le ramène vers soi.",
+    c:["Épaule basse, pas remontée vers l'oreille.","Change de côté après trente secondes."] },
+  etirMollet:{ n:"Étirement des mollets", g:"mobilite", g2:["mollets"], pat:"mob", mat:0, img:"Standing_Gastrocnemius_Calf_Stretch", fig:"etirement", type:"temps",
+    d:"Mains au mur, une jambe tendue en arrière, talon au sol, on avance le bassin.",
+    c:["Jambe arrière tendue pour le jumeau, légèrement fléchie pour le soléaire.","Talon collé au sol, sinon rien ne s'étire."] },
+  hanches:{ n:"Cercles de hanches", g:"mobilite", g2:[], pat:"mob", mat:0, img:"Standing_Hip_Circles", fig:"marche", type:"temps",
+    d:"Debout, mains sur les hanches, on dessine de grands cercles avec le bassin.",
+    c:["Amplitude maximale, lentement.","Change de sens à mi-temps.","Parfait en tout début de séance."] },
+  etirDos:{ n:"Étirement du bas du dos", g:"mobilite", g2:["dos"], pat:"mob", mat:0, img:"Hug_Knees_To_Chest", fig:"crunch", type:"temps",
+    d:"Allongé sur le dos, on ramène les deux genoux contre la poitrine et on les tient.",
+    c:["Relâche la nuque et les épaules au sol.","Berce doucement de gauche à droite si cela soulage.","Un des rares étirements qu'on peut tenir une minute pleine."] },
 
   /* ---- mobilité ---- */
   etirPecs:{ n:"Étirement des pectoraux", g:"mobilite", g2:["pecs"], pat:"mob", mat:0, img:"Behind_Head_Chest_Stretch", fig:"etirement", type:"temps",
@@ -4233,7 +4399,8 @@ const GUIDE = [
   { t:"Comprendre un mouvement", l:[
     "Chaque fiche d'exercice montre deux photographies — la position de départ et la position d'arrivée — puis la même chose dessinée en trois vignettes légendées.",
     "Les photographies viennent de Free Exercise DB, un jeu de données versé au domaine public. Elles se chargent depuis Internet : sans réseau, seules les vignettes dessinées restent, et elles suffisent à retrouver la position.",
-    "Les photos peuvent être coupées dans les réglages, avec le reste du fonctionnement inchangé."
+    "Les photos peuvent être coupées dans les réglages, avec le reste du fonctionnement inchangé.",
+    "Un bouton « Voir une vidéo » ouvre une recherche dans le navigateur avec le nom de l'exercice : le jeu de données ne contient pas de vidéos, autant aller les chercher là où elles sont."
   ]},
   { t:"Si un exercice ne va pas", l:[
     "Un mouvement douloureux, impossible, ou pour lequel il manque le matériel se remplace : ouvre l'exercice, touche « Remplacer », choisis dans la liste proposée.",
@@ -4544,6 +4711,12 @@ function sheetExo(sh){
 
   const ph = photos(e);
   if(ph) h += '<div class="sect"><h2>En photo</h2></div>' + ph;
+  /* Le jeu de données ne fournit pas de vidéos : le bouton ouvre une recherche
+     dans le navigateur, avec le nom de l'exercice déjà écrit. C'est moins
+     élégant qu'une vidéo intégrée, mais au moins ce n'est pas un mensonge. */
+  h += '<div class="btns grow" style="margin-top:' + (ph ? "4px" : "14px") + '">' +
+    '<a class="btn" target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/results?search_query=' +
+    encodeURIComponent(e.n + " exercice technique") + '">' + svg("chev",16) + 'Voir une vidéo</a></div>';
 
   const bd = planche(e.fig);
   if(bd){
