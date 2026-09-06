@@ -403,9 +403,17 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.8.0";
+const VERSION = "1.9.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"1.9.0", d:"2026-09-06", t:"Plusieurs programmes, et la corde", l:[
+    "Plusieurs programmes peuvent tourner en même temps : de la musculation le lundi, mercredi et vendredi, du cardio le samedi. Au moment de créer, on choisit de remplacer le programme en cours ou de l\'ajouter à côté — et l\'application prévient si un jour porte déjà une séance.",
+    "L\'agenda range toutes les séances ensemble, semaine de calendrier par semaine de calendrier.",
+    "Chaque programme garde son objectif, sa durée et sa progression : on prolonge, on change d\'objectif ou on retire l\'un sans toucher à l\'autre.",
+    "La corde à sauter se déclare dans les réglages. Elle ouvre cinq exercices — pas alternés, montées de genoux, double tour, cloche-pied, sprint — et un programme « Corde à sauter — cardio » de huit semaines.",
+    "Sans corde déclarée, les exercices de corde deviennent d\'eux-mêmes des jumping jacks ou des montées de genoux.",
+    "Les cinq nouveaux exercices ont leur planche en trois vignettes, comme tous les autres."
+  ]},
   { v:"1.8.0", d:"2026-09-06", t:"Le mouvement, pas à pas", l:[
     "Chaque exercice s'ouvre désormais sur une planche en trois vignettes numérotées, à la manière d'une bande dessinée : position de départ, mouvement, retour — avec la légende de chaque étape.",
     "Trente-quatre mouvements sont décomposés, du squat aux tractions, avec les repères qui comptent : la ligne du dos en gainage, la trajectoire des coudes en pompes, la hauteur du bassin en pont fessier.",
@@ -697,6 +705,10 @@ const FIGS = {
   jumping:'<circle cx="50" cy="12" r="5"/><path d="M50 17v16"/><path d="M50 20 30 10M50 20 70 10"/><path d="M50 33 38 50M50 33 62 50"/>' + SOL,
   course:'<circle cx="44" cy="12" r="5"/><path d="M44 17 40 32"/><path d="M40 32 54 42 54 51"/><path d="M40 32 26 42 22 40"/><path d="M43 20 58 26M43 21 30 20"/>' + SOL,
   marche:'<circle cx="44" cy="12" r="5"/><path d="M44 17v16"/><path d="M44 33 34 51M44 33 56 51"/><path d="M44 21 36 32M44 21 52 30"/>' + SOL,
+  cordeAlt:'<circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 45 48M50 33 56 44 54 50"/><path d="M50 22 34 26M50 22 66 26"/><path d="M34 26C18 34 20 52 50 52s32-18 16-26" opacity=".55"/>',
+  cordeGen:'<circle cx="50" cy="12" r="5"/><path d="M50 17v14"/><path d="M50 31 38 30 40 42"/><path d="M50 31 52 50"/><path d="M50 20 34 24M50 20 66 24"/><path d="M34 24C18 32 20 52 50 52s32-20 16-28" opacity=".55"/>',
+  cordeDouble:'<circle cx="50" cy="10" r="5"/><path d="M50 15v13"/><path d="M50 28 45 42M50 28 55 42"/><path d="M50 19 34 23M50 19 66 23"/><path d="M34 23C16 31 18 50 50 50s34-19 16-27" opacity=".55"/><path d="M36 27C22 33 24 46 50 46s28-13 14-19" opacity=".3"/>',
+  cordeUn:'<circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 48 50"/><path d="M50 33 60 40 58 46"/><path d="M50 22 34 26M50 22 66 26"/><path d="M34 26C18 34 20 52 50 52s32-18 16-26" opacity=".55"/>',
   corde:'<circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 44 48M50 33 56 48"/><path d="M50 22 34 26M50 22 66 26"/><path d="M34 26C18 34 20 52 50 52s32-18 16-26" opacity=".55"/>',
   genoux:'<circle cx="44" cy="12" r="5"/><path d="M44 17v14"/><path d="M44 31 56 30 54 42"/><path d="M44 31 42 51"/><path d="M44 20 32 24M44 20 56 16"/>' + SOL,
   velo:'<circle cx="24" cy="44" r="9" stroke-width="2.4"/><circle cx="72" cy="44" r="9" stroke-width="2.4"/><path d="M24 44 44 44 58 28 72 44M44 44 52 28h10"/><circle cx="60" cy="18" r="5"/>',
@@ -948,6 +960,34 @@ const SEQ = {
     '<circle cx="20" cy="32" r="5"/><path d="M25 34 70 34"/><path d="M25 34 24 48M70 34 74 48"/>' + SOL,
     FIGS.chat,
     '<circle cx="20" cy="36" r="5"/><path d="M25 36C40 44 56 44 70 36"/><path d="M25 36 24 48M70 36 74 48"/>' + SOL ] },
+  cordeAlt:{ c:[
+    "Corde derrière les talons, coudes près du corps.",
+    "Saute d'un pied sur l'autre, comme une course sur place très légère.",
+    "Moins fatigant que le saut à pieds joints : c'est le pas qui tient la durée."], f:[
+    '<circle cx="50" cy="14" r="5"/><path d="M50 19v16"/><path d="M50 35 47 52M50 35 53 52"/><path d="M50 22 40 28M50 22 60 28"/><path d="M40 28C30 40 40 52 50 52s20-12 10-24" opacity=".5"/>',
+    FIGS.cordeAlt,
+    '<circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 56 48M50 33 44 44 46 50"/><path d="M50 22 34 26M50 22 66 26"/><path d="M34 26C18 34 20 52 50 52s32-18 16-26" opacity=".55"/>' ] },
+  cordeGen:{ c:[
+    "Départ debout, corde derrière les talons.",
+    "Monte un genou à chaque tour de corde, buste droit.",
+    "Alterne les jambes. Le rythme est plus lent, l'effort plus élevé."], f:[
+    FIGS.corde,
+    FIGS.cordeGen,
+    '<circle cx="50" cy="12" r="5"/><path d="M50 17v14"/><path d="M50 31 62 30 60 42"/><path d="M50 31 48 50"/><path d="M50 20 34 24M50 20 66 24"/><path d="M34 24C18 32 20 52 50 52s32-20 16-28" opacity=".55"/>' ] },
+  cordeDouble:{ c:[
+    "Saut normal pour prendre le rythme, poignets actifs.",
+    "Saute plus haut et accélère les poignets : la corde passe deux fois.",
+    "Un double tour sur cinq sauts suffit au début. C'est un exercice de coordination avant d'être un exercice de force."], f:[
+    FIGS.corde,
+    FIGS.cordeDouble,
+    '<circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 47 50M50 33 53 50"/><path d="M50 22 34 26M50 22 66 26"/><path d="M34 26C18 34 20 52 50 52s32-18 16-26" opacity=".55"/>' ] },
+  cordeUn:{ c:[
+    "Sur un pied, l'autre replié derrière, corde derrière les talons.",
+    "Saute sur place, bas et régulier, sans poser l'autre pied.",
+    "Change de jambe à la moitié du temps. La cheville travaille autant que le mollet."], f:[
+    FIGS.corde,
+    FIGS.cordeUn,
+    '<circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 52 50"/><path d="M50 33 40 40 42 46"/><path d="M50 22 34 26M50 22 66 26"/><path d="M34 26C18 34 20 52 50 52s32-18 16-26" opacity=".55"/>' ] },
   gainDyn:{ c:[
     "Planche bras tendus, pieds écartés pour la stabilité.",
     "Décolle une main et viens toucher l'épaule opposée.",
@@ -1169,9 +1209,24 @@ const EXOS = {
   course:{ n:"Course à pied", g:"cardio", g2:["jambes"], pat:"cardio", imp:1, mat:0, fig:"course", type:"temps",
     d:"Course en endurance fondamentale : le rythme où la conversation reste possible.",
     c:["Alterne 2 minutes de course et 1 minute de marche si le souffle manque.","Pose le pied sous le bassin, pas devant."] },
-  corde:{ n:"Corde à sauter", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, mat:0, fig:"corde", type:"temps",
+  corde:{ n:"Corde à sauter", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"corde", type:"temps",
     d:"Petits sauts sur place, la corde passant sous les pieds. Très dense en dépense pour le temps passé.",
     c:["Sauts bas : deux centimètres suffisent.","Coudes près du corps, ce sont les poignets qui tournent.","Sans corde, imite le mouvement : l'effet cardio reste."] },
+  cordeAlt:{ n:"Corde — pas alternés", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeAlt", type:"temps",
+    d:"Saut à la corde en passant d'un pied sur l'autre, comme une course sur place. La version qui tient le plus longtemps.",
+    c:["Sauts bas, poignets actifs, coudes près du corps.","C'est le pas le plus économique : idéal pour les longues séries.","Garde une cadence régulière plutôt que rapide."] },
+  cordeGenoux:{ n:"Corde — montées de genoux", g:"cardio", g2:["abdos","mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeGen", type:"temps",
+    d:"Un genou monte à hauteur de hanche à chaque tour de corde. Le rythme ralentit, le cœur monte.",
+    c:["Buste droit, ne te penche pas en arrière.","Vingt secondes suffisent au début : c'est très exigeant.","Reviens au pas alterné dès que la corde accroche."] },
+  cordeDouble:{ n:"Corde — double tour", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeDouble", type:"temps",
+    d:"La corde passe deux fois sous les pieds pour un seul saut. Coordination d'abord, condition ensuite.",
+    c:["Accélère les poignets plutôt que de sauter plus haut.","Un double tour tous les cinq sauts, puis deux, puis trois.","Corde légèrement plus longue pour apprendre."] },
+  cordeUnPied:{ n:"Corde — cloche-pied", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeUn", type:"temps",
+    d:"Sauts sur un seul pied, l'autre replié. Le mollet et la cheville encaissent tout le travail.",
+    c:["Change de jambe à la moitié du temps.","Sauts bas et réguliers.","À éviter si la cheville est douloureuse."] },
+  cordeSprint:{ n:"Corde — sprint", g:"cardio", g2:["mollets"], pat:"cardio", imp:1, cor:1, mat:0, fig:"cordeDouble", type:"temps",
+    d:"Le plus vite possible pendant un temps court, puis récupération complète. La façon la plus dense de dépenser.",
+    c:["Trente secondes à fond valent mieux que trois minutes molles.","Récupère vraiment entre les séries : c'est ce qui permet de repartir vite.","Arrête la série si la technique se délite."] },
   jumping:{ n:"Jumping jacks", g:"cardio", g2:["epaules"], pat:"cardio", imp:1, mat:0, fig:"jumping", type:"temps",
     d:"Saut avec écartement simultané des jambes et des bras. L'échauffement universel.",
     c:["Réception souple, genoux déverrouillés.","Version sans saut : un pied de côté après l'autre."] },
@@ -1462,6 +1517,23 @@ const PROGS = [
         { e:"etirIsch", s:1, t:60 } ] }
     ] },
 
+  { id:"cordeCardio", n:"Corde à sauter — cardio", z:"cardio", mat:0, cor:1, sem:8, par:3, min:20, niv:"Intermédiaire",
+    d:"Trois séances courtes à la corde : la dépense la plus dense pour le temps passé, dans deux mètres carrés. Une corde suffit.",
+    mod:[
+      { n:"Corde — endurance", k:280, b:[
+        { e:"cordeAlt", s:1, t:120 }, { e:"cordeAlt", s:4, t:120, r:45 },
+        { e:"cordeGenoux", s:3, t:30, r:45 }, { e:"planche", s:3, t:30, r:40 },
+        { e:"etirIsch", s:1, t:60 } ] },
+      { n:"Corde — intervalles", k:300, b:[
+        { e:"cordeAlt", s:1, t:120 }, { e:"cordeSprint", s:6, t:30, r:45 },
+        { e:"squat", s:3, x:15, r:45 }, { e:"mountain", s:3, t:30, r:40 },
+        { e:"respiration", s:1, t:90 } ] },
+      { n:"Corde — technique et renfort", k:270, b:[
+        { e:"corde", s:1, t:120 }, { e:"cordeDouble", s:4, t:45, r:60 },
+        { e:"cordeUnPied", s:4, t:30, r:45 }, { e:"mollets", s:3, x:20, r:40 },
+        { e:"gainDyn", s:3, t:30, r:40 }, { e:"etirQuad", s:1, t:60 } ] }
+    ] },
+
   { id:"marcheCourse", n:"De la marche à la course", z:"cardio", mat:0, sem:8, par:3, min:30, niv:"Débutant",
     d:"Huit semaines pour passer de la marche à trente minutes de course continue, avec une séance de renfort qui protège genoux et chevilles.",
     mod:[
@@ -1632,7 +1704,13 @@ const FACILE = {
    Chaque remplaçant garde le même format — un exercice en secondes reste en
    secondes, un exercice en répétitions reste en répétitions. */
 const DOUX = { jumping:"genoux", corde:"genoux", talons:"genoux", course:"marche",
-               burpees:"monteeBanc", squatSaute:"squat" };
+               burpees:"monteeBanc", squatSaute:"squat",
+               cordeAlt:"genoux", cordeGenoux:"genoux", cordeDouble:"genoux",
+               cordeUnPied:"genoux", cordeSprint:"genoux" };
+/* Pas de corde à la maison : l'exercice devient son équivalent sans corde,
+   plutôt que de rester au programme et d'être sauté. */
+const SANS_CORDE = { corde:"jumping", cordeAlt:"jumping", cordeGenoux:"genoux",
+                     cordeDouble:"jumping", cordeUnPied:"genoux", cordeSprint:"genoux" };
 
 /* L'âge, la corpulence et le niveau d'activité ne changent pas seulement le
    compte des calories : ils changent la séance. Un corps de soixante ans
@@ -1698,6 +1776,7 @@ function progresser(l, semaine, objId, ad){
   /* Un exercice à impact devient sa version douce quand la corpulence le
      réclame : le programme s'adapte au corps, pas l'inverse. */
   let eid = l.e;
+  if(!DB.settings.corde && EXOS[eid] && EXOS[eid].cor && SANS_CORDE[eid]) eid = SANS_CORDE[eid];
   if(a.doux && EXOS[eid] && EXOS[eid].imp && DOUX[eid]) eid = DOUX[eid];
   /* Les deux premiers blocs en version accessible, puis le mouvement complet. */
   if(a.facile && bloc < 2 && FACILE[eid] && EXOS[FACILE[eid]] &&
@@ -1735,9 +1814,9 @@ const DEFAULTS = {
   version:SCHEMA, jours:{}, seances:{},
   settings:{ theme:"clair", accent:ACCENTS[0][0], objectif:"forme",
              sexe:"h", age:35, taille:175, activite:"sedentaire", matos:0,
-             crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1, niveau:"debutant",
+             crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1, niveau:"debutant", corde:false,
              bTri:"90j" },
-  plan:null, prog:null, charges:{}, repasTypes:[],
+  plan:null, progs:[], charges:{}, repasTypes:[],
   meta:{ cree:Date.now(), modifie:0, exporte:0, vue:null }
 };
 let DB = JSON.parse(JSON.stringify(DEFAULTS));
@@ -1815,7 +1894,7 @@ async function ecouler(){
                  seances:[], supprSeances:[...sale.supprSeances], kv:{} };
   sale.jours.forEach(id => { const x = DB.jours[id]; if(x) lots.jours.push(x); });
   sale.seances.forEach(id => { const x = DB.seances[id]; if(x) lots.seances.push(x); });
-  if(sale.kv) lots.kv = { settings:DB.settings, meta:DB.meta, plan:DB.plan, prog:DB.prog,
+  if(sale.kv) lots.kv = { settings:DB.settings, meta:DB.meta, plan:DB.plan, progs:DB.progs,
                           charges:DB.charges, repasTypes:DB.repasTypes, version:SCHEMA };
   Object.values(sale).forEach(v => { if(v && v.clear) v.clear(); });
   sale.kv = false;
@@ -1839,7 +1918,9 @@ function assembler(k){
   if(!d.settings.subs) d.settings.subs = {};
   d.meta = { ...DEFAULTS.meta, ...(k.kv.meta || {}) };
   d.plan = k.kv.plan || null;
-  d.prog = k.kv.prog || null;
+  /* Une seule série de séances autrefois, plusieurs aujourd'hui : les
+     sauvegardes d'avant sont reprises telles quelles. */
+  d.progs = k.kv.progs || (k.kv.prog ? [k.kv.prog] : []);
   d.charges = k.kv.charges || {};
   d.repasTypes = k.kv.repasTypes || [];
   return d;
@@ -1852,7 +1933,8 @@ function fusionnerSauvegarde(x){
   Object.entries(x.jours||{}).forEach(([k,v]) => { if(!DB.jours[k]){ DB.jours[k] = v; nj++; } });
   Object.entries(x.seances||{}).forEach(([k,v]) => { if(!DB.seances[k]){ DB.seances[k] = v; ns++; } });
   if(!DB.plan && x.plan) DB.plan = x.plan;
-  if(!DB.prog && x.prog) DB.prog = x.prog;
+  const entrants = x.progs || (x.prog ? [x.prog] : []);
+  entrants.forEach(p => { if(!DB.progs.some(y => y.run === p.run)) DB.progs.push(p); });
   if(x.charges) DB.charges = { ...(x.charges), ...DB.charges };
   if(x.repasTypes) (x.repasTypes||[]).forEach(r => {
     if(!DB.repasTypes.some(y => y.id === r.id)) DB.repasTypes.push(r);
@@ -3022,9 +3104,17 @@ const seancesAll = () => Object.values(DB.seances);
 /* Les séances du programme en cours. Changer de programme n'efface pas les
    séances déjà validées : elles gardent leur identifiant de série, sortent de
    l'agenda et restent dans le bilan. */
+function progs(){ return DB.progs || (DB.progs = []); }
+function progParRun(run){ return progs().filter(p => p.run === run)[0] || null; }
 function seancesRun(){
-  const r = DB.prog && DB.prog.run;
-  return seancesAll().filter(s => r ? s.run === r : !s.run);
+  const r = progs().map(p => p.run);
+  return r.length ? seancesAll().filter(s => r.indexOf(s.run) !== -1) : [];
+}
+function seancesDeProg(run){ return seancesAll().filter(s => s.run === run); }
+/* La semaine du programme telle qu'elle tombe aujourd'hui. */
+function semaineDe(P){
+  return Math.max(1, Math.min(P.sem,
+    Math.floor(ecart(P.lundi || lundiDe(P.debut), todayISO()) / 7) + 1));
 }
 function seancesTri(){ return seancesRun().sort((a,b) => a.date === b.date ? a.mod - b.mod : (a.date < b.date ? -1 : 1)); }
 function seancesDuJour(iso){ return seancesRun().filter(s => s.date === iso); }
@@ -3066,9 +3156,10 @@ function poserSemaines(p, run, lundi, ordre, debut, w0, w1, objId, k){
   }
   return n;
 }
-function genererSeances(progId, debut, joursSem, semaines, objId){
+function genererSeances(progId, debut, joursSem, semaines, objId, remplacer){
   const p = prog(progId);
   if(!p || !joursSem.length) return 0;
+  if(remplacer) progs().slice().forEach(x => retirerProgramme(x.run));
   const sem = clamp(parseInt(semaines,10) || p.sem, 1, 52);
   const ordre = joursSem.slice().sort((a,b) => ((a+6)%7) - ((b+6)%7));
   /* Un programme commencé un samedi ne doit pas perdre sa première semaine :
@@ -3077,7 +3168,7 @@ function genererSeances(progId, debut, joursSem, semaines, objId){
   let lundi = lundiDe(debut);
   if(!ordre.some(jd => plusJours(lundi, (jd + 6) % 7) >= debut)) lundi = plusJours(lundi, 7);
   const run = uid();
-  DB.prog = { id:p.id, run, obj:objId, debut, lundi, jours:joursSem.slice(), sem, cree:Date.now() };
+  progs().push({ id:p.id, run, obj:objId, debut, lundi, jours:joursSem.slice(), sem, cree:Date.now() });
   const n = poserSemaines(p, run, lundi, ordre, debut, 1, sem, objId, 0);
   DB.settings.objectif = objId;
   sauver();
@@ -3085,11 +3176,11 @@ function genererSeances(progId, debut, joursSem, semaines, objId){
 }
 /* Prolonger : la suite du même programme, avec les blocs qui continuent de
    monter là où ils s'étaient arrêtés. C'est ainsi qu'on tient une année. */
-function prolongerProgramme(nb){
-  const P = DB.prog, p = P && prog(P.id);
+function prolongerProgramme(run, nb){
+  const P = progParRun(run), p = P && prog(P.id);
   if(!p) return 0;
   const ordre = P.jours.slice().sort((a,b) => ((a+6)%7) - ((b+6)%7));
-  const k = seancesRun().length;
+  const k = seancesDeProg(run).length;
   const n = poserSemaines(p, P.run, P.lundi, ordre, P.debut, P.sem + 1, P.sem + nb, P.obj, k);
   P.sem += nb;
   sauver();
@@ -3097,13 +3188,13 @@ function prolongerProgramme(nb){
 }
 /* Changer d'objectif en cours de route ne touche pas au passé : seules les
    séances à venir sont recalculées, avec les nouvelles fourchettes. */
-function regenererFutur(objId){
-  const P = DB.prog, p = P && prog(P.id);
+function regenererFutur(run, objId){
+  const P = progParRun(run), p = P && prog(P.id);
   if(!p) return 0;
   const t = todayISO();
   const ad = adaptations();
   let n = 0;
-  seancesRun().forEach(s => {
+  seancesDeProg(run).forEach(s => {
     if(s.fait || s.date < t) return;
     const m = p.mod[s.mod % p.mod.length];
     s.obj = objId;
@@ -3117,15 +3208,21 @@ function regenererFutur(objId){
   sauver();
   return n;
 }
-function effacerProgramme(){
-  const gardees = [];
-  seancesAll().forEach(s => {
-    if(s.fait){ gardees.push(s); return; }
-    supprimerSeanceDB(s.id);
+/* Recalculer tout ce qui est à venir, sur tous les programmes en cours. */
+function regenererTout(){
+  return progs().reduce((n,P) => n + regenererFutur(P.run, P.obj), 0);
+}
+/* Retirer un programme : les séances déjà validées restent au bilan, les
+   autres disparaissent. */
+function retirerProgramme(run){
+  let n = 0;
+  seancesDeProg(run).forEach(s => {
+    if(s.fait) return;
+    supprimerSeanceDB(s.id); n++;
   });
-  DB.prog = null;
+  DB.progs = progs().filter(p => p.run !== run);
   sauver();
-  return gardees.length;
+  return n;
 }
 
 /* ---------- les charges soulevées ----------
@@ -3169,6 +3266,7 @@ function alternatives(id){
     if(k === id) return false;
     const x = EXOS[k];
     if(x.mat > dispo) return false;
+    if(x.cor && !DB.settings.corde) return false;
     return x.pat === e.pat || x.g === e.g;
   });
   /* Même schéma d'abord, même muscle ensuite, puis par nom. */
@@ -3247,7 +3345,7 @@ const TABS = [
   { id:"reglages", l:"Réglages",    i:"cog" }
 ];
 const state = { tab:"jour", sheet:null, modal:null, journal:false, neuf:false, quota:null,
-                passe:false, fZone:"tout", fMat:null, bPeriode:"90j",
+                passe:false, ajout:false, fZone:"tout", fMat:null, bPeriode:"90j",
                 q:"", fCat:null, panier:[], grouper:false, jourVu:null };
 
 function render(){
@@ -3325,7 +3423,8 @@ function carteSeance(s, compact){
     : (s.date < t ? "Manquée · " + relDate(s.date)
     : (s.date === t ? s.b.length + " exercices · " + s.min + " min"
     : cap(relDate(s.date)) + " · " + s.min + " min"))
-    + (s.deload && !s.fait ? " · allégée" : "");
+    + (s.deload && !s.fait ? " · allégée" : "")
+    + (progs().length > 1 ? " · S" + s.sem : "");
   return '<button class="sea' + (s.fait ? " off" : "") + '" data-act="ouvrir-seance" data-id="' + s.id + '">' +
     '<span class="sea-d ' + etat + '">' +
       (s.fait ? svg("check",18,2.4) : '<span class="j">' + d.getDate() + '</span><span class="m">' + MOIS[d.getMonth()] + '</span>') +
@@ -3399,7 +3498,7 @@ function vueJour(){
     h += '<div class="sect"><h2>' + (sj.length ? "La séance du jour" : "Prochaine séance") + '</h2>' +
       '<div class="sp"></div><button class="lien" data-act="tab" data-id="sport">Tout voir</button></div>';
     h += '<div class="ops">' + liste.map(s => carteSeance(s, true)).join("") + '</div>';
-  }else if(!DB.prog){
+  }else if(!progs().length){
     h += '<div class="sect"><h2>Le sport</h2></div>' +
       '<div class="ops"><div class="vide"><b>Aucun programme</b>' +
       'Choisis un programme et toutes les séances se posent sur ton agenda.</div></div>' +
@@ -3547,7 +3646,7 @@ function vuePoids(){
   }
   /* Un plan alimentaire et un objectif d'entraînement peuvent se contredire :
      mieux vaut le dire que laisser croire au miracle. */
-  const oe = (DB.prog && DB.prog.obj) || DB.settings.objectif;
+  const oe = (progs()[0] && progs()[0].obj) || DB.settings.objectif;
   if(oe === "muscle" && c.sens === "perte" && c.rythme > 0.5){
     h += '<div class="avert">L\'objectif d\'entraînement est « prendre du muscle », mais le plan alimentaire creuse un déficit marqué. Les deux se contrarient : ralentis la perte, ou passe l\'entraînement sur « transformer le gras en muscle », qui accepte un léger déficit.</div>';
   }else if((oe === "perte" || oe === "recomp") && c.sens === "prise"){
@@ -3636,12 +3735,35 @@ function carteProgramme(p, choisi){
     '<div class="prog-d">' + esc(p.d) + '</div>' +
     '<div class="prog-m"><span>' + esc(zoneNom(p.z)) + '</span><span>' + p.sem + ' semaines</span>' +
       '<span>' + p.par + '×/sem</span><span>' + p.min + ' min</span>' +
-      '<span>' + esc(MATOS[p.mat]) + '</span><span>' + esc(p.niv) + '</span></div>' +
+      '<span>' + esc(MATOS[p.mat]) + (p.cor ? " + corde" : "") + '</span><span>' + esc(p.niv) + '</span></div>' +
     '</button>';
 }
 
+function carteProgEnCours(P){
+  const p = prog(P.id);
+  const l = seancesDeProg(P.run);
+  const faites = l.filter(x => x.fait).length;
+  const sem = semaineDe(P);
+  const fini = l.length && l.every(x => x.date < todayISO());
+  return '<div class="bloc"><div class="bloc-h">' + esc(p ? p.n : "Programme") +
+      '<div style="margin-left:auto;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:var(--gris)">' +
+      faites + '/' + l.length + '</div></div>' +
+    '<div class="bloc-b">' +
+    '<div class="lig"><div class="l">' + esc(objNom(P.obj)) +
+      '<div class="d">Semaine ' + sem + ' sur ' + P.sem + ' · bloc ' + (Math.floor((sem-1)/4)+1) +
+      ' · ' + P.jours.map(j => JOURS_A[j]).join(", ") +
+      (fini ? ' · terminé' : "") + '</div></div></div>' +
+    '<div class="barre"><i style="width:' + Math.round(faites / Math.max(1, l.length) * 100) + '%"></i></div>' +
+    '<div class="btns" style="margin:12px 0 0">' +
+      '<button class="btn" style="flex:1" data-act="modifier-objent" data-id="' + P.run + '">' + svg("cible",15) + 'Objectif</button>' +
+      '<button class="btn" style="flex:1" data-act="prolonger" data-id="' + P.run + '">' + svg("plus",15,2) + 'Prolonger</button>' +
+      '<button class="btn dang" style="flex:0 0 auto" data-act="retirer-prog" data-id="' + P.run + '">' + svg("croix",15,2) + '</button>' +
+    '</div></div></div>';
+}
+
 function vueSport(){
-  if(!DB.prog){
+  const L = progs();
+  if(!L.length){
     let h = '<section class="total"><div class="total-lbl">Programme de sport</div>' +
       '<span class="total-val num">' + PROGS.length + '<span class="u">programmes</span></span>' +
       '<div class="total-sub"><span>Le programme choisi crée toutes ses séances d\'un coup, posées sur les jours de la semaine que tu choisis.</span></div></section>';
@@ -3658,30 +3780,29 @@ function vueSport(){
         '<span class="op-mt">' + n.length + '</span></button>';
     });
     h += '</div>';
-    h += '<div class="aide" style="text-align:center;margin-top:14px">Un exercice qui ne convient pas se remplace par un autre travaillant les mêmes muscles, et le remplacement vaut pour tout le programme.</div>';
+    h += '<div class="aide" style="text-align:center;margin-top:14px">Plusieurs programmes peuvent tourner en même temps : de la musculation trois fois par semaine, du cardio le samedi.</div>';
     return h;
   }
 
-  const p = prog(DB.prog.id);
   const l = seancesTri();
   const faites = seancesFaites();
   const ass = assiduite();
   const t = todayISO();
-  const semCourante = Math.max(1, Math.min(DB.prog.sem,
-    Math.floor(ecart(DB.prog.lundi || lundiDe(DB.prog.debut), t) / 7) + 1));
 
-  let h = '<section class="total"><div class="total-lbl">' + esc(p ? p.n : "Programme") + '</div>' +
+  let h = '<section class="total">' +
+    '<div class="total-lbl">' + (L.length > 1 ? L.length + ' programmes en cours' : esc((prog(L[0].id)||{}).n || "Programme")) + '</div>' +
     '<span class="total-val num">' + faites + '<span class="u">/ ' + l.length + ' séances</span></span>' +
-    '<div class="bud"><div class="bud-l"><span>Semaine ' + semCourante + ' sur ' + DB.prog.sem + '</span>' +
+    '<div class="bud"><div class="bud-l"><span>' +
+      (L.length > 1 ? l.filter(s => s.date >= t).length + ' séances à venir' : 'Semaine ' + semaineDe(L[0]) + ' sur ' + L[0].sem) + '</span>' +
       (ass != null ? '<span class="r">assiduité ' + ass + ' %</span>' : "") + '</div>' +
       '<div class="bud-b"><i class="acc" style="width:' + Math.round(faites/Math.max(1,l.length)*100) + '%"></i></div></div>';
-  const blocCourant = Math.floor((semCourante - 1) / 4) + 1;
-  const allegee = ((semCourante - 1) % 4) === 3;
   const sub = [];
-  sub.push('<span><b>' + esc(objNom(DB.prog.obj)) + '</b></span>');
-  sub.push('<span>bloc <b>' + blocCourant + '</b>' + (allegee ? ' · semaine allégée' : "") + '</span>');
-  sub.push('<span><b>' + DB.prog.jours.map(j => JOURS_A[j]).join(", ") + '</b></span>');
-  if(nbRemplacements()) sub.push('<span><b>' + nbRemplacements() + '</b> exercice' + (nbRemplacements()>1?"s":"") + ' remplacé' + (nbRemplacements()>1?"s":"") + '</span>');
+  const jsem = [];
+  L.forEach(P => P.jours.forEach(j => { if(jsem.indexOf(j) === -1) jsem.push(j); }));
+  sub.push('<span><b>' + jsem.sort((a,b) => ((a+6)%7) - ((b+6)%7)).map(j => JOURS_A[j]).join(", ") + '</b></span>');
+  if(L.length === 1) sub.push('<span><b>' + esc(objNom(L[0].obj)) + '</b></span>');
+  if(nbRemplacements()) sub.push('<span><b>' + nbRemplacements() + '</b> exercice' + (nbRemplacements()>1?"s":"") +
+    ' remplacé' + (nbRemplacements()>1?"s":"") + '</span>');
   h += '<div class="total-sub">' + sub.join("") + '</div></section>';
 
   const prochaine = prochaineSeance();
@@ -3690,12 +3811,21 @@ function vueSport(){
       svg("halt",16) + (prochaine.date === t ? "La séance du jour" : "Prochaine séance") + '</button></div>';
   }
 
-  /* ---- l'agenda, semaine par semaine ---- */
+  /* ---- les programmes en cours ---- */
+  h += '<div class="sect"><h2>' + (L.length > 1 ? "Tes programmes" : "Ton programme") + '</h2></div>';
+  h += L.map(carteProgEnCours).join("");
+  h += '<div class="btns grow">' +
+    '<button class="btn" data-act="ajouter-programme">' + svg("plus",16,2) + 'Ajouter un programme</button>' +
+    '<button class="btn" data-act="ouvrir-guide">' + svg("info",16) + 'Guide</button></div>';
+  h += '<div class="aide" style="text-align:center">Un deuxième programme se pose sur les jours restés libres : du cardio le samedi à côté de la musculation, par exemple. Les séances se rangent ensemble dans l\'agenda.</div>';
+
+  /* ---- l'agenda, par semaine de calendrier ---- */
   const parSem = {};
-  l.forEach(s => { (parSem[s.sem] = parSem[s.sem] || []).push(s); });
-  const sems = Object.keys(parSem).map(Number).sort((a,b) => a-b);
-  const passees = sems.filter(w => parSem[w].every(s => s.date < t));
-  const visibles = state.passe ? sems : sems.filter(w => passees.indexOf(w) === -1);
+  l.forEach(s => { const k = lundiDe(s.date); (parSem[k] = parSem[k] || []).push(s); });
+  const sems = Object.keys(parSem).sort();
+  const lundiJour = lundiDe(t);
+  const passees = sems.filter(w => w < lundiJour);
+  const visibles = state.passe ? sems : sems.filter(w => w >= lundiJour);
 
   h += '<div class="sect"><h2>L\'agenda</h2><div class="sp"></div>' +
     (passees.length ? '<button class="lien" data-act="basculer-passe">' +
@@ -3703,37 +3833,28 @@ function vueSport(){
 
   h += '<div class="ops">';
   if(!visibles.length){
-    h += '<div class="vide"><b>Programme terminé</b>Toutes les semaines sont derrière toi. Choisis-en un nouveau pour continuer.</div>';
+    h += '<div class="vide"><b>Plus rien de prévu</b>Prolonge un programme, ou choisis-en un nouveau.</div>';
   }
   visibles.forEach(w => {
-    const g = parSem[w];
-    const d1 = g[0].date, d2 = g[g.length-1].date;
-    const now = w === semCourante;
-    h += '<div class="sem' + (now ? " now" : "") + '"><span>Semaine ' + w + '</span>' +
-      '<span class="sp"></span><span>' + esc(frDate(d1)) + ' – ' + esc(frDate(d2)) + '</span>' +
+    const g = parSem[w].slice().sort((a,b) => a.date < b.date ? -1 : (a.date > b.date ? 1 : a.mod - b.mod));
+    const now = w === lundiJour;
+    h += '<div class="sem' + (now ? " now" : "") + '"><span>' + (now ? "Cette semaine" : "Semaine du " + frDate(w)) + '</span>' +
+      '<span class="sp"></span><span>' + esc(frDate(w)) + ' – ' + esc(frDate(plusJours(w, 6))) + '</span>' +
       '<span>' + g.filter(s => s.fait).length + '/' + g.length + '</span></div>';
     g.forEach(s => { h += carteSeance(s); });
   });
   h += '</div>';
 
-  h += '<div class="btns grow" style="margin-top:6px">' +
-    '<button class="btn" data-act="modifier-objent">' + svg("cible",16) + esc(objNom(DB.prog.obj)) + '</button>' +
-    '<button class="btn" data-act="prolonger">' + svg("plus",16,2) + 'Prolonger</button></div>';
   const ad = adaptations();
   if(ad.notes.length){
     h += '<div class="sect"><h2>Adapté à ton profil</h2></div>' +
       '<div class="bloc"><div class="bloc-b"><ul class="conseils" style="margin:0">' +
       ad.notes.map(x => '<li>' + esc(x) + '</li>').join("") + '</ul>' +
-      '<div class="aide">Change l\'âge, la taille ou le niveau d\'activité dans les réglages, puis ré-adapte : les séances à venir seront recalculées.</div>' +
+      '<div class="aide">Change l\'âge, la taille, le niveau ou l\'activité dans les réglages : les séances à venir sont recalculées aussitôt.</div>' +
       '</div></div>';
   }
   h += '<div class="btns"><button class="btn" data-act="changer-programme">' + svg("echange",16) +
-    'Changer de programme</button>' +
-    '<button class="btn" data-act="ouvrir-guide">' + svg("info",16) + 'Guide</button></div>';
-  if(DB.prog.sem <= 12){
-    h += '<div class="aide" style="text-align:center">Ce programme court sur ' + DB.prog.sem +
-      ' semaines. Au bout, prolonge-le pour continuer la progression, ou bascule sur l\'objectif « Conserver ce que j\'ai » pour entretenir sans y passer ses semaines.</div>';
-  }
+    'Repartir de zéro</button></div>';
   return h;
 }
 
@@ -3803,7 +3924,7 @@ function vueBilan(){
   }
 
   /* L'assiduité, semaine par semaine. */
-  if(DB.prog){
+  if(progs().length){
     const parSem = {};
     seancesRun().filter(s => s.date <= fin).forEach(s => {
       const g = parSem[s.sem] = parSem[s.sem] || { t:0, f:0 };
@@ -3890,19 +4011,18 @@ function vueReglages(){
   /* ---- sport ---- */
   h += '<div class="bloc"><div class="bloc-h">Sport</div><div class="bloc-b">' +
     '<div class="lig"><div class="l">Programme<div class="d">' +
-      (DB.prog ? esc((prog(DB.prog.id)||{}).n || "") + ' · ' + DB.prog.jours.map(j => JOURS_A[j]).join(", ")
+      (progs().length ? progs().map(P => esc((prog(P.id)||{}).n || "") + " · " + P.jours.map(j => JOURS_A[j]).join(", ")).join("<br>")
                : "Aucun programme en cours.") + '</div></div>' +
-      '<button class="btn" data-act="changer-programme">' + (DB.prog ? "Changer" : "Choisir") + '</button></div>' +
+      '<button class="btn" data-act="' + (progs().length ? "tab" : "choisir-programme") + '" data-id="sport">' +
+      (progs().length ? "Gérer" : "Choisir") + '</button></div>' +
     '<div class="lig"><div class="l">Objectif d\'entraînement<div class="d">' +
-      esc(objEnt((DB.prog && DB.prog.obj) || s.objectif).d) + '</div></div>' +
-      '<button class="btn" data-act="modifier-objent">' + esc(objNom((DB.prog && DB.prog.obj) || s.objectif)) + '</button></div>' +
+      esc(objEnt((progs()[0] && progs()[0].obj) || s.objectif).d) + '</div></div>' +
+      '<button class="btn" data-act="modifier-objent"' + (progs().length ? ' data-id="' + progs()[0].run + '"' : "") + '>' +
+      esc(objNom((progs()[0] && progs()[0].obj) || s.objectif)) + '</button></div>' +
     (adaptations().notes.length ? '<div class="lig" style="display:block"><div class="l">Adaptations à l\'entraînement' +
       '<ul class="conseils" style="margin:6px 0 0">' + adaptations().notes.map(x => '<li>' + esc(x) + '</li>').join("") + '</ul></div>' +
-      (DB.prog ? '<div class="btns" style="margin:10px 0 0"><button class="btn" style="flex:1" data-act="readapter">' +
+      (progs().length ? '<div class="btns" style="margin:10px 0 0"><button class="btn" style="flex:1" data-act="readapter">' +
         svg("echange",16) + 'Ré-adapter les séances à venir</button></div>' : "") + '</div>' : "") +
-    (DB.prog ? '<div class="lig"><div class="l">Durée<div class="d">' + DB.prog.sem + ' semaines, soit ' +
-      Math.ceil(DB.prog.sem/4) + ' blocs de quatre.</div></div>' +
-      '<button class="btn" data-act="prolonger">Prolonger</button></div>' : "") +
     '<div class="lig"><div class="l">Guide du débutant<div class="d">Séries, répétitions, repos, effort, courbatures : le vocabulaire et les règles.</div></div>' +
       '<button class="btn" data-act="ouvrir-guide">Lire</button></div>' +
     '<div class="lig" style="display:block"><div class="l">Matériel disponible' +
@@ -3913,6 +4033,9 @@ function vueReglages(){
     (nbRemplacements() ? '<div class="lig"><div class="l">Exercices remplacés<div class="d">' +
       Object.keys(s.subs).map(k => (EXOS[k]||{}).n + " → " + (EXOS[s.subs[k]]||{}).n).join(" · ") +
       '</div></div><button class="btn" data-act="raz-subs">Tout rétablir</button></div>' : "") +
+    '<button class="bascule ' + (s.corde ? "on" : "") + '" data-act="bascule-corde">' +
+      '<span class="l">J\'ai une corde à sauter<span class="d">Ouvre cinq exercices de corde, un programme dédié, et la corde cesse d\'être remplacée dans les séances.</span></span>' +
+      '<span class="k"></span></button>' +
     '<button class="bascule ' + (s.crediterSport ? "on" : "") + '" data-act="bascule" data-id="crediterSport">' +
       '<span class="l">Créditer les calories du sport<span class="d">Une séance validée relève le plafond du jour. À laisser actif seulement si le niveau d\'activité est réglé bas.</span></span>' +
       '<span class="k"></span></button>' +
@@ -4043,6 +4166,11 @@ const GUIDE = [
     "L'âge, la taille, le poids et le niveau d'activité ne servent pas qu'au calcul des calories : ils modifient aussi les séances.",
     "Passé 50 ans, le repos entre les séries s'allonge ; passé 65, une série est retirée. Un profil sédentaire reçoit lui aussi plus de repos, le temps que la condition suive.",
     "À partir d'un IMC de 30, les sauts, la course et les burpees sont automatiquement remplacés par des versions sans impact — ces articulations portent déjà le poids du corps toute la journée. Ils reviendront d'eux-mêmes quand le poids aura baissé et que tu auras ré-adapté le programme."
+  ]},
+  { t:"Le matériel", l:[
+    "Le matériel déclaré dans les réglages décide de deux choses : les programmes proposés dans le catalogue, et les remplaçants suggérés pour un exercice.",
+    "Les crans se cumulent : « haltères » comprend tout ce qui se fait à l'élastique et sans matériel, « salle » comprend tout.",
+    "La corde à sauter se déclare à part. Sans elle, les exercices de corde deviennent des jumping jacks ou des montées de genoux ; avec elle, cinq variantes s'ouvrent — pas alternés, montées de genoux, double tour, cloche-pied, sprint — et un programme entier."
   ]},
   { t:"Si un exercice ne va pas", l:[
     "Un mouvement douloureux, impossible, ou pour lequel il manque le matériel se remplace : ouvre l'exercice, touche « Remplacer », choisis dans la liste proposée.",
@@ -4233,10 +4361,11 @@ function vueSheet(sh){
    dispose — qui montre tout ce qu'on peut faire avec, pas seulement ce qui
    l'exige exactement. */
 function sheetProgs(){
-  const enCours = DB.prog ? DB.prog.id : null;
+  const enCours = progs().map(p => p.id);
   const z = state.fZone || "tout";
   const mt = state.fMat;
-  const l = PROGS.filter(p => (z === "tout" || p.z === z) && (mt == null || p.mat <= mt));
+  const l = PROGS.filter(p => (z === "tout" || p.z === z) && (mt == null || p.mat <= mt) &&
+                              (!p.cor || DB.settings.corde));
   let h = '<div class="sheet">' + hautPanneau("Choisir un programme");
   h += '<div class="sheet-in">';
   h += '<div class="chips" style="margin-top:14px">' + ZONES.map(([k,lb]) =>
@@ -4251,9 +4380,14 @@ function sheetProgs(){
     h += '<div class="ops"><div class="vide"><b>Rien avec ces filtres</b>' +
       'Élargis le matériel ou change de zone.</div></div>';
   }
-  h += l.map(p => carteProgramme(p, p.id === enCours)).join("");
-  if(enCours){
-    h += '<div class="aide" style="text-align:center;margin-top:12px">Choisir un autre programme remplace les séances à venir. Celles déjà validées restent au bilan.</div>';
+  if(!DB.settings.corde){
+    h += '<div class="aide" style="text-align:center;margin-top:10px">' +
+      'Un programme à la corde à sauter attend dans le catalogue. Déclare ta corde dans les réglages pour le voir apparaître.</div>';
+  }
+  h += l.map(p => carteProgramme(p, enCours.indexOf(p.id) !== -1)).join("");
+  if(enCours.length){
+    h += '<div class="aide" style="text-align:center;margin-top:12px">' +
+      'Au moment de la création, tu choisis de remplacer les programmes en cours ou d\'ajouter celui-ci à côté, sur les jours restés libres.</div>';
   }
   h += '</div></div>';
   return h;
@@ -4583,29 +4717,50 @@ function vueModal(m){
         (n ? ' Soit ' + (n * (parseInt(m.semaines,10) || p.sem)) + ' séances en tout.' : "") + '</div></div>' +
       '<div class="champ"><label for="m-debut">Première séance</label>' +
         '<input type="date" id="m-debut" value="' + esc(m.debut || todayISO()) + '"></div>' +
-      (m.remplace ? '<div class="avert">Un programme est déjà en cours. Les séances à venir seront remplacées ; les séances déjà validées restent dans l\'historique.</div>' : "") +
+      (progs().length ? (() => {
+        /* Deux façons de vivre avec un programme déjà en cours : le remplacer,
+           ou poser celui-ci sur les jours restés libres. */
+        const occupes = [];
+        progs().forEach(P => P.jours.forEach(j => { if(occupes.indexOf(j) === -1) occupes.push(j); }));
+        const collision = js.filter(j => occupes.indexOf(j) !== -1);
+        return '<div class="champ"><label>Et le programme en cours ?</label>' +
+          '<div class="seg" style="display:flex;width:100%">' +
+          '<button style="flex:1" class="' + (m.mode === "ajouter" ? "on" : "") + '" data-act="m-mode" data-id="ajouter">Ajouter à côté</button>' +
+          '<button style="flex:1" class="' + (m.mode !== "ajouter" ? "on" : "") + '" data-act="m-mode" data-id="remplacer">Remplacer</button>' +
+          '</div><div class="aide">' +
+          (m.mode === "ajouter"
+            ? 'Les deux programmes tourneront ensemble. Jours déjà occupés : ' +
+              (occupes.length ? occupes.sort((a,b) => ((a+6)%7)-((b+6)%7)).map(j => JOURS_A[j]).join(", ") : "aucun") + '.' +
+              (collision.length ? ' <b>' + collision.map(j => JOURS_A[j]).join(", ") +
+                ' ' + (collision.length > 1 ? "portent" : "porte") + ' déjà une séance : tu en auras deux ce jour-là.</b>' : "")
+            : 'Les séances à venir des programmes en cours seront supprimées ; celles déjà validées restent au bilan.') +
+          '</div></div>';
+      })() : "") +
       boiteBoutons("Créer les séances", "programme-ok");
   }
 
   if(m.type === "objEnt"){
-    const cur = (DB.prog && DB.prog.obj) || DB.settings.objectif || "forme";
+    const P = m.run ? progParRun(m.run) : progs()[0];
+    const cur = (P && P.obj) || DB.settings.objectif || "forme";
     c = '<h3>Objectif d\'entraînement</h3>' +
       '<div class="sous">Les exercices ne changent pas. Ce qui change, ce sont les séries, les répétitions et le repos — et donc ce que la séance construit.</div>' +
       OBJECTIFS.map(o => '<button class="bascule ' + (cur === o.id ? "on" : "") + '" data-act="objent-ok" data-id="' + o.id + '">' +
         '<span class="l">' + esc(o.n) + '<span class="d">' + esc(o.d) + '</span></span>' +
-        '<span class="k"></span></button>').join("") +
-      (DB.prog ? '<div class="aide">Les séances déjà validées ne bougent pas. Celles à venir sont recalculées avec les nouvelles fourchettes.</div>' : "") +
+        '<span class="k"></span>' + (P ? '<input type="hidden">' : "") + '</button>').join("") +
+      (P ? '<div class="aide">' + esc((prog(P.id)||{}).n || "") +
+        ' · les séances déjà validées ne bougent pas, celles à venir sont recalculées avec les nouvelles fourchettes.</div>' : "") +
       '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
   }
 
   if(m.type === "prolonger"){
-    const P = DB.prog;
+    const P = progParRun(m.run) || progs()[0];
+    if(!P) return "";
     c = '<h3>Prolonger le programme</h3>' +
       '<div class="sous">Les semaines ajoutées reprennent la progression là où elle s\'arrête : les blocs continuent de monter, avec une semaine allégée sur quatre.</div>' +
       '<div class="lig" style="border:0"><div class="l">Actuellement<div class="d">' + P.sem + ' semaines, dont ' +
         Math.ceil(P.sem/4) + ' blocs</div></div></div>' +
       [4,12,26].filter(n => P.sem + n <= 52).map(n =>
-        '<button class="bascule" data-act="prolonger-ok" data-id="' + n + '">' +
+        '<button class="bascule" data-act="prolonger-ok" data-id="' + n + '" data-run="' + P.run + '">' +
         '<span class="l">+ ' + n + ' semaines<span class="d">Jusqu\'à la semaine ' + (P.sem + n) + '</span></span>' +
         '<span class="k"></span></button>').join("") +
       (P.sem >= 52 ? '<div class="aide">Le programme atteint déjà une année complète. Au-delà, mieux vaut en choisir un autre : changer de programme est en soi une forme de progression.</div>' : "") +
@@ -5027,7 +5182,8 @@ document.addEventListener("click", async ev => {
   }
 
   /* ---- programme ---- */
-  if(act === "choisir-programme" || act === "changer-programme"){ ouvrirChoixProgramme(); return; }
+  if(act === "choisir-programme"){ state.ajout = false; ouvrirChoixProgramme(); return; }
+  if(act === "changer-programme"){ state.ajout = false; ouvrirChoixProgramme(); return; }
   if(act === "choisir-zone"){ ouvrirChoixProgramme(id); return; }
   if(act === "f-zone"){ state.fZone = id; render(); return; }
   if(act === "f-mat"){ state.fMat = id === "tout" ? null : parseInt(id,10); render(); return; }
@@ -5037,9 +5193,10 @@ document.addEventListener("click", async ev => {
     const defaut = [[1,4],[1,3,5],[1,2,4,6],[1,2,4,5],[1,2,3,4,5]][clamp(p.par,1,5)-1] || [1,3,5];
     ouvrirModal({ type:"programme", id:p.id, jours:defaut.slice(), debut:todayISO(),
                   obj:DB.settings.objectif || "forme", niveau:DB.settings.niveau || "debutant",
-                  semaines:p.sem, remplace:!!DB.prog });
+                  semaines:p.sem, mode:(state.ajout ? "ajouter" : "remplacer") });
     return;
   }
+  if(act === "m-mode"){ capturerModal(); state.modal.mode = id; render(); return; }
   if(act === "m-jour"){
     capturerModal();
     const j = parseInt(id,10);
@@ -5056,10 +5213,9 @@ document.addEventListener("click", async ev => {
     if(!m.jours || !m.jours.length){ toast("Choisis au moins un jour"); return; }
     const debut = (m.debut || "").trim() || todayISO();
     if(m.niveau) DB.settings.niveau = m.niveau;
-    if(DB.prog) effacerProgramme();
-    const n = genererSeances(m.id, debut, m.jours, m.semaines, m.obj || "forme");
+    const n = genererSeances(m.id, debut, m.jours, m.semaines, m.obj || "forme", m.mode === "remplacer");
     fermerModal();
-    state.tab = "sport"; state.passe = false; state.sheet = null;
+    state.tab = "sport"; state.passe = false; state.sheet = null; state.ajout = false;
     render(); window.scrollTo(0,0);
     toast(n + " séances créées");
     return;
@@ -5160,43 +5316,63 @@ document.addEventListener("click", async ev => {
 
   /* ---- profil et réglages ---- */
   if(act === "modifier-profil"){ ouvrirModal({ type:"profil", age:DB.settings.age, taille:DB.settings.taille, focus:"m-age" }); return; }
+  if(act === "ajouter-programme"){ state.ajout = true; ouvrirChoixProgramme(); return; }
+  if(act === "retirer-prog"){
+    const P = progParRun(id);
+    if(!P) return;
+    ouvrirModal({ type:"confirm", titre:"Retirer ce programme", ok:"retirer-prog-ok", id, dang:true,
+      valider:"Retirer", texte:"Les séances à venir de « " + ((prog(P.id)||{}).n || "") +
+      " » seront supprimées. Celles déjà validées restent au bilan." });
+    return;
+  }
+  if(act === "retirer-prog-ok"){
+    const n = retirerProgramme(id);
+    fermerModal(); render();
+    toast(n + " séances retirées");
+    return;
+  }
   if(act === "profil-ok"){
     DB.settings.age = clamp(parseInt(val("m-age"),10) || 35, 14, 100);
     DB.settings.taille = clamp(parseInt(val("m-taille"),10) || 175, 120, 230);
     sauver(); fermerModal();
     /* Le profil ne sert pas qu'aux calories : les séances à venir se recalent
        dessus immédiatement. */
-    const n = DB.prog ? regenererFutur(DB.prog.obj) : 0;
+    const n = regenererTout();
     render();
     toast("Profil enregistré" + (n ? " · " + n + " séances ré-adaptées" : ""));
     return;
   }
-  if(act === "modifier-objent"){ ouvrirModal({ type:"objEnt" }); return; }
+  if(act === "modifier-objent"){ ouvrirModal({ type:"objEnt", run:id || null }); return; }
   if(act === "objent-ok"){
-    const n = DB.prog ? regenererFutur(id) : (DB.settings.objectif = id, sauver(), 0);
-    fermerModal();
+    const P = state.modal && state.modal.run ? progParRun(state.modal.run) : progs()[0];
+    let n = 0;
+    if(P) n = regenererFutur(P.run, id);
+    else { DB.settings.objectif = id; sauver(); }
+    fermerModal(); render();
     toast(objNom(id) + (n ? " · " + n + " séances à venir recalculées" : ""));
     return;
   }
   if(act === "readapter"){
-    if(!DB.prog){ toast("Aucun programme en cours"); return; }
-    const n = regenererFutur(DB.prog.obj);
+    if(!progs().length){ toast("Aucun programme en cours"); return; }
+    const n = regenererTout();
     render();
     toast(n + " séances à venir ré-adaptées à ton profil");
     return;
   }
-  if(act === "prolonger"){ if(DB.prog) ouvrirModal({ type:"prolonger" }); return; }
+  if(act === "prolonger"){ if(progs().length) ouvrirModal({ type:"prolonger", run:id || progs()[0].run }); return; }
   if(act === "prolonger-ok"){
-    const n = prolongerProgramme(parseInt(id,10));
+    const run = el.dataset.run;
+    const n = prolongerProgramme(run, parseInt(id,10));
+    const P = progParRun(run);
     fermerModal(); render();
-    toast(n + " séances ajoutées · " + DB.prog.sem + " semaines au total");
+    toast(n + " séances ajoutées · " + (P ? P.sem : "") + " semaines au total");
     return;
   }
   if(act === "ouvrir-guide"){ ouvrirSheet({ type:"guide" }); window.scrollTo(0,0); return; }
   if(act === "modifier-activite"){ ouvrirModal({ type:"activite" }); return; }
   if(act === "activite-ok"){
     DB.settings.activite = id; sauver(); fermerModal();
-    const n = DB.prog ? regenererFutur(DB.prog.obj) : 0;
+    const n = regenererTout();
     render();
     if(n) toast(n + " séances à venir ré-adaptées");
     return;
@@ -5206,9 +5382,17 @@ document.addEventListener("click", async ev => {
   if(act === "niveau"){
     DB.settings.niveau = id;
     sauver();
-    const n = DB.prog ? regenererFutur(DB.prog.obj) : 0;
+    const n = regenererTout();
     render();
     toast("Niveau " + nivNom(id).toLowerCase() + (n ? " · " + n + " séances ré-adaptées" : ""));
+    return;
+  }
+  if(act === "bascule-corde"){
+    DB.settings.corde = !DB.settings.corde;
+    sauver();
+    const n = regenererTout();
+    render();
+    toast((DB.settings.corde ? "Corde déclarée" : "Corde retirée") + (n ? " · " + n + " séances ré-adaptées" : ""));
     return;
   }
   if(act === "bascule"){
@@ -5313,7 +5497,7 @@ document.addEventListener("keydown", ev => {
    ============================================================ */
 function contenuSauvegarde(){
   return JSON.stringify({ app:"palier", appVersion:VERSION, schema:SCHEMA,
-    jours:DB.jours, seances:DB.seances, plan:DB.plan, prog:DB.prog,
+    jours:DB.jours, seances:DB.seances, plan:DB.plan, progs:DB.progs,
     charges:DB.charges, repasTypes:DB.repasTypes,
     settings:DB.settings, meta:DB.meta }, null, 2);
 }
