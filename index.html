@@ -390,9 +390,17 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.6.0";
+const VERSION = "1.7.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"1.7.0", d:"2026-09-06", t:"Sodas, alcools, et le bon niveau", l:[
+    "Une catégorie entière de sodas et boissons sucrées : Coca, Fanta, Orangina, Ice tea, Schweppes, sirops et boissons énergisantes, en canette, en verre ou en bouteille — et toutes leurs versions zéro.",
+    "Une catégorie d'alcools : bières, vins, cocktails et digestifs, avec les versions allégées quand elles existent.",
+    "Le catalogue atteint 881 entrées en dix-huit catégories.",
+    "Un niveau de forme se règle à part du niveau d'activité. En débutant, les mouvements les plus durs sont remplacés par leur version accessible pendant huit semaines : pompes sur les genoux, tirage sous une table, montées sur banc plutôt que burpees, marche plutôt que course. Une série est retirée, le repos allongé.",
+    "La version complète revient d'elle-même à la semaine 9, quand elle est devenue faisable.",
+    "Changer de niveau ré-adapte immédiatement les séances à venir."
+  ]},
   { v:"1.6.0", d:"2026-09-06", t:"Charges, repas types, jours passés", l:[
     "Chaque exercice avec charge porte maintenant une pastille : on y note ce qu'on a soulevé, et la séance suivante rappelle la dernière valeur. La fiche de l'exercice garde l'historique des douze dernières fois.",
     "La double progression devient concrète : la fiche rappelle qu'on ajoute de la charge une fois le haut de la fourchette atteint, et on voit d'un coup d'œil où on en était.",
@@ -1314,6 +1322,32 @@ const OBJECTIFS = [
 ];
 function objEnt(id){ return OBJECTIFS.filter(o => o.id === id)[0] || OBJECTIFS[0]; }
 
+/* Le niveau de forme, qui n'est pas le niveau d'activité : on peut être
+   debout toute la journée sans savoir faire une pompe. */
+const NIVEAUX = [
+  ["debutant","Débutant","Jamais fait de sport, ou plus depuis longtemps. Les mouvements difficiles sont remplacés par leur version accessible pendant les huit premières semaines."],
+  ["intermediaire","Intermédiaire","Quelques mois de pratique derrière soi. Une dizaine de pompes complètes passent."],
+  ["confirme","Confirmé","Pratique régulière depuis un an ou plus. Le programme est appliqué tel quel."]
+];
+function nivNom(id){ const n = NIVEAUX.filter(x => x[0] === id)[0]; return n ? n[1] : NIVEAUX[0][1]; }
+
+/* Les versions accessibles. Un débutant à qui l'on demande vingt pompes
+   complètes ne fait pas vingt pompes : il abandonne. La version facile tient
+   les deux premiers blocs, puis le mouvement complet reprend sa place —
+   c'est le moment où il devient réellement faisable. */
+const FACILE = {
+  pompes:"pompesG", pompesLarges:"pompesG", pompesDia:"pompesG", pompesExc:"pompesG",
+  pompesDec:"pompes", pompesInc:"pompesMur", pompesPiq:"pompesInc",
+  dipsChaises:"dipsBanc", devBarre:"devHalt",
+  tractions:"tractionsAssist", tractionsAssist:"rowTable",
+  burpees:"monteeBanc", squatSaute:"squat", squatBulg:"fentesArr",
+  fentes:"fentesArr", fentesMarch:"fentesArr",
+  hollow:"planche", gainDyn:"planche", mountain:"planche",
+  plancheMD:"crunch", vups:"crunch", releveJambes:"crunch",
+  course:"marche", corde:"jumping",
+  molletsUn:"mollets", pontUn:"pont"
+};
+
 /* Les versions sans impact, pour les articulations qui portent déjà beaucoup.
    Chaque remplaçant garde le même format — un exercice en secondes reste en
    secondes, un exercice en répétitions reste en répétitions. */
@@ -1330,7 +1364,17 @@ function adaptations(){
   const t = (s.taille || 175) / 100;
   const imc = p ? (p / 1000) / (t * t) : 0;
   let ser = 0, repos = 1, doux = false;
+  const niv = s.niveau || "debutant";
+  const facile = niv === "debutant";
   const notes = [];
+  if(facile){
+    ser -= 1; repos += 0.10;
+    notes.push("Niveau débutant : une série de moins, et les mouvements les plus durs sont remplacés par leur version accessible — " +
+      "les pompes classiques deviennent des pompes sur les genoux, les tractions des tirages sous une table. " +
+      "La version complète revient à la semaine 9, quand elle sera à ta portée.");
+  }else if(niv === "confirme"){
+    repos -= 0.05;
+  }
   if(s.age >= 50){
     repos += 0.15;
     notes.push("Après 50 ans : 15 % de repos en plus entre les séries. C'est la récupération qui ralentit, pas la force.");
@@ -1353,7 +1397,7 @@ function adaptations(){
   }else if(imc >= 27){
     notes.push("IMC de " + imc.toFixed(1).replace(".", ",") + " : les exercices sautés sont conservés, mais remplace-les sans hésiter si les genoux protestent.");
   }
-  return { ser, repos:clamp(repos, 0.8, 1.6), doux, imc, notes };
+  return { ser, repos:clamp(repos, 0.8, 1.6), doux, facile, niveau:niv, imc, notes };
 }
 function objNom(id){ return objEnt(id).n; }
 
@@ -1375,7 +1419,14 @@ function progresser(l, semaine, objId, ad){
      réclame : le programme s'adapte au corps, pas l'inverse. */
   let eid = l.e;
   if(a.doux && EXOS[eid] && EXOS[eid].imp && DOUX[eid]) eid = DOUX[eid];
-  let s = echauf ? l.s : clamp(l.s + o.ser + a.ser + Math.min(2, Math.floor(bloc / 2)), 1, 5);
+  /* Les deux premiers blocs en version accessible, puis le mouvement complet. */
+  if(a.facile && bloc < 2 && FACILE[eid] && EXOS[FACILE[eid]] &&
+     EXOS[FACILE[eid]].mat <= (EXOS[eid].mat != null ? EXOS[eid].mat : 3)) eid = FACILE[eid];
+  /* Chez un débutant, la semaine 9 apporte déjà le passage au mouvement
+     complet : on ne lui ajoute pas une série le même jour. Le volume monte un
+     bloc plus tard. */
+  const paliers = Math.min(2, Math.floor(Math.max(0, bloc - (a.facile ? 1 : 0)) / 2));
+  let s = echauf ? l.s : clamp(l.s + o.ser + a.ser + paliers, 1, 5);
   if(deload && !echauf) s = Math.max(1, s - 1);
   /* Passé le troisième bloc, les séries plafonnent : sur un exercice avec
      charge on ajoute du poids, mais au poids du corps on n'a que les
@@ -1404,7 +1455,7 @@ const DEFAULTS = {
   version:SCHEMA, jours:{}, seances:{},
   settings:{ theme:"clair", accent:ACCENTS[0][0], objectif:"forme",
              sexe:"h", age:35, taille:175, activite:"sedentaire", matos:0,
-             crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1,
+             crediterSport:true, eau:true, eauCible:8, subs:{}, corr:1, niveau:"debutant",
              bTri:"90j" },
   plan:null, prog:null, charges:{}, repasTypes:[],
   meta:{ cree:Date.now(), modifie:0, exporte:0, vue:null }
@@ -2182,6 +2233,113 @@ const ALIMENTS = [
   ["Poignée d'amandes", 180, "30 g"],
   ["Tartine de pâte à tartiner", 200, "1 tranche"],
   ["Popcorn", 200, "1 bol"]
+]],
+["Sodas et boissons sucrées", [
+  ["Coca-Cola", 140, "1 canette (33 cl)"],
+  ["Coca-Cola", 105, "1 verre (25 cl)"],
+  ["Coca-Cola", 210, "1 bouteille (50 cl)"],
+  ["Coca-Cola zéro", 1, "1 canette"],
+  ["Coca-Cola light", 1, "1 canette"],
+  ["Fanta orange", 160, "1 canette (33 cl)"],
+  ["Fanta orange", 120, "1 verre (25 cl)"],
+  ["Fanta orange", 240, "1 bouteille (50 cl)"],
+  ["Fanta citron", 150, "1 canette"],
+  ["Fanta zéro", 10, "1 canette"],
+  ["Sprite zéro", 3, "1 canette"],
+  ["Orangina light", 40, "1 canette"],
+  ["Schweppes zéro", 5, "1 canette"],
+  ["Oasis zéro", 15, "1 bouteille (50 cl)"],
+  ["Canada Dry zéro", 5, "1 canette"],
+  ["Tonic zéro", 5, "1 canette"],
+  ["Limonade sans sucre", 5, "1 canette"],
+  ["Sirop sans sucre à l'eau", 5, "1 grand verre"],
+  ["Thé glacé sans sucre", 5, "1 bouteille (50 cl)"],
+  ["Perrier nature", 0, "1 bouteille (33 cl)"],
+  ["Eau pétillante", 0, "1 verre"],
+  ["Pepsi", 140, "1 canette"],
+  ["Pepsi Max", 1, "1 canette"],
+  ["Sprite", 130, "1 canette"],
+  ["Seven Up", 130, "1 canette"],
+  ["Orangina", 140, "1 canette"],
+  ["Orangina", 250, "1 bouteille (50 cl)"],
+  ["Oasis tropical", 110, "1 bouteille (50 cl)"],
+  ["Ice tea pêche", 100, "1 canette"],
+  ["Ice tea zéro", 5, "1 canette"],
+  ["Schweppes tonic", 120, "1 canette"],
+  ["Schweppes agrumes", 120, "1 canette"],
+  ["Canada Dry", 110, "1 canette"],
+  ["Limonade", 130, "1 canette"],
+  ["Cream soda", 150, "1 canette"],
+  ["Soda au cola artisanal", 160, "1 bouteille (33 cl)"],
+  ["Root beer", 150, "1 canette"],
+  ["Soda gingembre", 130, "1 canette"],
+  ["Perrier aromatisé", 30, "1 bouteille (33 cl)"],
+  ["Eau pétillante aromatisée sans sucre", 2, "1 bouteille"],
+  ["Sirop de menthe à l'eau", 70, "1 grand verre"],
+  ["Sirop de grenadine à l'eau", 70, "1 grand verre"],
+  ["Diabolo fraise", 130, "1 demi (25 cl)"],
+  ["Nestea", 100, "1 canette"],
+  ["Red Bull", 145, "1 canette (25 cl)"],
+  ["Red Bull sans sucre", 10, "1 canette"],
+  ["Monster", 210, "1 canette (50 cl)"],
+  ["Boisson au cola en fontaine", 200, "1 grand gobelet"],
+  ["Soda du menu fast-food", 180, "gobelet moyen"],
+  ["Thé glacé maison sucré", 80, "1 grand verre"],
+  ["Jus multifruits", 120, "1 verre (25 cl)"],
+  ["Nectar d'abricot", 130, "1 verre"],
+  ["Boisson au lait chocolaté", 200, "1 bouteille (25 cl)"],
+  ["Soda light au choix", 3, "1 canette"],
+  ["Eau plate", 0, "1 verre"]
+]],
+["Alcools", [
+  ["Bière blonde", 140, "1 canette (33 cl)"],
+  ["Bière blonde pression", 150, "1 demi (25 cl)"],
+  ["Pinte de blonde", 250, "50 cl"],
+  ["Bière brune", 180, "33 cl"],
+  ["Bière triple", 250, "33 cl"],
+  ["IPA", 210, "33 cl"],
+  ["Pinte d'IPA", 320, "50 cl"],
+  ["Bière artisanale", 200, "33 cl"],
+  ["Bière forte (8°)", 260, "33 cl"],
+  ["Panaché", 90, "25 cl"],
+  ["Monaco", 130, "25 cl"],
+  ["Bière sans alcool blonde", 60, "33 cl"],
+  ["Verre de vin rouge", 120, "12 cl"],
+  ["Verre de vin blanc", 110, "12 cl"],
+  ["Verre de vin rosé", 110, "12 cl"],
+  ["Bouteille de vin partagée", 300, "1/2 bouteille"],
+  ["Coupe de prosecco", 95, "10 cl"],
+  ["Kir", 150, "1 verre"],
+  ["Kir royal", 160, "1 verre"],
+  ["Sangria", 200, "1 verre"],
+  ["Vin chaud", 220, "1 tasse"],
+  ["Pastis à l'eau", 130, "1 verre (3 cl)"],
+  ["Martini", 130, "1 verre (8 cl)"],
+  ["Porto", 100, "1 verre (6 cl)"],
+  ["Vermouth", 110, "1 verre"],
+  ["Gin tonic", 200, "1 verre"],
+  ["Gin tonic sans sucre", 100, "avec tonic zéro"],
+  ["Vodka-orange", 180, "1 verre"],
+  ["Vodka soda zéro", 100, "1 verre"],
+  ["Cuba libre", 220, "1 verre"],
+  ["Whisky-coca", 220, "1 verre"],
+  ["Whisky-coca zéro", 110, "1 verre"],
+  ["Whisky sec", 110, "4 cl"],
+  ["Rhum arrangé", 160, "1 verre"],
+  ["Piña colada", 350, "1 verre"],
+  ["Margarita", 250, "1 verre"],
+  ["Caïpirinha", 300, "1 verre"],
+  ["Tequila (shot)", 100, "4 cl"],
+  ["Vodka (shot)", 100, "4 cl"],
+  ["Cognac", 110, "4 cl"],
+  ["Armagnac", 110, "4 cl"],
+  ["Calvados", 110, "4 cl"],
+  ["Limoncello", 130, "4 cl"],
+  ["Baileys", 160, "5 cl"],
+  ["Amaretto", 140, "5 cl"],
+  ["Hydromel", 150, "10 cl"],
+  ["Bolée de cidre brut", 90, "20 cl"],
+  ["Soirée arrosée (estimation)", 800, "quatre à cinq verres"]
 ]],
 ["Boissons", [
   ["Café noir", 2, "1 tasse"],
@@ -3406,6 +3564,11 @@ function vueReglages(){
       '<button class="btn" data-act="modifier-profil">Modifier</button></div>' +
     '<div class="lig"><div class="l">Niveau d\'activité<div class="d">' + esc(a[3]) + '</div></div>' +
       '<button class="btn" data-act="modifier-activite">' + esc(a[1]) + '</button></div>' +
+    '<div class="lig" style="display:block"><div class="l">Niveau de forme' +
+      '<div class="d">' + esc((NIVEAUX.filter(x => x[0] === (s.niveau||"debutant"))[0]||NIVEAUX[0])[2]) + '</div></div>' +
+      '<div class="seg" style="display:flex;width:100%;margin-top:8px">' + NIVEAUX.map(n =>
+        '<button style="flex:1" class="' + ((s.niveau||"debutant") === n[0] ? "on" : "") +
+        '" data-act="niveau" data-id="' + n[0] + '">' + esc(n[1]) + '</button>').join("") + '</div></div>' +
     '<div class="lig"><div class="l">Dépense estimée<div class="d">Repos ' + kcal(bmr()) + ' kcal · plancher ' + kcal(plancher()) + ' kcal' +
       ((s.corr || 1) !== 1 ? ' · corrigée de ' + (s.corr > 1 ? "+" : "−") + Math.round(Math.abs(s.corr-1)*100) + ' %' : "") +
       '</div></div><span class="mono" style="font-size:15px">' + kcal(tdee()) + '</span></div>' +
@@ -3579,6 +3742,8 @@ const GUIDE = [
     "Faire les deux en même temps est possible quand on repart de loin, mais lentement. Dans ce cas la balance bouge peu : c'est le tour de taille et le miroir qu'il faut regarder."
   ]},
   { t:"Ce que ton profil change", l:[
+    "Le niveau de forme, réglable dans les réglages, n'est pas le niveau d'activité : on peut être debout toute la journée sans savoir faire une pompe.",
+    "En débutant, les mouvements les plus durs sont automatiquement remplacés par leur version accessible pendant les huit premières semaines — pompes sur les genoux, tirage sous une table, montées sur banc au lieu des burpees — et une série est retirée. La version complète revient à la semaine 9.",
     "L'âge, la taille, le poids et le niveau d'activité ne servent pas qu'au calcul des calories : ils modifient aussi les séances.",
     "Passé 50 ans, le repos entre les séries s'allonge ; passé 65, une série est retirée. Un profil sédentaire reçoit lui aussi plus de repos, le temps que la condition suive.",
     "À partir d'un IMC de 30, les sauts, la course et les burpees sont automatiquement remplacés par des versions sans impact — ces articulations portent déjà le poids du corps toute la journée. Ils reviendront d'eux-mêmes quand le poids aura baissé et que tu auras ré-adapté le programme."
@@ -4097,6 +4262,10 @@ function vueModal(m){
         '<select id="m-obj">' + OBJECTIFS.map(o =>
           '<option value="' + o.id + '"' + (m.obj === o.id ? " selected" : "") + '>' + esc(o.n) + '</option>').join("") + '</select>' +
         '<div class="aide">' + esc(objEnt(m.obj).d) + ' — ' + esc(objEnt(m.obj).c) + '</div></div>' +
+      '<div class="champ"><label for="m-niv">Ton niveau</label>' +
+        '<select id="m-niv">' + NIVEAUX.map(n =>
+          '<option value="' + n[0] + '"' + ((m.niveau || DB.settings.niveau) === n[0] ? " selected" : "") + '>' + esc(n[1]) + '</option>').join("") + '</select>' +
+        '<div class="aide">' + esc((NIVEAUX.filter(x => x[0] === (m.niveau || DB.settings.niveau))[0]||NIVEAUX[0])[2]) + '</div></div>' +
       '<div class="champ"><label for="m-sem">Durée</label>' +
         '<select id="m-sem">' + [p.sem,12,26,52].filter((v,i,a) => a.indexOf(v) === i).sort((a,b) => a-b).map(v =>
           '<option value="' + v + '"' + (String(m.semaines) === String(v) ? " selected" : "") + '>' + v + ' semaines' +
@@ -4251,7 +4420,7 @@ function ouvrirSheet(s){ state.sheet = s; render(); }
 /* Basculer un interrupteur redessine la fenêtre : sans relever les champs
    avant, un poids à moitié saisi disparaîtrait au moindre changement. */
 const CHAMPS = { "m-depart":"depart", "m-cible":"cible", "m-mois":"mois", "m-age":"age",
-  "m-obj":"obj", "m-sem":"semaines",
+  "m-obj":"obj", "m-sem":"semaines", "m-niv":"niveau",
   "m-taille":"taille", "m-activite":"activite", "m-debut":"debut", "m-nom":"nom",
   "m-kcal":"kcal", "m-poids":"poids", "m-tour":"tour", "m-date":"date" };
 function capturerModal(){
@@ -4566,7 +4735,8 @@ document.addEventListener("click", async ev => {
     if(!p) return;
     const defaut = [[1,4],[1,3,5],[1,2,4,6],[1,2,4,5],[1,2,3,4,5]][clamp(p.par,1,5)-1] || [1,3,5];
     ouvrirModal({ type:"programme", id:p.id, jours:defaut.slice(), debut:todayISO(),
-                  obj:DB.settings.objectif || "forme", semaines:p.sem, remplace:!!DB.prog });
+                  obj:DB.settings.objectif || "forme", niveau:DB.settings.niveau || "debutant",
+                  semaines:p.sem, remplace:!!DB.prog });
     return;
   }
   if(act === "m-jour"){
@@ -4584,6 +4754,7 @@ document.addEventListener("click", async ev => {
     const m = state.modal;
     if(!m.jours || !m.jours.length){ toast("Choisis au moins un jour"); return; }
     const debut = (m.debut || "").trim() || todayISO();
+    if(m.niveau) DB.settings.niveau = m.niveau;
     if(DB.prog) effacerProgramme();
     const n = genererSeances(m.id, debut, m.jours, m.semaines, m.obj || "forme");
     fermerModal();
@@ -4731,6 +4902,14 @@ document.addEventListener("click", async ev => {
   }
   if(act === "sexe"){ DB.settings.sexe = id; sauver(); render(); return; }
   if(act === "matos"){ DB.settings.matos = parseInt(id,10) || 0; sauver(); render(); return; }
+  if(act === "niveau"){
+    DB.settings.niveau = id;
+    sauver();
+    const n = DB.prog ? regenererFutur(DB.prog.obj) : 0;
+    render();
+    toast("Niveau " + nivNom(id).toLowerCase() + (n ? " · " + n + " séances ré-adaptées" : ""));
+    return;
+  }
   if(act === "bascule"){
     DB.settings[id] = !DB.settings[id];
     sauver(); render();
@@ -4809,7 +4988,8 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", ev => {
   if(!state.modal || !ev.target || !ev.target.id) return;
   if(state.modal.type === "objectif"){ majApercu(); return; }
-  if(state.modal.type === "programme" && (ev.target.id === "m-obj" || ev.target.id === "m-sem")){
+  if(state.modal.type === "programme" &&
+     (ev.target.id === "m-obj" || ev.target.id === "m-sem" || ev.target.id === "m-niv")){
     capturerModal(); render();
   }
 });
