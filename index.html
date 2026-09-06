@@ -307,6 +307,19 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
 .jrn li{font-size:13px;line-height:1.55;margin-bottom:3px;color:var(--gris)}
 .jrn li::marker{color:var(--acc)}
 
+/* ---------------- planches d'exercice ---------------- */
+.bd{border:1px solid var(--trait);border-radius:var(--r);overflow:hidden;background:var(--carte);margin:12px 0}
+.bd-row{display:flex;gap:12px;align-items:center;padding:12px;border-top:1px solid var(--trait2)}
+.bd-row:first-child{border-top:0}
+.bd-fig{position:relative;width:130px;flex:0 0 130px;aspect-ratio:5/3;border:1px solid var(--trait2);
+  border-radius:10px;background:var(--fond2);display:grid;place-items:center;color:var(--texte);overflow:hidden}
+.bd-fig svg{width:94%;height:94%;display:block}
+.bd-num{position:absolute;top:4px;left:5px;width:18px;height:18px;border-radius:6px;
+  background:var(--acc);color:var(--surAcc);font-size:11px;font-weight:600;
+  display:grid;place-items:center;font-family:"IBM Plex Mono",monospace}
+.bd-txt{flex:1;min-width:0;font-size:13.5px;line-height:1.5;color:var(--gris)}
+@media(max-width:370px){.bd-fig{width:104px;flex:0 0 104px}.bd-txt{font-size:13px}}
+
 /* ---------------- charges soulevées ---------------- */
 .chg{flex:0 0 auto;font-family:"IBM Plex Mono",monospace;font-size:12px;padding:5px 8px;
   border-radius:8px;border:1px solid var(--trait);color:var(--gris);background:var(--carte);white-space:nowrap}
@@ -390,9 +403,14 @@ html[data-theme="sombre"] .seg button.on{background:var(--texte);color:#0d0d10}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "1.7.0";
+const VERSION = "1.8.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"1.8.0", d:"2026-09-06", t:"Le mouvement, pas à pas", l:[
+    "Chaque exercice s'ouvre désormais sur une planche en trois vignettes numérotées, à la manière d'une bande dessinée : position de départ, mouvement, retour — avec la légende de chaque étape.",
+    "Trente-quatre mouvements sont décomposés, du squat aux tractions, avec les repères qui comptent : la ligne du dos en gainage, la trajectoire des coudes en pompes, la hauteur du bassin en pont fessier.",
+    "L'onglet Poids affiche le report en cours : combien de calories sont en trop ou en avance, sur combien de journées, et ce que cela change chaque jour. Le rattrapage est immédiat, il n'attend pas la balance."
+  ]},
   { v:"1.7.0", d:"2026-09-06", t:"Sodas, alcools, et le bon niveau", l:[
     "Une catégorie entière de sodas et boissons sucrées : Coca, Fanta, Orangina, Ice tea, Schweppes, sirops et boissons énergisantes, en canette, en verre ou en bouteille — et toutes leurs versions zéro.",
     "Une catégorie d'alcools : bières, vins, cocktails et digestifs, avec les versions allégées quand elles existent.",
@@ -687,6 +705,268 @@ const FIGS = {
   chat:'<circle cx="20" cy="30" r="5"/><path d="M25 32C40 22 56 22 70 32"/><path d="M25 33 24 48M70 32 74 48"/>' + SOL,
   gainDyn:'<circle cx="20" cy="30" r="5"/><path d="M25 32 82 42"/><path d="M25 32 24 46M82 42 92 50"/><path d="M46 36 44 22" opacity=".55"/>' + SOL
 };
+/* ============================================================
+   LES PLANCHES — le mouvement décomposé
+   Un dessin fige une position ; deux ou trois la racontent. Chaque planche
+   garde la même silhouette que la vignette, numérotée et légendée comme une
+   bande dessinée : c'est ce qui manque le plus quand on n'a jamais vu
+   l'exercice fait correctement.
+   ============================================================ */
+const FLECHE_BAS = '<path d="M92 20v14M88 30l4 5 4-5" stroke-width="2" opacity=".55"/>';
+const FLECHE_HAUT = '<path d="M92 36V22M88 26l4-5 4 5" stroke-width="2" opacity=".55"/>';
+const LIGNE = ' stroke-dasharray="3 3" opacity=".45"';
+
+const SEQ = {
+  pompe:{ c:[
+    "Mains au sol un peu plus larges que les épaules, corps aligné de la tête aux talons.",
+    "Descends en pliant les coudes vers l'arrière, jusqu'à frôler le sol de la poitrine.",
+    "Repousse le sol d'un coup franc, fessiers et ventre serrés."], f:[
+    FIGS.pompe,
+    '<circle cx="20" cy="35" r="5"/><path d="M25 37 62 43 84 49"/><path d="M25 37 33 45 25 52"/><path d="M84 49 92 52"/>' + SOL + FLECHE_BAS,
+    FIGS.pompe + FLECHE_HAUT ] },
+  pompeG:{ c:[
+    "En appui sur les genoux, buste aligné avec les cuisses.",
+    "Descends la poitrine vers le sol, coudes près du corps.",
+    "Repousse sans casser l'alignement du bassin."], f:[
+    FIGS.pompeG,
+    '<circle cx="22" cy="36" r="5"/><path d="M27 38 60 45"/><path d="M27 38 35 45 26 52"/><path d="M60 45 62 50 82 52"/>' + SOL + FLECHE_BAS,
+    FIGS.pompeG + FLECHE_HAUT ] },
+  pompeInc:{ c:[
+    "Mains sur une table ou un plan de travail, pieds reculés.",
+    "Descends la poitrine vers le support en gardant le corps droit.",
+    "Plus le support est bas, plus l'exercice est difficile."], f:[
+    FIGS.pompeInc,
+    '<circle cx="20" cy="27" r="5"/><path d="M25 30 58 40 84 49"/><path d="M25 30 31 36 22 39"/><path d="M12 39h16" stroke-width="2"/><path d="M84 49 92 52"/>' + SOL,
+    FIGS.pompeInc + FLECHE_HAUT ] },
+  planche:{ c:[
+    "Coudes sous les épaules, avant-bras au sol, pointes de pieds en appui.",
+    "Une ligne droite des épaules aux talons : ni fesses hautes, ni bassin qui tombe.",
+    "Ventre rentré, fessiers serrés, respiration calme. On tient."], f:[
+    FIGS.planche,
+    '<circle cx="20" cy="30" r="5"/><path d="M25 32 84 44"/><path d="M25 32 24 46M84 44 92 50"/><path d="M15 29 92 41"' + LIGNE + '/>' + SOL,
+    '<circle cx="20" cy="34" r="5"/><path d="M25 36C46 48 64 48 84 44"/><path d="M25 36 24 47M84 44 92 50"/><path d="M40 52h26" stroke-width="2" opacity=".5"/>' + SOL ] },
+  plancheLat:{ c:[
+    "Sur le côté, coude sous l'épaule, jambes tendues l'une sur l'autre.",
+    "Monte le bassin jusqu'à aligner cheville, hanche et épaule.",
+    "Genoux fléchis si la position ne tient pas : mieux vaut vingt secondes propres."], f:[
+    '<circle cx="20" cy="28" r="5"/><path d="M25 31 80 50"/><path d="M25 31 26 47"/><path d="M80 50 92 52"/>' + SOL,
+    FIGS.plancheLat,
+    '<circle cx="20" cy="24" r="5"/><path d="M25 27 70 44"/><path d="M25 27 26 46M27 34 40 20"/><path d="M70 44 76 52 88 52"/>' + SOL ] },
+  squat:{ c:[
+    "Pieds largeur d'épaules, pointes légèrement ouvertes, poitrine haute.",
+    "Pousse les fesses en arrière et descends jusqu'aux cuisses parallèles au sol.",
+    "Remonte en poussant dans les talons, genoux dans l'axe des pieds."], f:[
+    '<circle cx="42" cy="10" r="5"/><path d="M42 15v18"/><path d="M42 33 38 52M42 33 46 52"/><path d="M42 19 36 32M42 19 48 32"/>' + SOL,
+    FIGS.squat + FLECHE_BAS,
+    FIGS.squat + FLECHE_HAUT ] },
+  chaise:{ c:[
+    "Dos plaqué au mur, pieds avancés d'un demi-pas.",
+    "Glisse vers le bas jusqu'à des cuisses parallèles, genoux à 90°.",
+    "Le poids reste sur les talons. Respire, ne bloque pas."], f:[
+    '<circle cx="40" cy="12" r="5"/><path d="M40 17v18"/><path d="M40 35v17"/><path d="M32 6v46" stroke-width="2" opacity=".4"/>' + SOL,
+    FIGS.chaise,
+    FIGS.chaise + '<path d="M62 34v14" stroke-width="2"' + LIGNE + '/>' ] },
+  fente:{ c:[
+    "Debout, buste droit, regard devant.",
+    "Un grand pas en avant, on descend jusqu'à frôler le sol du genou arrière.",
+    "Le genou avant reste au-dessus de la cheville. On repousse pour revenir."], f:[
+    '<circle cx="46" cy="10" r="5"/><path d="M46 15v18"/><path d="M46 33 43 52M46 33 49 52"/>' + SOL,
+    FIGS.fente,
+    '<circle cx="46" cy="11" r="5"/><path d="M46 16v16"/><path d="M46 32 32 41 34 51"/><path d="M46 32 62 40 62 51"/><path d="M62 44h10" stroke-width="2"' + LIGNE + '/>' + SOL ] },
+  montee:{ c:[
+    "Face à la marche, un pied posé dessus à plat.",
+    "Pousse dans la jambe du haut pour monter, sans élan du bas.",
+    "Redescends en contrôlant, puis change de jambe."], f:[
+    '<circle cx="34" cy="14" r="5"/><path d="M34 19v15"/><path d="M34 34 52 40v8"/><path d="M34 34 32 52"/><path d="M50 48h30v6" stroke-width="2"/>' + SOL,
+    FIGS.montee,
+    '<circle cx="60" cy="10" r="5"/><path d="M60 15v16"/><path d="M60 31 58 48M60 31 64 48"/><path d="M50 48h30v6" stroke-width="2"/>' + SOL ] },
+  pont:{ c:[
+    "Allongé sur le dos, genoux pliés, pieds à plat près des fesses.",
+    "Pousse dans les talons pour décoller le bassin.",
+    "Aligne genoux, hanches et épaules, serre une seconde, redescends."], f:[
+    '<circle cx="18" cy="46" r="5"/><path d="M23 47 46 47 62 47"/><path d="M62 47 78 52"/>' + SOL,
+    FIGS.pont,
+    FIGS.pont + '<path d="M23 42 62 44"' + LIGNE + '/>' ] },
+  souleve:{ c:[
+    "Debout, charge devant les cuisses, dos plat, genoux à peine fléchis.",
+    "Pousse les hanches vers l'arrière, la charge frôle les jambes.",
+    "Descends jusqu'à sentir l'arrière des cuisses, puis redresse-toi en serrant les fessiers."], f:[
+    '<circle cx="42" cy="10" r="5"/><path d="M42 15v18"/><path d="M42 33 40 52M42 33 45 52"/><path d="M42 18 40 34"/><path d="M30 34h24" stroke-width="3.6"/>' + SOL,
+    FIGS.souleve,
+    '<circle cx="30" cy="20" r="5"/><path d="M35 22 52 30"/><path d="M52 30 50 50"/><path d="M36 24 40 42"/><path d="M28 42h24" stroke-width="3.6"/>' + SOL + FLECHE_BAS ] },
+  superman:{ c:[
+    "À plat ventre, bras tendus devant, nuque dans le prolongement du dos.",
+    "Décolle en même temps le buste et les jambes, sans à-coup.",
+    "Cherche la longueur plutôt que la hauteur, tiens une seconde."], f:[
+    '<circle cx="24" cy="40" r="5"/><path d="M29 42 70 44"/><path d="M29 42 12 40M70 44 88 44"/>' + SOL,
+    FIGS.superman,
+    FIGS.superman + FLECHE_HAUT ] },
+  rowing:{ c:[
+    "Un genou et une main en appui, dos plat, bras tendu vers le sol.",
+    "Tire le coude vers la hanche, la charge longe le corps.",
+    "Serre l'omoplate en haut, redescends en retenant."], f:[
+    '<circle cx="34" cy="18" r="5"/><path d="M38 21 58 27"/><path d="M38 22 34 34 36 48"/><path d="M58 27 60 46"/><path d="M52 46h16" stroke-width="3.6"/>' + SOL,
+    FIGS.rowing,
+    FIGS.rowing + FLECHE_HAUT ] },
+  traction:{ c:[
+    "Suspendu à la barre, bras tendus, épaules basses.",
+    "Tire les coudes vers le bas jusqu'à passer le menton au-dessus de la barre.",
+    "Redescends lentement jusqu'aux bras tendus. Pas de coup de reins."], f:[
+    '<path d="M14 10h72" stroke-width="3"/><circle cx="50" cy="30" r="5"/><path d="M50 35v14"/><path d="M50 49 44 56M50 49 57 56"/><path d="M42 11 47 26M58 11 53 26"/>',
+    FIGS.traction,
+    '<path d="M14 10h72" stroke-width="3"/><circle cx="50" cy="17" r="5"/><path d="M50 22v16"/><path d="M50 38 44 48M50 38 57 48"/><path d="M40 11 46 18M60 11 54 18"/>' + FLECHE_HAUT ] },
+  tractionAus:{ c:[
+    "Allongé sous une table solide, bras tendus, corps gainé.",
+    "Tire la poitrine vers le bord, coudes le long du corps.",
+    "Plus les pieds sont loin, plus c'est difficile."], f:[
+    '<path d="M12 22h76" stroke-width="3"/><circle cx="34" cy="38" r="5"/><path d="M39 40 78 46"/><path d="M39 39 34 24M78 46 90 50"/>' + SOL,
+    FIGS.tractionAus,
+    FIGS.tractionAus + FLECHE_HAUT ] },
+  dips:{ c:[
+    "Mains en appui de part et d'autre des hanches, fesses dans le vide, bras tendus.",
+    "Descends en pliant les coudes vers l'arrière, jusqu'à 90°.",
+    "Remonte sans verrouiller les coudes. Jambes tendues pour durcir."], f:[
+    '<path d="M18 24h16M66 24h16" stroke-width="3"/><circle cx="50" cy="14" r="5"/><path d="M50 19v14"/><path d="M50 33 42 48M50 33 58 48"/><path d="M44 22 48 24M56 22 52 24"/>' + SOL,
+    FIGS.dips,
+    FIGS.dips + FLECHE_HAUT ] },
+  developpe:{ c:[
+    "Charges à hauteur d'épaules, coudes sous les poignets, ventre gainé.",
+    "Pousse au-dessus de la tête jusqu'à tendre les bras sans les verrouiller.",
+    "Redescends en contrôlant jusqu'aux épaules."], f:[
+    '<circle cx="40" cy="14" r="5"/><path d="M40 19v18"/><path d="M40 37 34 51M40 37 48 51"/><path d="M40 22 30 20M40 22 50 20"/><path d="M24 20h12M44 20h12" stroke-width="3.6"/>' + SOL,
+    FIGS.developpe,
+    FIGS.developpe + FLECHE_HAUT ] },
+  elevation:{ c:[
+    "Debout, bras le long du corps, coudes à peine fléchis.",
+    "Monte les bras sur les côtés jusqu'à l'horizontale, pas plus haut.",
+    "Redescends en deux temps. Léger : l'épaule se blesse vite ici."], f:[
+    '<circle cx="46" cy="14" r="5"/><path d="M46 19v18"/><path d="M46 37 40 51M46 37 53 51"/><path d="M46 22 36 36M46 22 56 36"/><path d="M32 34v8M60 34v8" stroke-width="3.6"/>' + SOL,
+    FIGS.elevation,
+    FIGS.elevation + FLECHE_BAS ] },
+  curl:{ c:[
+    "Debout, bras tendus, paumes vers l'avant, coudes collés au buste.",
+    "Fléchis les coudes sans bouger les épaules.",
+    "Redescends lentement jusqu'aux bras tendus."], f:[
+    '<circle cx="44" cy="13" r="5"/><path d="M44 18v19"/><path d="M44 37 38 51M44 37 51 51"/><path d="M44 22 42 38"/><path d="M36 38h12" stroke-width="3.6"/>' + SOL,
+    FIGS.curl,
+    FIGS.curl + FLECHE_HAUT ] },
+  crunch:{ c:[
+    "Allongé, genoux pliés, mains sur les tempes, bas du dos au sol.",
+    "Enroule le haut du dos vers les cuisses, expire en montant.",
+    "Les omoplates décollent, c'est tout. Ne tire pas sur la nuque."], f:[
+    '<circle cx="26" cy="40" r="5"/><path d="M31 42 56 44"/><path d="M56 44 68 32 80 46"/>' + SOL,
+    FIGS.crunch,
+    FIGS.crunch + FLECHE_HAUT ] },
+  jambes:{ c:[
+    "Allongé, mains sous les fesses, jambes tendues au-dessus du sol.",
+    "Monte les jambes jusqu'à la verticale, bas du dos plaqué.",
+    "Redescends lentement sans toucher le sol. Genoux pliés si le dos tire."], f:[
+    '<circle cx="18" cy="44" r="5"/><path d="M23 45h34"/><path d="M57 45 84 43"/><path d="M57 45 84 47"/>' + SOL,
+    FIGS.jambes,
+    FIGS.jambes + FLECHE_HAUT ] },
+  twist:{ c:[
+    "Assis, buste incliné en arrière, mains jointes devant la poitrine.",
+    "Fais passer les mains d'un côté, la rotation vient du buste.",
+    "Puis de l'autre côté, sans laisser le dos s'arrondir."], f:[
+    '<circle cx="34" cy="28" r="5"/><path d="M36 33 46 44 68 48"/><path d="M36 32 50 30"/><path d="M46 44 66 40"/>' + SOL,
+    FIGS.twist,
+    '<circle cx="34" cy="28" r="5"/><path d="M36 33 46 44 68 48"/><path d="M36 32 44 22"/><path d="M46 44 66 40"/>' + SOL ] },
+  mountain:{ c:[
+    "Position de planche bras tendus, mains sous les épaules.",
+    "Ramène un genou vers la poitrine, hanches basses.",
+    "Alterne en rythme, sans laisser le bassin monter."], f:[
+    '<circle cx="20" cy="28" r="5"/><path d="M25 30 66 40"/><path d="M25 30 23 46M66 40 84 50"/>' + SOL,
+    FIGS.mountain,
+    '<circle cx="20" cy="28" r="5"/><path d="M25 30 66 40"/><path d="M25 30 23 46M66 40 84 50M40 36 36 50"/>' + SOL ] },
+  burpee:{ c:[
+    "Debout, pieds largeur de bassin.",
+    "Mains au sol, pieds jetés en arrière en position de planche — une pompe si tu peux.",
+    "Ramène les pieds sous toi et saute, bras au ciel. Retire le saut ou la pompe pour alléger."], f:[
+    '<circle cx="46" cy="12" r="5"/><path d="M46 17v16"/><path d="M46 33 42 52M46 33 50 52"/><path d="M46 20 40 32M46 20 52 32"/>' + SOL,
+    FIGS.burpee,
+    '<circle cx="46" cy="10" r="5"/><path d="M46 15v14"/><path d="M46 29 40 44M46 29 52 44"/><path d="M46 18 34 8M46 18 58 8"/><path d="M34 50h24" stroke-width="2" opacity=".4"/>' + SOL ] },
+  jumping:{ c:[
+    "Debout, pieds joints, bras le long du corps.",
+    "Saute en écartant simultanément jambes et bras au-dessus de la tête.",
+    "Réception souple, genoux déverrouillés. Sans saut : un pied de côté après l'autre."], f:[
+    '<circle cx="50" cy="14" r="5"/><path d="M50 19v16"/><path d="M50 35 47 52M50 35 53 52"/><path d="M50 22 44 34M50 22 56 34"/>' + SOL,
+    FIGS.jumping,
+    FIGS.jumping + FLECHE_HAUT ] },
+  course:{ c:[
+    "Buste droit, regard loin devant, bras fléchis à 90°.",
+    "Pose le pied sous le bassin, pas devant : la foulée reste courte.",
+    "Alterne 2 minutes de course et 1 minute de marche si le souffle manque."], f:[
+    FIGS.course,
+    '<circle cx="44" cy="12" r="5"/><path d="M44 17 42 32"/><path d="M42 32 34 44 30 51"/><path d="M42 32 56 40 60 50"/><path d="M43 20 30 26M43 21 56 20"/>' + SOL,
+    FIGS.marche ] },
+  marche:{ c:[
+    "Allure soutenue : on peut encore parler, plus chanter.",
+    "Déroule le pied du talon vers la pointe, bras actifs.",
+    "Vise une cadence régulière plutôt qu'un départ rapide suivi d'un arrêt."], f:[
+    FIGS.marche,
+    '<circle cx="44" cy="12" r="5"/><path d="M44 17v16"/><path d="M44 33 38 51M44 33 52 51"/><path d="M44 21 40 33M44 21 48 32"/>' + SOL,
+    '<circle cx="44" cy="12" r="5"/><path d="M44 17v16"/><path d="M44 33 32 50M44 33 58 50"/><path d="M44 21 34 30M44 21 54 28"/>' + SOL ] },
+  corde:{ c:[
+    "Corde derrière les talons, coudes près du corps.",
+    "Fais tourner la corde avec les poignets, pas avec les bras.",
+    "Sauts bas : deux centimètres suffisent. Sans corde, imite le mouvement."], f:[
+    '<circle cx="50" cy="14" r="5"/><path d="M50 19v16"/><path d="M50 35 47 52M50 35 53 52"/><path d="M50 22 40 28M50 22 60 28"/><path d="M40 28C30 40 40 52 50 52s20-12 10-24" opacity=".5"/>',
+    FIGS.corde,
+    FIGS.corde + FLECHE_HAUT ] },
+  genoux:{ c:[
+    "Sur place, buste droit, appuis sur l'avant du pied.",
+    "Monte un genou à hauteur de hanche, bras actifs.",
+    "Alterne en rythme. Un pied toujours au sol pour la version sans impact."], f:[
+    FIGS.genoux,
+    '<circle cx="44" cy="12" r="5"/><path d="M44 17v14"/><path d="M44 31 32 30 34 42"/><path d="M44 31 46 51"/><path d="M44 20 56 24M44 20 32 16"/>' + SOL,
+    '<circle cx="44" cy="12" r="5"/><path d="M44 17v14"/><path d="M44 31 42 51M44 31 46 51"/><path d="M44 20 36 30M44 20 52 30"/>' + SOL ] },
+  velo:{ c:[
+    "Selle réglée : la jambe presque tendue en bas de la pédale.",
+    "Pédale à cadence élevée plutôt qu'en force.",
+    "Excellent choix quand les articulations encaissent mal les impacts."], f:[
+    FIGS.velo,
+    '<circle cx="24" cy="44" r="9" stroke-width="2.4"/><circle cx="72" cy="44" r="9" stroke-width="2.4"/><path d="M24 44 44 44 58 28 72 44M44 44 40 34h12"/><circle cx="60" cy="18" r="5"/>',
+    FIGS.velo ] },
+  mollets:{ c:[
+    "Debout, pieds parallèles, éventuellement sur une marche talons dans le vide.",
+    "Monte sur la pointe des pieds le plus haut possible, une seconde de pause.",
+    "Redescends lentement jusqu'à l'étirement."], f:[
+    '<circle cx="46" cy="14" r="5"/><path d="M46 19v18"/><path d="M46 37 43 52M46 37 49 52"/>' + SOL,
+    FIGS.mollets,
+    FIGS.mollets + FLECHE_HAUT ] },
+  etirement:{ c:[
+    "Installe la position lentement, sans à-coup.",
+    "Avance jusqu'à sentir tirer — jamais jusqu'à la douleur.",
+    "Tiens trente secondes en respirant, puis change de côté."], f:[
+    '<circle cx="26" cy="30" r="5"/><path d="M31 33 60 42"/><path d="M60 42 76 34"/><path d="M31 33 48 26"/>' + SOL,
+    FIGS.etirement,
+    FIGS.etirement + FLECHE_BAS ] },
+  chat:{ c:[
+    "À quatre pattes, mains sous les épaules, genoux sous les hanches.",
+    "Expire en arrondissant le dos, menton vers la poitrine.",
+    "Inspire en creusant doucement, regard devant. Vertèbre par vertèbre."], f:[
+    '<circle cx="20" cy="32" r="5"/><path d="M25 34 70 34"/><path d="M25 34 24 48M70 34 74 48"/>' + SOL,
+    FIGS.chat,
+    '<circle cx="20" cy="36" r="5"/><path d="M25 36C40 44 56 44 70 36"/><path d="M25 36 24 48M70 36 74 48"/>' + SOL ] },
+  gainDyn:{ c:[
+    "Planche bras tendus, pieds écartés pour la stabilité.",
+    "Décolle une main et viens toucher l'épaule opposée.",
+    "Le bassin ne balance pas : c'est là que se fait le travail."], f:[
+    '<circle cx="20" cy="30" r="5"/><path d="M25 32 82 42"/><path d="M25 32 24 46M82 42 92 50"/>' + SOL,
+    FIGS.gainDyn,
+    '<circle cx="20" cy="30" r="5"/><path d="M25 32 82 42"/><path d="M25 32 24 46M82 42 92 50"/><path d="M46 36 34 30" opacity=".55"/>' + SOL ] }
+};
+function planche(figId){
+  const q = SEQ[figId];
+  if(!q) return "";
+  return '<div class="bd">' + q.f.map((f,i) =>
+    '<div class="bd-row"><div class="bd-fig">' +
+      '<svg viewBox="0 0 100 60" fill="none" stroke="currentColor" stroke-width="3" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + f + '</svg>' +
+      '<span class="bd-num">' + (i+1) + '</span></div>' +
+    '<div class="bd-txt">' + esc(q.c[i] || "") + '</div></div>').join("") + '</div>';
+}
+
 function figSVG(id, cls){
   const d = FIGS[id] || FIGS.marche;
   return '<svg viewBox="0 0 100 60" fill="none" stroke="currentColor" stroke-width="3" ' +
@@ -3235,6 +3515,22 @@ function vuePoids(){
         (c.dep > c.base ? "−" : "+") + kcal(Math.abs(c.dep - c.base))) + '/j</span></div>' +
     '<div class="lig"><div class="l">Fin du plan<div class="d">' + esc(frDate(c.fin, true)) + '</div></div>' +
       '<span class="mono">' + c.restants + ' j</span></div>' +
+    (() => {
+      /* Le report ne dépend pas de la balance : il se déclenche dès qu'une
+         journée est renseignée, et s'étale sur les jours restants. */
+      const d = dette();
+      if(!d.n) return '<div class="lig"><div class="l">Report en cours<div class="d">' +
+        'Aucune journée renseignée pour l\'instant. Dès qu\'un repas est noté, l\'écart avec la cible se reporte sur les jours restants.</div></div></div>';
+      const parJour = Math.round(-d.v / c.restants);
+      return '<div class="lig"><div class="l">Report en cours<div class="d">' +
+        (Math.abs(d.v) < 60 ? 'Tu es dans les clous sur les ' + d.n + ' journées renseignées.'
+          : (d.v > 0 ? kcal(d.v) + ' kcal de trop sur ' + d.n + ' journées, étalées sur les ' + c.restants + ' jours restants — soit ' +
+              kcal(Math.abs(parJour)) + ' kcal de moins par jour. Le rattrapage est immédiat, il n\'attend pas la balance.'
+                     : kcal(-d.v) + ' kcal d\'avance sur ' + d.n + ' journées, rendues sur les ' + c.restants + ' jours restants — soit ' +
+              kcal(Math.abs(parJour)) + ' kcal de plus par jour.')) +
+        '</div></div><span class="mono ' + (d.v > 0 ? "c-dang" : (d.v < 0 ? "c-ok" : "")) + '">' +
+        (parJour > 0 ? "+" : (parJour < 0 ? "−" : "")) + kcal(Math.abs(parJour)) + '/j</span></div>';
+    })() +
     '</div></div>';
 
   if(c.bride && c.sens === "perte"){
@@ -4048,6 +4344,11 @@ function sheetExo(sh){
     '<span class="mus">' + esc(PATS[e.pat] || "") + '</span></div>';
 
   h += '<p style="font-size:14.5px;line-height:1.6;color:var(--gris);margin:14px 0 0">' + esc(e.d) + '</p>';
+
+  const bd = planche(e.fig);
+  if(bd){
+    h += '<div class="sect"><h2>Le mouvement, pas à pas</h2></div>' + bd;
+  }
 
   if(l){
     h += '<div class="repere">' +
