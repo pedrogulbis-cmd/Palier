@@ -415,9 +415,15 @@ html[data-theme="sombre"] .photo img{filter:brightness(.9) contrast(1.03)}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "2.1.0";
+const VERSION = "2.2.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"2.2.0", d:"2026-09-06", t:"Le sport dans le compte des calories", l:[
+    "L'écran du jour affiche désormais une section « Le sport du jour » : les séances prévues, celles qui sont validées, les activités notées, et le total rendu à ta cible de calories.",
+    "Cinquante activités libres peuvent être ajoutées — marche, course, vélo, natation, foot, boxe, escalade, danse, ménage, jardinage, promenade du chien — avec leur durée.",
+    "La dépense est calculée en équivalents métaboliques, multipliés par ton poids réel et la durée : un footing de trente minutes ne coûte pas la même chose à soixante et à quatre-vingt-dix kilos.",
+    "Ces calories s'ajoutent à la cible du jour quand le crédit du sport est actif, et comptent dans le bilan dans tous les cas. Une séance prévue mais non validée est affichée en gris : elle n'ouvre aucun droit."
+  ]},
   { v:"2.1.0", d:"2026-09-06", t:"Quarante-huit exercices de plus", l:[
     "La bibliothèque passe de 92 à 140 exercices, tous photographiés : développé incliné, pull-over, rowing barre, soulevé de terre, haussements d'épaules, extensions lombaires, oiseau, développé Arnold, curl marteau, barre au front, squat barre, front squat, leg extension, leg curl, soulevé roumain, machines adducteurs et abducteurs, swing kettlebell, marche du fermier, box jumps, relevé de jambes suspendu, crunch à la poulie, roulette abdominale, elliptique, stepper, battle ropes, et cinq étirements de plus.",
     "Chacun a sa description, ses conseils, son schéma de mouvement et son matériel : ils apparaissent donc dans les remplacements proposés dès qu'ils correspondent.",
@@ -3127,8 +3133,9 @@ function chercherAliments(q){
 function jourLu(iso){ return DB.jours[iso] || null; }
 function jour(iso){
   let j = DB.jours[iso];
-  if(!j){ j = { id:iso, repas:[], poids:0, tour:0, eau:0, note:"" }; DB.jours[iso] = j; }
+  if(!j){ j = { id:iso, repas:[], sport:[], poids:0, tour:0, eau:0, note:"" }; DB.jours[iso] = j; }
   if(!j.repas) j.repas = [];
+  if(!j.sport) j.sport = [];
   return j;
 }
 const joursAll = () => Object.values(DB.jours);
@@ -3152,6 +3159,37 @@ function poidsActuel(){
 function poidsPrecedent(){
   const l = pesees();
   return l.length > 1 ? l[l.length-2].p : 0;
+}
+
+/* ============================================================
+   LES ACTIVITÉS LIBRES
+   Une séance du programme n'est pas le seul sport de la journée : la marche
+   du midi, le foot du dimanche et deux heures de jardinage comptent aussi.
+   La dépense se calcule en équivalents métaboliques — le MET — multipliés par
+   le poids du corps et la durée : c'est la méthode des tables officielles,
+   et elle a le mérite de tenir compte de ce qu'on pèse.
+   kcal = MET × poids en kilos × heures
+   ============================================================ */
+const ACTIVITES_SPORT = [
+  ["Marche tranquille", 3.0], ["Marche rapide", 4.8], ["Marche en côte", 6.5],
+  ["Randonnée", 6.0], ["Montée d'escaliers", 8.0], ["Course lente", 8.0],
+  ["Course soutenue", 11.0], ["Fractionné", 12.0], ["Vélo tranquille", 5.0],
+  ["Vélo soutenu", 8.5], ["Vélo d'appartement", 6.8], ["Natation tranquille", 6.0],
+  ["Natation soutenue", 9.5], ["Corde à sauter", 11.0], ["Rameur", 7.0],
+  ["Elliptique", 6.5], ["Musculation modérée", 3.5], ["Musculation intense", 6.0],
+  ["Circuit training", 8.0], ["Gainage et abdos", 3.8], ["Yoga", 3.0],
+  ["Pilates", 3.5], ["Étirements", 2.3], ["Football", 8.0], ["Basket", 7.5],
+  ["Tennis", 7.3], ["Padel", 6.5], ["Badminton", 5.5], ["Volley", 4.5],
+  ["Handball", 8.0], ["Rugby", 8.3], ["Boxe", 9.0], ["Arts martiaux", 10.0],
+  ["Escalade", 8.0], ["Ski", 7.0], ["Snowboard", 5.3], ["Roller", 7.5],
+  ["Skateboard", 5.0], ["Danse", 5.5], ["Équitation", 5.5], ["Golf", 4.8],
+  ["Aviron", 7.0], ["Surf", 5.0], ["Kayak", 5.0], ["Ménage", 3.3],
+  ["Jardinage", 4.0], ["Bricolage", 4.5], ["Déménagement", 6.5],
+  ["Jeux avec les enfants", 4.0], ["Promenade du chien", 3.5]
+];
+function kcalActivite(met, minutes){
+  const p = (poidsActuel() || (DB.plan ? DB.plan.depart : 75000)) / 1000;
+  return Math.round(met * p * (minutes / 60));
 }
 
 /* ============================================================
@@ -3237,10 +3275,18 @@ function dette(){
   }
   return { v:Math.round(v), n };
 }
-/* Les calories brûlées créditées un jour donné : les séances validées. */
+/* Ce que le sport rend à la journée : les séances du programme validées, et
+   les activités notées à la main. Rien n'est crédité tant que la séance n'est
+   pas cochée — une séance prévue n'est pas une séance faite. */
+function seancesCreditees(iso){ return seancesDuJour(iso).filter(s => s.fait); }
+function activitesJour(iso){ const j = jourLu(iso); return (j && j.sport) || []; }
+function kcalSport(iso){
+  return seancesCreditees(iso).reduce((t,s) => t + (s.k||0), 0) +
+         activitesJour(iso).reduce((t,a) => t + (a.k||0), 0);
+}
 function creditSport(iso){
   if(!DB.settings.crediterSport) return 0;
-  return seancesDuJour(iso).filter(s => s.fait).reduce((t,s) => t + (s.k||0), 0);
+  return kcalSport(iso);
 }
 /* L'objectif du jour : la base du plan, corrigée par la dette étalée sur les
    jours restants — au plus un cinquième dans un sens ou dans l'autre, pour
@@ -3694,7 +3740,8 @@ function vueJour(){
       '<div class="bud-b"><i class="' + e + '" style="width:' + pc + '%"></i></div></div>';
     const sub = [];
     const cs = creditSport(t);
-    if(cs) sub.push('<span>dont <b class="c-ok">+' + kcal(cs) + '</b> gagnés au sport</span>');
+    if(cs) sub.push('<span>dont <b class="c-ok">+' + kcal(cs) + '</b> rendus par le sport</span>');
+    else if(kcalSport(t)) sub.push('<span><b>' + kcal(kcalSport(t)) + '</b> brûlés, non crédités</span>');
     const d = auj ? dette() : { n:0, v:0 };   /* le report ne concerne qu'aujourd'hui */
     if(d.n && Math.abs(d.v) > 60){
       const dj = Math.round(-d.v / c.restants);
@@ -3723,6 +3770,45 @@ function vueJour(){
       'Choisis un programme et toutes les séances se posent sur ton agenda.</div></div>' +
       '<div class="btns grow"><button class="btn" data-act="choisir-programme">' + svg("halt",16) +
       'Choisir un programme</button></div>';
+  }
+
+  /* ---- le sport de la journée ----
+     Les calories rendues par le sport ne doivent pas se deviner : on affiche
+     ce qui a été fait, ce que ça rapporte, et ce qui reste à valider. */
+  const brule = kcalSport(t);
+  const seancesJ = seancesDuJour(t);
+  const acts = activitesJour(t);
+  const credite = DB.settings.crediterSport;
+  h += '<div class="sect"><h2>Le sport du jour</h2><div class="sp"></div>' +
+    (brule ? '<span class="cnt mono ' + (credite ? "c-ok" : "") + '">' +
+      (credite ? "+" : "") + kcal(brule) + ' kcal</span>' : "") + '</div>';
+  h += '<div class="ops">';
+  if(!seancesJ.length && !acts.length){
+    h += '<div class="vide"><b>Rien de noté</b>' +
+      'Une marche, un match, deux heures de jardinage : tout ce qui fait dépenser peut être ajouté, et vient s\'ajouter à ta cible du jour.</div>';
+  }
+  seancesJ.forEach(s2 => {
+    h += '<button class="op" data-act="ouvrir-seance" data-id="' + s2.id + '">' +
+      '<span class="op-ic">' + svg("halt",15,1.8) + '</span>' +
+      '<span class="op-mid"><span class="op-lib">' + esc(s2.n) + '</span>' +
+      '<span class="op-met">' + (s2.fait ? "séance validée" : "séance prévue, pas encore validée") + '</span></span>' +
+      '<span class="op-mt ' + (s2.fait ? "c-ok" : "c-gris") + '">' + (s2.fait ? "+" : "") + kcal(s2.k) + '</span></button>';
+  });
+  acts.forEach(a => {
+    h += '<button class="op" data-act="suppr-activite" data-id="' + a.i + '">' +
+      '<span class="op-ic">' + svg("feu",15,1.8) + '</span>' +
+      '<span class="op-mid"><span class="op-lib">' + esc(a.n) + '</span>' +
+      '<span class="op-met">' + a.m + ' min' + (a.t ? " · " + p2(new Date(a.t).getHours()) + ":" + p2(new Date(a.t).getMinutes()) : "") + '</span></span>' +
+      '<span class="op-mt c-ok">+' + kcal(a.k) + '</span></button>';
+  });
+  h += '</div>';
+  h += '<div class="btns grow"><button class="btn" data-act="ajouter-activite">' + svg("plus",16,2) +
+    'Ajouter une activité</button></div>';
+  if(brule){
+    h += '<div class="aide">' + (credite
+      ? 'Ces ' + kcal(brule) + ' kcal sont ajoutées à ta cible du jour : tu peux manger d\'autant plus sans creuser le plan.'
+      : 'Le crédit du sport est désactivé dans les réglages : ces ' + kcal(brule) +
+        ' kcal ne changent pas ta cible du jour. Elles restent comptées au bilan.') + '</div>';
   }
 
   /* ---- l'eau ---- */
@@ -4108,7 +4194,9 @@ function vueBilan(){
   const pr = projection();
   const ass = assiduite();
   const sf = seancesAll().filter(s => s.fait && (!dep || s.date >= dep));
-  const brulees = sf.reduce((s,x) => s + (x.k||0), 0);
+  const libres = joursAll().filter(j => !dep || j.id >= dep)
+    .reduce((t,j) => t + (j.sport||[]).reduce((u,a) => u + (a.k||0), 0), 0);
+  const brulees = sf.reduce((s,x) => s + (x.k||0), 0) + libres;
 
   h += '<div class="stats">' +
     '<div class="stat"><div class="v">' + (moy ? kcal(moy) : "—") + '</div><div class="l">kcal par jour en moyenne</div></div>' +
@@ -4260,7 +4348,7 @@ function vueReglages(){
       '<span class="l">J\'ai une corde à sauter<span class="d">Ouvre cinq exercices de corde, un programme dédié, et la corde cesse d\'être remplacée dans les séances.</span></span>' +
       '<span class="k"></span></button>' +
     '<button class="bascule ' + (s.crediterSport ? "on" : "") + '" data-act="bascule" data-id="crediterSport">' +
-      '<span class="l">Créditer les calories du sport<span class="d">Une séance validée relève le plafond du jour. À laisser actif seulement si le niveau d\'activité est réglé bas.</span></span>' +
+      '<span class="l">Créditer les calories du sport<span class="d">Les séances validées et les activités notées relèvent le plafond de calories du jour. À laisser actif seulement si le niveau d\'activité est réglé bas, sans quoi le sport serait compté deux fois.</span></span>' +
       '<span class="k"></span></button>' +
     '</div></div>';
 
@@ -4378,6 +4466,12 @@ const GUIDE = [
     "Deux à trois séances par semaine suffisent pour progresser au début, quatre pour aller plus vite. Cinq n'apporte pas grand-chose de plus la première année.",
     "Laisse au moins un jour entre deux séances qui travaillent les mêmes muscles.",
     "Le muscle se construit pendant le sommeil et grâce à ce qu'on mange, pas pendant la séance. La séance ne fait que donner l'ordre."
+  ]},
+  { t:"Le sport et les calories", l:[
+    "Une séance validée et les activités notées à la main s'ajoutent à la cible de calories du jour : brûler trois cents kilocalories donne droit à trois cents de plus dans l'assiette, sans creuser le plan.",
+    "Le crédit ne s'applique qu'une fois la séance cochée. Une séance prévue mais non validée n'ouvre aucun droit — l'application affiche alors le montant en gris.",
+    "La dépense d'une activité se calcule à partir de son intensité et de ton poids : un même footing de trente minutes coûte plus cher à quatre-vingt-dix kilos qu'à soixante.",
+    "Attention au double compte : si le niveau d'activité déclaré dans le profil est déjà élevé, le sport est compris dedans. Garde « sédentaire » quand le crédit du sport est actif — c'est le réglage par défaut."
   ]},
   { t:"Manger selon l'objectif", l:[
     "Perdre du poids demande de manger moins que ce qu'on dépense. Le sport aide, l'assiette décide.",
@@ -5043,6 +5137,32 @@ function vueModal(m){
       boiteBoutons("Enregistrer", "type-creer");
   }
 
+  if(m.type === "activiteSport"){
+    const min = m.min || 30;
+    c = '<h3>Ajouter une activité</h3>' +
+      '<div class="sous">La dépense est calculée à partir de ton poids et de la durée. Une estimation, mais une estimation qui tient compte de toi.</div>' +
+      '<div class="champ"><label>Durée</label><div class="chips">' +
+        [10,15,20,30,45,60,90,120].map(x => '<button class="chip ' + (min === x ? "on" : "") +
+          '" data-act="act-duree" data-id="' + x + '">' + (x >= 60 ? (x/60) + " h" : x + " min") + '</button>').join("") +
+      '</div></div>' +
+      '<div class="champ"><label>L\'activité</label>' +
+        '<input type="text" id="m-aq" autocomplete="off" placeholder="Chercher…" value="' + esc(m.q || "") + '"></div>' +
+      '<div class="ops" style="max-height:44vh;overflow:auto">' +
+      (() => {
+        const q = (m.q || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const l = ACTIVITES_SPORT.filter(a => !q ||
+          a[0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").indexOf(q) !== -1);
+        if(!l.length) return '<div class="vide">Rien trouvé sous ce nom.</div>';
+        return l.map(a => '<button class="op" data-act="act-ok" data-id="' + esc(a[0]) + '" data-met="' + a[1] + '">' +
+          '<span class="op-ic">' + svg("feu",15,1.8) + '</span>' +
+          '<span class="op-mid"><span class="op-lib">' + esc(a[0]) + '</span>' +
+          '<span class="op-met">' + min + ' min · MET ' + String(a[1]).replace(".",",") + '</span></span>' +
+          '<span class="op-mt">+' + kcal(kcalActivite(a[1], min)) + '</span></button>').join("");
+      })() +
+      '</div>' +
+      '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
+  }
+
   if(m.type === "confirm"){
     c = '<h3>' + esc(m.titre) + '</h3><div class="sous">' + esc(m.texte) + '</div>' +
       '<div class="btns" style="margin:18px 0 0"><button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Renoncer</button>' +
@@ -5409,6 +5529,34 @@ document.addEventListener("click", async ev => {
   }
 
   /* ---- eau ---- */
+  if(act === "ajouter-activite"){
+    ouvrirModal({ type:"activiteSport", min:30, q:"", date:jourVu() });
+    return;
+  }
+  if(act === "act-duree"){ state.modal.min = parseInt(id,10); render(); return; }
+  if(act === "act-ok"){
+    const m = state.modal;
+    const met = parseFloat(el.dataset.met);
+    const min = m.min || 30;
+    const k = kcalActivite(met, min);
+    const j = jour(m.date || jourVu());
+    j.sport.push({ i:uid(), n:id, met, m:min, k, t:Date.now() });
+    sauverJour(j);
+    fermerModal();
+    toast(id + " · " + min + " min · " + kcal(k) + " kcal" +
+      (DB.settings.crediterSport && DB.plan ? " ajoutées à ta cible" : ""));
+    return;
+  }
+  if(act === "suppr-activite"){
+    const j = jour(jourVu());
+    const a = (j.sport||[]).filter(x => x.i === id)[0];
+    if(!a) return;
+    corbeille = { jours:[JSON.parse(JSON.stringify(j))] };
+    j.sport = j.sport.filter(x => x.i !== id);
+    sauverJour(j); render();
+    toast(a.n + " retiré", "annuler-suppr");
+    return;
+  }
   if(act === "eau"){
     const j = jour(jourVu());
     j.eau = clamp((j.eau||0) + parseInt(id,10), 0, 30);
@@ -5699,6 +5847,11 @@ function ouvrirChoixProgramme(zone){
 
 /* Les champs de l'objectif rafraîchissent l'aperçu sans redessiner. */
 document.addEventListener("input", ev => {
+  if(ev.target && ev.target.id === "m-aq" && state.modal && state.modal.type === "activiteSport"){
+    state.modal.q = ev.target.value;
+    render();
+    return;
+  }
   if(ev.target && ev.target.id === "a-q" && state.sheet && state.sheet.type === "aliments"){
     state.q = ev.target.value;
     if(state.q) state.fCat = null;
