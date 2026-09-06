@@ -415,9 +415,14 @@ html[data-theme="sombre"] .photo img{filter:brightness(.9) contrast(1.03)}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "2.3.0";
+const VERSION = "2.4.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"2.4.0", d:"2026-09-06", t:"Le circuit, au choix", l:[
+    "Cinq séances de plus se font en circuit : les trois séances d'abdos de quinze minutes, et les deux séances de renfort du programme de perte de poids, dont les repos ont été raccourcis en conséquence. Dix séances types sur cinquante et une sont désormais des circuits.",
+    "N'importe quelle séance peut être basculée d'un format à l'autre depuis son écran : « Passer en circuit » ou « Revenir au format classique », pour cette séance seule ou pour toutes celles à venir du programme.",
+    "Les temps de repos sont convertis à la bascule — cent secondes entre deux séries deviennent quarante entre deux exercices — et retrouvent leur valeur d\'origine si l\'on revient en arrière."
+  ]},
   { v:"2.3.0", d:"2026-09-06", t:"Comment on enchaîne", l:[
     "Chaque séance annonce désormais son déroulement en tête de liste : « Un exercice à la fois » ou « En circuit », avec le nombre de tours quand il y en a.",
     "Le repos affiché sur chaque ligne indique ce qu'il sépare : « 100 s entre séries » dans une séance classique, « 30 s avant le suivant » dans un circuit.",
@@ -1659,13 +1664,13 @@ const PROGS = [
   { id:"abdos15", n:"Abdos & gainage — 15 minutes", z:"abdos", mat:0, sem:6, par:4, min:15, niv:"Tous niveaux",
     d:"Quatre séances courtes par semaine, à glisser n'importe où dans la journée. Rien à installer, rien à ranger.",
     mod:[
-      { n:"Gainage", k:110, b:[
+      { n:"Gainage", k:110, f:"circuit", b:[
         { e:"planche", s:3, t:30, r:40 }, { e:"plancheLat", s:3, t:25, r:40 },
         { e:"birdDog", s:3, x:10, r:40 }, { e:"hollow", s:3, t:20, r:40 } ] },
-      { n:"Abdos dynamiques", k:120, b:[
+      { n:"Abdos dynamiques", k:120, f:"circuit", b:[
         { e:"crunch", s:3, x:15, r:40 }, { e:"releveJambes", s:3, x:12, r:40 },
         { e:"bicyclette", s:3, x:20, r:40 }, { e:"twist", s:3, x:20, r:40 } ] },
-      { n:"Ceinture complète", k:130, b:[
+      { n:"Ceinture complète", k:130, f:"circuit", b:[
         { e:"plancheMD", s:3, x:10, r:40 }, { e:"mountain", s:3, t:30, r:35 },
         { e:"vups", s:3, x:10, r:40 }, { e:"plancheLat", s:3, t:25, r:40 } ] },
       { n:"Circuit court", k:140, f:"circuit", b:[
@@ -1714,17 +1719,17 @@ const PROGS = [
         { e:"genoux", s:4, t:30, r:30 }, { e:"squatSaute", s:4, x:10, r:45 },
         { e:"mountain", s:4, t:30, r:30 }, { e:"planche", s:3, t:30, r:40 },
         { e:"respiration", s:1, t:90 } ] },
-      { n:"Renfort haut du corps", k:250, b:[
-        { e:"jumping", s:1, t:90 }, { e:"pompes", s:3, x:10, r:60 },
-        { e:"rowTable", s:3, x:10, r:60 }, { e:"dipsBanc", s:3, x:10, r:60 },
-        { e:"crunch", s:3, x:15, r:45 }, { e:"plancheLat", s:3, t:25, r:45 } ] },
+      { n:"Renfort haut du corps", k:250, f:"circuit", b:[
+        { e:"jumping", s:1, t:90 }, { e:"pompes", s:3, x:10, r:30 },
+        { e:"rowTable", s:3, x:10, r:30 }, { e:"dipsBanc", s:3, x:10, r:30 },
+        { e:"crunch", s:3, x:15, r:25 }, { e:"plancheLat", s:3, t:25, r:45 } ] },
       { n:"Sortie longue", k:380, b:[
         { e:"marche", s:1, t:300 }, { e:"course", s:1, t:1500 },
         { e:"planche", s:3, t:30, r:45 }, { e:"etirIsch", s:1, t:60 } ] },
-      { n:"Renfort bas du corps", k:280, b:[
-        { e:"jumping", s:1, t:90 }, { e:"squat", s:4, x:15, r:60 },
-        { e:"fentes", s:3, x:12, r:60 }, { e:"pont", s:3, x:15, r:45 },
-        { e:"mollets", s:3, x:20, r:40 }, { e:"twist", s:3, x:20, r:45 },
+      { n:"Renfort bas du corps", k:280, f:"circuit", b:[
+        { e:"jumping", s:1, t:90 }, { e:"squat", s:4, x:15, r:30 },
+        { e:"fentes", s:3, x:12, r:30 }, { e:"pont", s:3, x:15, r:25 },
+        { e:"mollets", s:3, x:20, r:25 }, { e:"twist", s:3, x:20, r:25 },
         { e:"etirQuad", s:1, t:60 } ] }
     ] },
 
@@ -3497,6 +3502,26 @@ function retirerProgramme(run){
   return n;
 }
 
+/* Passer une séance en circuit, ou l'en sortir. Un temps de repos ne veut pas
+   dire la même chose dans les deux formats : cent secondes entre deux séries
+   du même exercice sont normales, cent secondes entre chaque exercice d'un
+   circuit en feraient tout autre chose. On les convertit donc, en gardant la
+   valeur d'origine pour pouvoir revenir en arrière. */
+function passerEnCircuit(s, circuit){
+  if(circuit){
+    s.fmt = "circuit";
+    s.b.forEach(l => {
+      if(!l.r) return;
+      if(l.r0 == null) l.r0 = l.r;
+      l.r = Math.max(20, Math.round(l.r * 0.4 / 5) * 5);
+    });
+  }else{
+    s.fmt = "classique";
+    s.b.forEach(l => { if(l.r0 != null){ l.r = l.r0; delete l.r0; } });
+  }
+  sauverSeance(s);
+}
+
 /* ---------- les charges soulevées ----------
    Une charge notée ne sert à rien si elle disparaît avec la séance : ce qui
    compte, c'est de savoir ce qu'on a soulevé la dernière fois. La mémoire est
@@ -4775,6 +4800,8 @@ function sheetSeance(sh){
   }
   h += '<div class="lig"><div class="l">L\'échauffement et la fin<div class="d">' +
     'La première ligne sert à monter en température, la dernière à redescendre : ni l\'une ni l\'autre ne se répète.</div></div></div>';
+  h += '<div class="btns" style="margin:12px 0 0"><button class="btn" style="flex:1" data-act="changer-format" data-id="' + s.id + '">' +
+    svg("echange",15) + (circuit ? "Revenir au format classique" : "Passer en circuit") + '</button></div>';
   h += '</div></div>';
 
   if(s.deload){
@@ -5206,6 +5233,24 @@ function vueModal(m){
       })() +
       '</div>' +
       '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
+  }
+
+  if(m.type === "format"){
+    const s2 = DB.seances[m.id];
+    if(!s2) return "";
+    const vers = s2.fmt === "circuit" ? "classique" : "circuit";
+    c = '<h3>' + (vers === "circuit" ? "Passer en circuit" : "Revenir au format classique") + '</h3>' +
+      '<div class="sous">' + (vers === "circuit"
+        ? "Une série de chaque exercice à la suite, puis on recommence. La séance dure un tiers de moins et fait bien plus monter le cœur, mais on soulève un peu moins lourd : c'est le bon choix quand on manque de temps ou qu'on cherche à dépenser, moins quand on cherche la force."
+        : "Toutes les séries d'un exercice, puis on passe au suivant. On soulève plus lourd, la séance est plus longue et moins essoufflante.") + '</div>' +
+      '<div class="aide">Les temps de repos sont convertis en conséquence, et retrouveront leur valeur d\'origine si tu changes d\'avis.</div>' +
+      '<button class="bascule" data-act="format-ok" data-id="' + m.id + '" data-tout="0">' +
+        '<span class="l">Cette séance seulement<span class="d">Les autres gardent leur format.</span></span>' +
+        '<span class="k"></span></button>' +
+      '<button class="bascule" data-act="format-ok" data-id="' + m.id + '" data-tout="1">' +
+        '<span class="l">Toutes les séances à venir<span class="d">Toutes celles de ce programme qui ne sont pas encore validées.</span></span>' +
+        '<span class="k"></span></button>' +
+      '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Renoncer</button></div>';
   }
 
   if(m.type === "confirm"){
@@ -5702,6 +5747,26 @@ document.addEventListener("click", async ev => {
     if(s && s.b[m.i]) delete s.b[m.i].kg;
     if(s) sauverSeance(s);
     fermerModal();
+    return;
+  }
+  if(act === "changer-format"){ ouvrirModal({ type:"format", id }); return; }
+  if(act === "format-ok"){
+    const s0 = DB.seances[id];
+    if(!s0) return;
+    const vers = s0.fmt !== "circuit";
+    const tout = el.dataset.tout === "1";
+    let n = 0;
+    if(tout){
+      const t = todayISO();
+      seancesDeProg(s0.run).forEach(x => {
+        if(x.fait || x.date < t) return;
+        passerEnCircuit(x, vers); n++;
+      });
+    }else{
+      passerEnCircuit(s0, vers); n = 1;
+    }
+    fermerModal(); render();
+    toast(n + (n > 1 ? " séances passées " : " séance passée ") + (vers ? "en circuit" : "au format classique"));
     return;
   }
   if(act === "cocher-exo"){
