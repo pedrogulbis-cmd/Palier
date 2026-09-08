@@ -332,6 +332,33 @@ html[data-theme="sombre"] .photo img{filter:brightness(.9) contrast(1.03)}
 .bd-txt{flex:1;min-width:0;font-size:13.5px;line-height:1.5;color:var(--gris)}
 @media(max-width:370px){.bd-fig{width:104px;flex:0 0 104px}.bd-txt{font-size:13px}}
 
+/* ---------------- compteur de séries et minuteurs ---------------- */
+.cpt{width:38px;height:32px;flex:0 0 38px;border-radius:9px;border:1.5px solid var(--trait);
+  display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gris)}
+.cpt.part{border-color:var(--accB);color:var(--acc);background:var(--accF)}
+.cpt.on{background:var(--acc);border-color:var(--acc);color:var(--surAcc)}
+#chrono{position:sticky;bottom:0;z-index:7;margin:14px -18px 0;
+  padding:11px 18px calc(11px + env(safe-area-inset-bottom));
+  background:var(--voile);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--trait);display:flex;gap:12px;align-items:center}
+#chrono .t{flex:1;min-width:0;font-size:12.5px;color:var(--gris)}
+#chrono .v{font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;
+  letter-spacing:-.02em;color:var(--acc);font-variant-numeric:tabular-nums}
+#chrono.fini .v{color:var(--ok)}
+#chrono.fini{background:var(--okF)}
+.chrono-grand{text-align:center;padding:18px 0 6px}
+.chrono-grand .v{font-family:"IBM Plex Mono",monospace;font-size:clamp(46px,16vw,64px);
+  font-weight:600;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
+.chrono-grand .v.fini{color:var(--ok)}
+.chrono-grand .l{font-size:13px;color:var(--gris);margin-top:6px}
+.compte{text-align:center;margin:10px 0 0}
+.compte .v{font-size:clamp(54px,18vw,76px);font-weight:600;letter-spacing:-.045em;line-height:1;
+  font-variant-numeric:tabular-nums;display:block}
+.compte .l{font-size:13px;color:var(--gris);margin-top:8px}
+.tapzone{width:100%;padding:22px 0;border-radius:14px;border:1.5px dashed var(--accB);
+  background:var(--accF);color:var(--acc);font-size:15px;font-weight:500;margin-top:14px}
+.tapzone:active{background:var(--acc);color:var(--surAcc);border-style:solid}
+
 /* ---------------- charges soulevées ---------------- */
 .chg{flex:0 0 auto;font-family:"IBM Plex Mono",monospace;font-size:12px;padding:5px 8px;
   border-radius:8px;border:1px solid var(--trait);color:var(--gris);background:var(--carte);white-space:nowrap}
@@ -415,9 +442,17 @@ html[data-theme="sombre"] .photo img{filter:brightness(.9) contrast(1.03)}
    Un seul fichier, aucune dépendance, stockage local (IndexedDB).
    ============================================================ */
 
-const VERSION = "2.4.0";
+const VERSION = "2.5.0";
 const SCHEMA  = 1;
 const JOURNAL = [
+  { v:"2.5.0", d:"2026-09-06", t:"Compter pendant la séance", l:[
+    "Chaque exercice porte maintenant un compteur de séries — 2/4 — au lieu d'une simple case. Une touche l'ouvre sans entrer dans la fiche.",
+    "Un grand bouton compte les répétitions une par une, avec un retour vibrant : plus besoin de tenir le compte dans sa tête. « Faite comme prévu » enregistre la série d'un coup quand ce n'est pas nécessaire.",
+    "Une fois la série validée, le minuteur de repos se lance tout seul en bas de l'écran et vibre à zéro. Il connaît la différence entre le repos d'entre les séries et celui, plus long, qui précède l'exercice suivant.",
+    "Les exercices qui se tiennent — gainage, planche, corde, marche — ouvrent un chronomètre à rebours, avec pause et remise à zéro, qui vibre et sonne quand le temps est écoulé.",
+    "Les répétitions réellement comptées corrigent la dépense de la séance : en faire plus rend davantage de calories à la journée, en faire moins en rend moins.",
+    "La dernière série s'annule d'une touche en cas de fausse manœuvre."
+  ]},
   { v:"2.4.0", d:"2026-09-06", t:"Le circuit, au choix", l:[
     "Cinq séances de plus se font en circuit : les trois séances d'abdos de quinze minutes, et les deux séances de renfort du programme de perte de poids, dont les repos ont été raccourcis en conséquence. Dix séances types sur cinquante et une sont désormais des circuits.",
     "N'importe quelle séance peut être basculée d'un format à l'autre depuis son écran : « Passer en circuit » ou « Revenir au format classique », pour cette séance seule ou pour toutes celles à venir du programme.",
@@ -3292,7 +3327,7 @@ function dette(){
 function seancesCreditees(iso){ return seancesDuJour(iso).filter(s => s.fait); }
 function activitesJour(iso){ const j = jourLu(iso); return (j && j.sport) || []; }
 function kcalSport(iso){
-  return seancesCreditees(iso).reduce((t,s) => t + (s.k||0), 0) +
+  return seancesCreditees(iso).reduce((t,s) => t + kcalSeance(s), 0) +
          activitesJour(iso).reduce((t,a) => t + (a.k||0), 0);
 }
 function creditSport(iso){
@@ -3502,6 +3537,128 @@ function retirerProgramme(run){
   return n;
 }
 
+/* ============================================================
+   LES MINUTEURS
+   Un repos ne se compte pas dans la tête entre deux séries : on regarde
+   ailleurs, on discute, et deux minutes passent. Deux minuteurs cohabitent —
+   celui du repos, en bas de l'écran, et celui de l'effort pour les exercices
+   qui se tiennent — et tous deux vibrent en arrivant à zéro.
+   ============================================================ */
+function mmss(sec){
+  const m = Math.floor(sec / 60), r = sec % 60;
+  return m + ":" + p2(r);
+}
+function bip(){
+  try{
+    const A = window.AudioContext || window.webkitAudioContext;
+    if(!A) return;
+    const a = new A();
+    const o = a.createOscillator(), g = a.createGain();
+    o.connect(g); g.connect(a.destination);
+    o.frequency.value = 880; g.gain.value = 0.001;
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.15, a.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.45);
+    setTimeout(() => { try{ o.stop(); a.close(); }catch(e){} }, 550);
+  }catch(e){}
+}
+function vibrer(m){ try{ if(navigator.vibrate) navigator.vibrate(m); }catch(e){} }
+
+let _tic = null;
+function tictac(){
+  if(!_tic) _tic = setInterval(majChronos, 200);
+}
+function majChronos(){
+  const r = state.repos, e = state.effort;
+  if(!r && !e){ if(_tic){ clearInterval(_tic); _tic = null; } return; }
+  if(r){
+    const reste = Math.max(0, Math.ceil((r.fin - Date.now()) / 1000));
+    const el = document.getElementById("chrono-repos");
+    if(el) el.textContent = mmss(reste);
+    const bar = document.getElementById("chrono");
+    if(bar) bar.classList.toggle("fini", reste === 0);
+    const lbl = document.getElementById("chrono-lbl");
+    if(lbl && reste === 0) lbl.textContent = "Repos terminé — c'est reparti";
+    if(reste === 0 && !r.sonne){ r.sonne = true; vibrer([180,90,180]); bip(); }
+  }
+  if(e){
+    const reste = e.marche ? Math.max(0, Math.ceil((e.fin - Date.now()) / 1000)) : e.restant;
+    const el = document.getElementById("chrono-effort");
+    if(el){
+      el.textContent = mmss(reste);
+      el.classList.toggle("fini", reste === 0);
+    }
+    if(reste === 0 && !e.sonne){
+      e.sonne = true; e.marche = false; e.restant = 0;
+      vibrer([250,120,250,120,250]); bip();
+      render();
+    }
+  }
+}
+function lancerRepos(sec, quoi){
+  if(!sec){ state.repos = null; return; }
+  state.repos = { fin:Date.now() + sec * 1000, dur:sec, quoi:quoi || "", sonne:false };
+  tictac();
+}
+function stopRepos(){ state.repos = null; const el = document.getElementById("chrono"); if(el) el.remove(); }
+function barreRepos(){
+  const r = state.repos;
+  if(!r) return "";
+  const reste = Math.max(0, Math.ceil((r.fin - Date.now()) / 1000));
+  return '<div id="chrono" class="' + (reste === 0 ? "fini" : "") + '">' +
+    '<span class="v" id="chrono-repos">' + mmss(reste) + '</span>' +
+    '<span class="t" id="chrono-lbl">' + esc(reste === 0 ? "Repos terminé — c'est reparti" : (r.quoi || "Repos")) + '</span>' +
+    '<button class="btn" style="padding:8px 12px" data-act="repos-stop">Passer</button></div>';
+}
+
+/* ============================================================
+   LE COMPTE DES SÉRIES
+   Chaque série validée est enregistrée avec le nombre de répétitions
+   réellement faites. C'est ce qui permet de savoir où l'on en est au milieu
+   d'un exercice, et d'ajuster la dépense quand on en fait plus que prévu.
+   ============================================================ */
+function seriesFaites(l){ return (l.sf || []).length; }
+function exoTermine(l){ return seriesFaites(l) >= l.s; }
+function travailPrevu(s){
+  return s.b.reduce((t,l) => t + l.s * (l.x ? l.x : (l.t ? l.t / 4 : 0)), 0);
+}
+function travailFait(s){
+  return s.b.reduce((t,l) => {
+    if(!l.sf || !l.sf.length){
+      /* Un exercice coché sans détail compte pour ce qui était prévu. */
+      return t + ((s.done || []).indexOf(s.b.indexOf(l)) !== -1
+        ? l.s * (l.x ? l.x : (l.t ? l.t / 4 : 0)) : 0);
+    }
+    return t + l.sf.reduce((u,v) => u + (l.x ? v : v / 4), 0);
+  }, 0);
+}
+/* La dépense réelle : celle du modèle, corrigée par ce qui a effectivement
+   été fait. Bornée, car le rapport ne dit rien de l'intensité. */
+function kcalSeance(s){
+  if(s.kr != null) return s.kr;
+  const prevu = travailPrevu(s);
+  if(!prevu) return s.k;
+  const fait = travailFait(s);
+  if(!fait) return s.k;
+  return Math.round(s.k * clamp(fait / prevu, 0.4, 1.6));
+}
+function validerSerie(s, i, valeur){
+  const l = s.b[i];
+  if(!l) return;
+  l.sf = l.sf || [];
+  l.sf.push(valeur);
+  s.done = s.done || [];
+  if(exoTermine(l) && s.done.indexOf(i) === -1) s.done.push(i);
+  sauverSeance(s);
+  /* Le repos qui suit dépend de ce qu'on vient de terminer : une série, ou
+     l'exercice entier. */
+  const circuit = s.fmt === "circuit";
+  if(!exoTermine(l))
+    lancerRepos(l.r || 60, "Repos · série " + (seriesFaites(l) + 1) + " sur " + l.s);
+  else
+    lancerRepos(circuit ? (l.r || 30) : Math.max(l.r || 0, 90), "Repos · exercice suivant");
+}
+
 /* Passer une séance en circuit, ou l'en sortir. Un temps de repos ne veut pas
    dire la même chose dans les deux formats : cent secondes entre deux séries
    du même exercice sont normales, cent secondes entre chaque exercice d'un
@@ -3643,7 +3800,8 @@ const TABS = [
 ];
 const state = { tab:"jour", sheet:null, modal:null, journal:false, neuf:false, quota:null,
                 passe:false, ajout:false, fZone:"tout", fMat:null, bPeriode:"90j",
-                q:"", fCat:null, panier:[], grouper:false, jourVu:null };
+                q:"", fCat:null, panier:[], grouper:false, jourVu:null,
+                repos:null, effort:null };
 
 function render(){
   const v = $("#view");
@@ -3824,7 +3982,7 @@ function vueJour(){
       '<span class="op-ic">' + svg("halt",15,1.8) + '</span>' +
       '<span class="op-mid"><span class="op-lib">' + esc(s2.n) + '</span>' +
       '<span class="op-met">' + (s2.fait ? "séance validée" : "séance prévue, pas encore validée") + '</span></span>' +
-      '<span class="op-mt ' + (s2.fait ? "c-ok" : "c-gris") + '">' + (s2.fait ? "+" : "") + kcal(s2.k) + '</span></button>';
+      '<span class="op-mt ' + (s2.fait ? "c-ok" : "c-gris") + '">' + (s2.fait ? "+" : "") + kcal(kcalSeance(s2)) + '</span></button>';
   });
   acts.forEach(a => {
     h += '<button class="op" data-act="suppr-activite" data-id="' + a.i + '">' +
@@ -3878,6 +4036,7 @@ function vueJour(){
     '<span class="op-mid"><span class="op-lib">' + (pj ? kg(pj) + " kg" : "Se peser") + '</span>' +
     '<span class="op-met">' + (pj ? "enregistré " + esc(relDate(t)) : "le matin, à jeun, c'est le plus fiable") + '</span></span>' +
     '<span class="sea-go">' + svg("chev",18) + '</span></button></div>';
+  if(!state.sheet) h += barreRepos();
   return h;
 }
 
@@ -4192,6 +4351,7 @@ function vueSport(){
   }
   h += '<div class="btns"><button class="btn" data-act="changer-programme">' + svg("echange",16) +
     'Repartir de zéro</button></div>';
+  if(!state.sheet) h += barreRepos();
   return h;
 }
 
@@ -4228,7 +4388,7 @@ function vueBilan(){
   const sf = seancesAll().filter(s => s.fait && (!dep || s.date >= dep));
   const libres = joursAll().filter(j => !dep || j.id >= dep)
     .reduce((t,j) => t + (j.sport||[]).reduce((u,a) => u + (a.k||0), 0), 0);
-  const brulees = sf.reduce((s,x) => s + (x.k||0), 0) + libres;
+  const brulees = sf.reduce((s,x) => s + kcalSeance(x), 0) + libres;
 
   h += '<div class="stats">' +
     '<div class="stat"><div class="v">' + (moy ? kcal(moy) : "—") + '</div><div class="l">kcal par jour en moyenne</div></div>' +
@@ -4471,6 +4631,13 @@ const GUIDE = [
     "Par défaut, une séance se fait <b>un exercice à la fois</b> : toutes les séries de la première ligne, puis la deuxième ligne. Entre deux exercices, compte une à deux minutes, le temps de t'installer.",
     "Certaines séances sont en <b>circuit</b> — une série de chaque exercice à la suite, puis on recommence. C'est écrit en haut de la séance, et le repos indiqué s'y applique entre deux exercices au lieu d'entre deux séries.",
     "Quand un exercice est donné en secondes — « 3 × 30 s » —, on tient la position ou on bouge pendant ce temps-là."
+  ]},
+  { t:"Compter pendant la séance", l:[
+    "Le compteur à gauche de chaque exercice indique les séries faites sur les séries prévues. Une touche l'ouvre : un grand bouton compte les répétitions une par une, pour ne plus perdre le fil.",
+    "« Faite comme prévu » enregistre la série d'un coup quand le compte est resté clair dans ta tête. « C'est bon » l'enregistre avec le nombre réellement compté — davantage si tu en as fait plus.",
+    "Dès qu'une série est validée, le minuteur de repos démarre en bas de l'écran et vibre quand il est écoulé. À la fin d'un exercice, il bascule sur le repos plus long qui précède l'exercice suivant.",
+    "Pour les exercices qui se tiennent — gainage, marche, corde —, le compteur ouvre un chronomètre à rebours qu'on démarre, met en pause et remet à zéro.",
+    "Les répétitions comptées corrigent la dépense estimée de la séance : en faire plus que prévu se voit dans les calories rendues à la journée."
   ]},
   { t:"Quel effort mettre", l:[
     "La bonne intensité, ce n'est ni la douleur ni la facilité : à la fin d'une série, il doit rester deux ou trois répétitions en réserve. Pas dix, pas zéro.",
@@ -4767,7 +4934,8 @@ function sheetSeance(sh){
       (s.bloc ? ' · bloc ' + s.bloc : "") + '</div>' +
     '<span class="total-val num" style="font-size:clamp(26px,8vw,34px)">' + s.b.length + '<span class="u">exercices</span></span>' +
     '<div class="total-sub"><span><b>' + s.min + '</b> min environ</span>' +
-      '<span>≈ <b>' + kcal(s.k) + '</b> kcal</span>' +
+      '<span>≈ <b>' + kcal(kcalSeance(s)) + '</b> kcal' +
+        (kcalSeance(s) !== s.k ? ' <span class="c-gris">au lieu de ' + kcal(s.k) + '</span>' : "") + '</span>' +
       (s.fait ? '<span class="c-ok"><b class="c-ok">terminée</b></span>' : "") +
       (!s.fait && s.date < t ? '<span class="c-att">passée</span>' : "") + '</div></section>';
 
@@ -4809,7 +4977,7 @@ function sheetSeance(sh){
       '<b>Semaine allégée.</b> Une série de moins, le bas de la fourchette de répétitions. Ce n\'est pas une semaine perdue : c\'est là que le corps encaisse ce que les trois précédentes lui ont demandé. Ne la saute pas, et ne la charge pas.</div>';
   }
   if(!s.fait){
-    h += '<div class="aide" style="margin:12px 0 0">Coche les exercices au fil de la séance. Touche un exercice pour voir le mouvement, les conseils, le dosage, ou le remplacer.' +
+    h += '<div class="aide" style="margin:12px 0 0">Touche le compteur à gauche d\'un exercice pour compter tes répétitions série par série : le repos se déclenche tout seul dès que tu valides. Touche le nom pour voir le mouvement, les conseils, le dosage ou le remplacer.' +
       (s.obj ? ' Objectif en cours : ' + esc(objNom(s.obj)) + '.' : "") +
       ' <button style="color:var(--acc);text-decoration:underline;text-underline-offset:3px" data-act="ouvrir-guide">Première séance ?</button></div>';
   }
@@ -4819,15 +4987,21 @@ function sheetSeance(sh){
     const eid = resoudre(l.e);
     const e = EXOS[eid] || {};
     const ok = done.indexOf(i) !== -1;
+    const nf = seriesFaites(l);
     h += '<div class="exo' + (ok ? " done" : "") + '">' +
-      '<button class="chk ' + (ok ? "on" : "") + '" data-act="cocher-exo" data-id="' + s.id + '" data-i="' + i +
-        '" aria-label="Cocher">' + svg("check",14,3) + '</button>' +
+      (l.s > 1
+        ? '<button class="cpt ' + (ok ? "on" : (nf ? "part" : "")) + '" data-act="ouvrir-serie" data-id="' + s.id +
+          '" data-i="' + i + '" aria-label="Compter les séries">' +
+          (ok ? svg("check",14,3) : nf + "/" + l.s) + '</button>'
+        : '<button class="chk ' + (ok ? "on" : "") + '" data-act="cocher-exo" data-id="' + s.id + '" data-i="' + i +
+          '" aria-label="Cocher">' + svg("check",14,3) + '</button>') +
       '<button class="exo-f" data-act="ouvrir-exo" data-id="' + l.e + '" data-sid="' + s.id + '" data-i="' + i + '" aria-label="' + esc(e.n||"") + '">' +
         figSVG(e.fig) + '</button>' +
       '<button class="exo-mid" style="text-align:left" data-act="ouvrir-exo" data-id="' + l.e + '" data-sid="' + s.id + '" data-i="' + i + '">' +
         '<span class="exo-n">' + esc(e.n || l.e) +
           (estRemplace(l.e) ? '<span class="badge acc">remplacé</span>' : "") + '</span>' +
-        '<span class="exo-s">' + esc(fmtLigne(l, circuit)) + '</span></button>' +
+        '<span class="exo-s">' + esc(fmtLigne(l, circuit)) +
+          ((l.sf && l.sf.length) ? ' · ' + esc(l.sf.map(v => l.t ? v + " s" : v).join(", ")) : "") + '</span></button>' +
       (chargeable(eid) ? (() => {
         const mem = derniereCharge(eid);
         const v = l.kg != null ? l.kg : (mem ? mem.kg : null);
@@ -4843,6 +5017,7 @@ function sheetSeance(sh){
   h += '<div class="btns grow" style="margin-top:18px">' +
     '<button class="btn ' + (s.fait ? "" : "pri") + '" data-act="basculer-seance" data-id="' + s.id + '">' +
       svg("check",16,2.2) + (s.fait ? "Annuler la validation" : "Terminer la séance") + '</button></div>';
+  h += barreRepos();
   h += '<div class="aide" style="text-align:center">' +
     (circuit ? 'Circuit : une série de chaque exercice à la suite, puis on recommence.'
              : 'Toutes les séries d\'un exercice, puis on passe au suivant.') +
@@ -5233,6 +5408,56 @@ function vueModal(m){
       })() +
       '</div>' +
       '<div class="btns" style="margin:14px 0 0"><button class="btn" style="flex:1" data-act="fermer-modal">Fermer</button></div>';
+  }
+
+  if(m.type === "serie"){
+    const s2 = DB.seances[m.sid];
+    const l = s2 ? s2.b[m.i] : null;
+    if(!l) return "";
+    const e = EXOS[resoudre(l.e)] || {};
+    const nf = seriesFaites(l);
+    const num = Math.min(l.s, nf + 1);
+    const tps = !!l.t;
+    c = '<h3>' + esc(e.n || "") + '</h3>' +
+      '<div class="sous">Série ' + num + ' sur ' + l.s +
+        (tps ? ' · ' + l.t + ' secondes à tenir' : ' · objectif ' + l.x + ' répétitions') +
+        (nf ? ' · déjà faites : ' + l.sf.map(v => tps ? v + " s" : v).join(", ") : "") + '</div>';
+
+    if(tps){
+      const ef = state.effort || { dur:l.t, restant:l.t, marche:false };
+      const reste = ef.marche ? Math.max(0, Math.ceil((ef.fin - Date.now()) / 1000)) : ef.restant;
+      c += '<div class="chrono-grand"><span class="v ' + (reste === 0 ? "fini" : "") + '" id="chrono-effort">' +
+        mmss(reste) + '</span>' +
+        '<div class="l">' + (reste === 0 ? "Terminé — valide la série"
+          : (ef.marche ? "En cours, tiens la position" : "Prêt à démarrer")) + '</div></div>';
+      c += '<div class="btns grow" style="margin-top:12px">' +
+        '<button class="btn ' + (ef.marche ? "" : "pri") + '" data-act="effort-go">' +
+          (ef.marche ? "Mettre en pause" : (reste === ef.dur ? "Démarrer" : "Reprendre")) + '</button>' +
+        '<button class="btn" data-act="effort-raz">Remettre à zéro</button></div>';
+      c += '<div class="btns" style="margin:10px 0 0">' +
+        '<button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Fermer</button>' +
+        '<button class="btn ' + (reste === 0 ? "pri" : "") + '" style="flex:1" data-act="serie-ok" data-v="' +
+          (ef.dur - reste) + '">C\'est bon</button></div>';
+    }else{
+      const n = m.n || 0;
+      c += '<div class="compte"><span class="v ' + (n >= l.x ? "c-ok" : "") + '">' + n + '</span>' +
+        '<div class="l">répétition' + (n > 1 ? "s" : "") + ' comptée' + (n > 1 ? "s" : "") +
+        ' · objectif ' + l.x + '</div></div>';
+      c += '<button class="tapzone" data-act="serie-plus">' + svg("plus",18,2.4) +
+        ' Une répétition de plus</button>';
+      c += '<div class="btns" style="margin:10px 0 0">' +
+        '<button class="btn" style="flex:0 0 auto" data-act="serie-moins" ' + (n ? "" : "disabled") + '>−1</button>' +
+        '<button class="btn" style="flex:1" data-act="serie-ok" data-v="' + l.x + '">Faite comme prévu (' + l.x + ')</button></div>';
+      c += '<div class="btns" style="margin:9px 0 0">' +
+        '<button class="btn" style="flex:0 0 auto" data-act="fermer-modal">Fermer</button>' +
+        '<button class="btn ' + (n >= l.x ? "pri" : "") + '" style="flex:1" data-act="serie-ok" data-v="' + n + '" ' +
+          (n ? "" : "disabled") + '>C\'est bon' + (n ? " · " + n : "") + '</button></div>';
+      if(n >= l.x)
+        c += '<div class="aide" style="text-align:center">Objectif atteint. Valide pour lancer le repos, ou continue à compter si tu en fais plus.</div>';
+    }
+    if(nf)
+      c += '<div class="btns" style="margin:12px 0 0"><button class="btn dang" style="flex:1" data-act="serie-annuler">' +
+        'Annuler la dernière série</button></div>';
   }
 
   if(m.type === "format"){
@@ -5705,10 +5930,16 @@ document.addEventListener("click", async ev => {
     if(!s) return;
     s.fait = !s.fait;
     s.faitLe = s.fait ? Date.now() : 0;
+    /* La dépense se fige au moment de valider, à partir de ce qui a été
+       réellement compté — sans quoi cocher les cases restantes gonflerait
+       le total après coup. */
+    if(s.fait) s.kr = kcalSeance(s);
+    else delete s.kr;
     if(s.fait && (!s.done || s.done.length !== s.b.length)) s.done = s.b.map((x,i) => i);
-    if(!s.fait) s.done = [];
+    if(!s.fait){ s.done = []; s.b.forEach(l => { delete l.sf; }); }
     sauverSeance(s);
-    if(s.fait){ state.sheet = null; render(); toast("Séance terminée" + (DB.settings.crediterSport && DB.plan ? " · +" + kcal(s.k) + " kcal aujourd'hui" : "")); }
+    stopRepos(); state.effort = null;
+    if(s.fait){ state.sheet = null; render(); toast("Séance terminée" + (DB.settings.crediterSport && DB.plan ? " · +" + kcal(kcalSeance(s)) + " kcal aujourd'hui" : "")); }
     else render();
     return;
   }
@@ -5769,6 +6000,80 @@ document.addEventListener("click", async ev => {
     toast(n + (n > 1 ? " séances passées " : " séance passée ") + (vers ? "en circuit" : "au format classique"));
     return;
   }
+  if(act === "ouvrir-serie"){
+    const s0 = DB.seances[id];
+    const i = parseInt(el.dataset.i, 10);
+    const l = s0 ? s0.b[i] : null;
+    if(!l) return;
+    if(exoTermine(l)){
+      /* Exercice déjà bouclé : on propose de reprendre la dernière série
+         plutôt que d'en ajouter une de trop par mégarde. */
+      ouvrirModal({ type:"serie", sid:id, i, n:0 });
+      return;
+    }
+    state.effort = l.t ? { dur:l.t, restant:l.t, marche:false, sonne:false } : null;
+    ouvrirModal({ type:"serie", sid:id, i, n:0 });
+    return;
+  }
+  if(act === "serie-plus"){
+    state.modal.n = (state.modal.n || 0) + 1;
+    vibrer(12);
+    render();
+    return;
+  }
+  if(act === "serie-moins"){
+    state.modal.n = Math.max(0, (state.modal.n || 0) - 1);
+    render();
+    return;
+  }
+  if(act === "serie-ok"){
+    const m = state.modal;
+    const s0 = DB.seances[m.sid];
+    const l = s0 ? s0.b[m.i] : null;
+    if(!l) return;
+    const v = Math.max(1, Math.round(parseFloat(el.dataset.v) || (l.x || l.t || 1)));
+    validerSerie(s0, m.i, v);
+    state.effort = null;
+    fermerModal();
+    const reste = l.s - seriesFaites(l);
+    toast(exoTermine(l)
+      ? (EXOS[resoudre(l.e)] || {}).n + " terminé · " + (l.t ? "repos" : v + " répétitions")
+      : "Série " + seriesFaites(l) + " sur " + l.s + " · encore " + reste);
+    return;
+  }
+  if(act === "serie-annuler"){
+    const m = state.modal;
+    const s0 = DB.seances[m.sid];
+    const l = s0 ? s0.b[m.i] : null;
+    if(!l || !l.sf || !l.sf.length) return;
+    l.sf.pop();
+    s0.done = (s0.done || []).filter(x => x !== m.i);
+    sauverSeance(s0);
+    stopRepos();
+    render();
+    return;
+  }
+  if(act === "effort-go"){
+    const e = state.effort;
+    if(!e) return;
+    if(e.marche){
+      e.restant = Math.max(0, Math.ceil((e.fin - Date.now()) / 1000));
+      e.marche = false;
+    }else{
+      if(e.restant <= 0) e.restant = e.dur;
+      e.fin = Date.now() + e.restant * 1000;
+      e.marche = true; e.sonne = false;
+      tictac();
+    }
+    render();
+    return;
+  }
+  if(act === "effort-raz"){
+    if(state.effort){ state.effort.restant = state.effort.dur; state.effort.marche = false; state.effort.sonne = false; }
+    render();
+    return;
+  }
+  if(act === "repos-stop"){ stopRepos(); render(); return; }
   if(act === "cocher-exo"){
     const s = DB.seances[id];
     if(!s) return;
